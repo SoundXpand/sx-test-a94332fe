@@ -33,6 +33,7 @@ import { Route as AuthenticatedArtistsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedApprovalQueueRouteImport } from './routes/_authenticated/approval-queue'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedReleasesIndexRouteImport } from './routes/_authenticated/releases.index'
+import { Route as AuthenticatedUsersUsernameRouteImport } from './routes/_authenticated/users.$username'
 import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authenticated/tools.dsp-lookup'
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 import { Route as AuthenticatedReleasesIdRouteImport } from './routes/_authenticated/releases.$id'
@@ -161,6 +162,12 @@ const AuthenticatedReleasesIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedReleasesRoute,
   } as any)
+const AuthenticatedUsersUsernameRoute =
+  AuthenticatedUsersUsernameRouteImport.update({
+    id: '/$username',
+    path: '/$username',
+    getParentRoute: () => AuthenticatedUsersRoute,
+  } as any)
 const AuthenticatedToolsDspLookupRoute =
   AuthenticatedToolsDspLookupRouteImport.update({
     id: '/dsp-lookup',
@@ -210,7 +217,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tools': typeof AuthenticatedToolsRouteWithChildren
-  '/users': typeof AuthenticatedUsersRoute
+  '/users': typeof AuthenticatedUsersRouteWithChildren
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
@@ -218,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/releases/': typeof AuthenticatedReleasesIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
@@ -239,7 +247,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tools': typeof AuthenticatedToolsRouteWithChildren
-  '/users': typeof AuthenticatedUsersRoute
+  '/users': typeof AuthenticatedUsersRouteWithChildren
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
@@ -247,6 +255,7 @@ export interface FileRoutesByTo {
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/releases': typeof AuthenticatedReleasesIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
@@ -271,7 +280,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRouteWithChildren
-  '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/users': typeof AuthenticatedUsersRouteWithChildren
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
@@ -279,6 +288,7 @@ export interface FileRoutesById {
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
   '/_authenticated/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/_authenticated/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/_authenticated/releases/': typeof AuthenticatedReleasesIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
+    | '/users/$username'
     | '/releases/'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesByTo: FileRoutesByTo
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
+    | '/users/$username'
     | '/releases'
     | '/api/public/dsp-webhook/$platform'
   id:
@@ -371,6 +383,7 @@ export interface FileRouteTypes {
     | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
     | '/_authenticated/tools/dsp-lookup'
+    | '/_authenticated/users/$username'
     | '/_authenticated/releases/'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesById: FileRoutesById
@@ -557,6 +570,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReleasesIndexRouteImport
       parentRoute: typeof AuthenticatedReleasesRoute
     }
+    '/_authenticated/users/$username': {
+      id: '/_authenticated/users/$username'
+      path: '/$username'
+      fullPath: '/users/$username'
+      preLoaderRoute: typeof AuthenticatedUsersUsernameRouteImport
+      parentRoute: typeof AuthenticatedUsersRoute
+    }
     '/_authenticated/tools/dsp-lookup': {
       id: '/_authenticated/tools/dsp-lookup'
       path: '/dsp-lookup'
@@ -623,6 +643,17 @@ const AuthenticatedToolsRouteChildren: AuthenticatedToolsRouteChildren = {
 const AuthenticatedToolsRouteWithChildren =
   AuthenticatedToolsRoute._addFileChildren(AuthenticatedToolsRouteChildren)
 
+interface AuthenticatedUsersRouteChildren {
+  AuthenticatedUsersUsernameRoute: typeof AuthenticatedUsersUsernameRoute
+}
+
+const AuthenticatedUsersRouteChildren: AuthenticatedUsersRouteChildren = {
+  AuthenticatedUsersUsernameRoute: AuthenticatedUsersUsernameRoute,
+}
+
+const AuthenticatedUsersRouteWithChildren =
+  AuthenticatedUsersRoute._addFileChildren(AuthenticatedUsersRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedApprovalQueueRoute: typeof AuthenticatedApprovalQueueRoute
@@ -638,7 +669,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRouteWithChildren
-  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedUsersRoute: typeof AuthenticatedUsersRouteWithChildren
   AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
 }
 
@@ -657,7 +688,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRouteWithChildren,
-  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedUsersRoute: AuthenticatedUsersRouteWithChildren,
   AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
 }
 
