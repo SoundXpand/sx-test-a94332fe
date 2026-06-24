@@ -32,7 +32,7 @@ export async function buildReleaseZip(release: any): Promise<Blob> {
     ? ts.map((t, i) => {
         const r = buildReleaseMetadataRow(release, t, i + 1);
         // Override audio filename to renamed scheme
-        r["Recording audio file name"] = `${base}_${String(i + 1).padStart(2, "0")}.${extOf(t.audio_path)}`;
+        r["Recording audio file name"] = `${base}_${String(i + 1).padStart(2, "0")}.${extOf(t.audio_path || "")}`;
         r["Release cover image file name"] = `${base}.${extOf(release.artwork_path || "", "jpg")}`;
         return r;
       })
