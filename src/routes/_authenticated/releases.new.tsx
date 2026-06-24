@@ -761,13 +761,22 @@ function NewRelease() {
                     <Button size="sm" variant="ghost" onClick={() => setStores([])}>Deselect all</Button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {STORES.filter(s => s.toLowerCase().includes(storeQuery.toLowerCase())).map(s => {
                     const on = stores.includes(s);
+                    const logo = STORE_LOGO[s];
                     return (
                       <button key={s} onClick={() => setStores(on ? stores.filter(x => x !== s) : [...stores, s])}
-                        className={`p-3 rounded-xl border text-sm transition flex items-center gap-2 ${on ? "border-primary bg-primary/10" : "border-border text-muted-foreground hover:border-primary/50"}`}>
-                        {on && <Check className="h-4 w-4 text-primary" />}{s}
+                        className={`p-2.5 rounded-xl border text-sm text-left transition flex items-center gap-2.5 ${on ? "border-primary bg-primary/10" : "border-border text-muted-foreground hover:border-primary/50"}`}>
+                        <span className="h-8 w-8 shrink-0 rounded-md bg-background border border-border grid place-items-center overflow-hidden">
+                          {logo ? (
+                            <img src={logo} alt="" className="h-5 w-5 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                          ) : (
+                            <span className="text-[10px] font-semibold">{s.slice(0, 2).toUpperCase()}</span>
+                          )}
+                        </span>
+                        <span className="flex-1 line-clamp-2 text-foreground">{s}</span>
+                        {on && <Check className="h-4 w-4 text-primary shrink-0" />}
                       </button>
                     );
                   })}
@@ -775,13 +784,13 @@ function NewRelease() {
               </div>
               <div>
                 <Label className="text-sm">Territory</Label>
-                <Select value={territory} onValueChange={v => setTerritory(v as any)}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="worldwide">Worldwide</SelectItem>
-                    <SelectItem value="custom">Custom countries</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="mt-1.5">
+                  <TerritoryPicker
+                    worldwide={territoryWorldwide}
+                    countries={territoryCountries}
+                    onChange={({ worldwide, countries }) => { setTerritoryWorldwide(worldwide); setTerritoryCountries(countries); }}
+                  />
+                </div>
               </div>
               <div>
                 <Label className="text-sm">Pricing tier</Label>
