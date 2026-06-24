@@ -177,6 +177,28 @@
   --hairline-strong: oklch(0.18 0.02 285 / 14%);
 }
 
+/* Legacy AssetWise landing tokens — kept for back-compat until Phase 2 wipes those routes */
+:root {
+  --landing-bg: var(--background);
+  --landing-dark: var(--foreground);
+  --landing-dark-subtle: var(--muted-foreground);
+  --landing-light: var(--background);
+  --landing-light-muted: var(--muted-foreground);
+  --landing-accent: var(--primary);
+  --landing-accent-soft: var(--accent);
+  --landing-grid: var(--hairline);
+}
+@theme inline {
+  --color-landing-bg: var(--landing-bg);
+  --color-landing-dark: var(--landing-dark);
+  --color-landing-dark-subtle: var(--landing-dark-subtle);
+  --color-landing-light: var(--landing-light);
+  --color-landing-light-muted: var(--landing-light-muted);
+  --color-landing-accent: var(--landing-accent);
+  --color-landing-accent-soft: var(--landing-accent-soft);
+  --color-landing-grid: var(--hairline);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
