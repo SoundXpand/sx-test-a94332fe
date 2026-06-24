@@ -1,86 +1,59 @@
-## 1. Fix `/users/SX003` not rendering
+# Plan
 
-`src/routes/_authenticated/users.tsx` is the listing page but has a sibling `users.$username.tsx`, which turns it into a parent layout. Without `<Outlet />` the detail route matches but nothing renders.
+Scope-limited changes across catalog, release wizard, settings, support, sidebar, and auth.
 
-- Rename `src/routes/_authenticated/users.tsx` → `users.index.tsx` (keeps URL `/users`, same code).
-- Create a new pathless layout `src/routes/_authenticated/users.route.tsx` (or `users.tsx` containing just `() => <Outlet />`) so `/users/$username` mounts.
+## 1. Catalog drafts (`src/routes/_authenticated/catalog.tsx`)
+- "Continue where you left off" card: slice `drafts` to last 2 (already ordered by `updated_at` desc).
+- Add a small trash icon button next to each draft → confirm dialog → `delete from release_drafts where id = ?` → reload.
+- Add a "View all drafts" link if `drafts.length > 2`.
+- "All your releases in one place" table: merge in drafts as synthetic rows with `status = 'draft'` so the existing tab filter (`draft`) shows them. Clicking a draft row opens `/releases/new?draft=<id>` instead of `/releases/$id`. Distinguish with a "Draft" subtle pill.
 
-## 2. New Release wizard — Release details (Step 1)
+## 2. Release wizard (`src/routes/_authenticated/releases.new.tsx`)
+- **Single track toggle behavior**:
+  - Auto-enable toggle when `release_type === "single"`; auto-disable + allow add when other types.
+  - When toggle is OFF, derive `release_type` from track count: `1 → single`, `2 → ep` (per user's wording "1+ track EP" — clarify wording: treat 2–6 as `ep`, 7+ as `album`). Use: `length === 1 → single`, `length >= 2 && length < 7 → ep`, `length >= 7 → album`. Set on track add/remove.
+  - When toggle ON, force tracks to length 1, lock add/duplicate (existing behavior).
+- **C Year / P Year defaults**: default to current year (`new Date().getFullYear()` = 2026). Dropdown options: extend `P_YEARS` to include next year dynamically (`currentYear + 1`). Update `src/lib/release-options.ts` to compute years 1950..currentYear+1.
+- **Dropdown scroll fix**: Year/Language/Genre selects use shadcn `<Select>`. Wrap long `SelectContent` with `max-h-[300px] overflow-y-auto` on the content (shadcn already provides scroll buttons; ensure wheel scroll works by adding `className="max-h-72"` on `SelectContent`). Audit all three dropdowns in Step 1 and any track-level genre dropdown.
 
-Restructure the first step. Final field order:
+## 3. Settings — Payout preferences (`src/routes/_authenticated/settings.tsx`)
+New card "Payment & withdrawals":
+- Method dropdown: UPI / Bank transfer / PayPal.
+- Conditional fields:
+  - UPI → `upi_id`
+  - Bank transfer → `account_holder`, `account_number`, `ifsc_or_routing`, `bank_name`, `swift` (optional)
+  - PayPal → `paypal_email`
+- Persist to `profiles` via new columns: `payout_method`, `payout_details jsonb`. Migration required.
 
-```
-Release title *        |  Version (beside title)
-Release type *         |  Catalog number * (auto: SXM0001, unique)
-Select artists *       |  Label name * (from profile.label_name, editable; sub-labels dropdown)
-Primary genre *        |  Sub genre        ← dropdown from GENRES (spec list)
-Language *             |  ← dropdown from LANGUAGES (spec list)
-Original release date *(req if UPC set)  |  UPC / Barcode (placeholder "8888888888")
-P Year * | P Name *    |  C Year | C Name *
-Parental advisory toggle
-```
+## 4. Sidebar (`src/components/dashboard/app-sidebar.tsx`)
+Remove "DSP lookup" entries from artist, manager, administrator nav arrays. Keep the route file intact (still reachable by URL).
 
-Removed from step 1: Description (deleted entirely), Copyright info, Producer info, separate Release date (moves to Distribution remains), the old "Select artists" that lived on Distribution moves here.
+## 5. Support tickets visibility
+- **User side (`support.tsx`)**: already scoped via RLS to creator — verify it lists only `user_id = auth.uid()` tickets. No code change unless leak found.
+- **Admin tickets (`admin.tickets.tsx`)**: Add user profile link. Fetch `profiles(username, full_name)` joined via `support_tickets.user_id`. Show "Opened by @SX003" in the row and sheet header → link to `/users/$username`.
 
-Rules:
-- Catalog number auto-generates `SXM####` on mount when blank; check `releases.catalog_number` uniqueness on submit, regenerate if collision.
-- ISRC field on tracks gets placeholder `e.g. USRC17607839`; UPC placeholder `8888888888`.
-- Label name input is pre-filled from `profiles.label_name`; "Sub label" dropdown lists user's saved sub-labels (see §5).
-- Genre + Sub genre + Language: replace text Inputs with `Select` populated from full spec lists, stored in `src/lib/release-options.ts` (LANGUAGES, GENRES, P_YEARS 1950–2027).
-- `original_release_date` becomes required client-side when `upc` is non-empty.
-- `release.role_type` shown as read-only badge taken from `profiles.role_type` (Artist/Label/Songwriter/Publisher).
+## 6. User catalog access for admin (`src/routes/_authenticated/users.$username.tsx`)
+Add a "Releases" section listing all releases owned by that user with link to `/releases/$id`. Admin only (RLS already permits administrators to read all releases via existing policy — verify; otherwise add an admin select policy).
 
-## 3. Distribution (Step 5)
+## 7. Auth hash routing (`src/routes/auth.tsx`)
+- Read `window.location.hash` on mount: `#login` → show login, `#register` → show register step 1.
+- Update tab/toggle clicks to push `history.replaceState(null, '', '#login'|'#register')`.
+- Default (no hash) stays on current default.
 
-- Remove the "Select artists *" field (moved to Step 1).
-- Keep Release date, stores, territory, pricing as-is.
-
-## 4. Tracks (Step 3)
-
-- Add a toggle near the Duplicate button: **"Single track release?"** — when ON: hide Add track / Duplicate buttons, force `tracks.length === 1`, and force `release.release_type = "single"`.
-- When `release.release_type === "single"`: lock `tracks.length` to 1, hide Add/Duplicate, and prefill Track 1's `title`, `version`, `artist_ids`, `language`, `primary_genre` from the release-level values whenever those fields are still blank.
-- Add **Version** input beside Title on each track (already exists — just re-layout).
-- Track language + (new) Track genre: same `Select` dropdowns as release.
-- ISRC placeholder added.
-
-## 5. Settings — Label details enhancements
-
-Extend the Label details card in `src/routes/_authenticated/settings.tsx`:
-
-- `label_name` input (existing).
-- New: **Sub labels** — list + "Add sub-label" inline editor. Stored as `profiles.sub_labels text[]` (new column).
-- Surface this list in the wizard's "Sub label" dropdown.
-
-## 6. Database migration
-
-Single migration:
-
+## Database migration
 ```sql
-ALTER TABLE public.profiles    ADD COLUMN IF NOT EXISTS sub_labels text[] DEFAULT '{}';
-ALTER TABLE public.releases    ADD COLUMN IF NOT EXISTS sub_label text;
-ALTER TABLE public.releases    ADD COLUMN IF NOT EXISTS p_year int;
-ALTER TABLE public.releases    ADD COLUMN IF NOT EXISTS p_name text;
-ALTER TABLE public.releases    ADD COLUMN IF NOT EXISTS c_year int;
-ALTER TABLE public.releases    ADD COLUMN IF NOT EXISTS c_name text;
-ALTER TABLE public.release_tracks ADD COLUMN IF NOT EXISTS primary_genre text;
-CREATE UNIQUE INDEX IF NOT EXISTS releases_catalog_number_key
-  ON public.releases (catalog_number) WHERE catalog_number IS NOT NULL;
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS payout_method text,
+  ADD COLUMN IF NOT EXISTS payout_details jsonb DEFAULT '{}'::jsonb;
 ```
-
-No new tables → no new GRANTs needed.
-
-## 7. Submit payload
-
-- Include `p_year`, `p_name`, `c_year`, `c_name`, `sub_label` in release insert/update.
-- Per-track insert: include `primary_genre`.
-- Drop `description`, `producer_info`, `copyright_info` from the form state and payload.
-
-## 8. New constants file
-
-`src/lib/release-options.ts` — exports `LANGUAGES`, `GENRES`, `P_YEARS` from the lists in the user message; imported by Step 1, Step 3, and the existing release detail/edit views.
+No new tables, no RLS changes (profiles already user-scoped). If admin can't read other users' releases, add:
+```sql
+CREATE POLICY "Admins read all releases" ON public.releases FOR SELECT
+  TO authenticated USING (public.has_role(auth.uid(), 'administrator'));
+```
+(only if missing — will verify first).
 
 ## Out of scope
+- No changes to wizard steps 2/4/6, no changes to release submission payload beyond release_type derivation, no payout processing logic (storage only), no support RLS rewrite if already correct.
 
-- Backfilling existing releases with new copyright fields.
-- Reworking the Artwork, Audio, or Review steps.
-- Admin-side changes (admin already sees these fields through the existing detail view once columns exist).
+Confirm and I'll implement.
