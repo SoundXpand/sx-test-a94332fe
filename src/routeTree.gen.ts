@@ -35,6 +35,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authenticated/tools.dsp-lookup'
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 import { Route as AuthenticatedReleasesIdRouteImport } from './routes/_authenticated/releases.$id'
+import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated/admin.tickets'
 import { Route as ApiPublicDspWebhookPlatformRouteImport } from './routes/api/public/dsp-webhook/$platform'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -170,6 +171,12 @@ const AuthenticatedReleasesIdRoute = AuthenticatedReleasesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedReleasesRoute,
 } as any)
+const AuthenticatedAdminTicketsRoute =
+  AuthenticatedAdminTicketsRouteImport.update({
+    id: '/admin/tickets',
+    path: '/admin/tickets',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicDspWebhookPlatformRoute =
   ApiPublicDspWebhookPlatformRouteImport.update({
     id: '/api/public/dsp-webhook/$platform',
@@ -200,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
@@ -228,6 +236,7 @@ export interface FileRoutesByTo {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
@@ -258,6 +267,7 @@ export interface FileRoutesById {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
   '/_authenticated/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
@@ -345,6 +357,7 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/_authenticated/admin/tickets'
     | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
     | '/_authenticated/tools/dsp-lookup'
@@ -547,6 +560,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReleasesIdRouteImport
       parentRoute: typeof AuthenticatedReleasesRoute
     }
+    '/_authenticated/admin/tickets': {
+      id: '/_authenticated/admin/tickets'
+      path: '/admin/tickets'
+      fullPath: '/admin/tickets'
+      preLoaderRoute: typeof AuthenticatedAdminTicketsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/dsp-webhook/$platform': {
       id: '/api/public/dsp-webhook/$platform'
       path: '/api/public/dsp-webhook/$platform'
@@ -599,6 +619,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRouteWithChildren
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -617,6 +638,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRouteWithChildren,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
