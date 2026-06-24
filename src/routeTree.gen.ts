@@ -14,14 +14,21 @@ import { Route as PendingRouteImport } from './routes/pending'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRoyaltiesRouteImport } from './routes/_authenticated/royalties'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedReleasesRouteImport } from './routes/_authenticated/releases'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_authenticated/platform-settings'
+import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCatalogRouteImport } from './routes/_authenticated/catalog'
+import { Route as AuthenticatedArtistsRouteImport } from './routes/_authenticated/artists'
+import { Route as AuthenticatedApprovalQueueRouteImport } from './routes/_authenticated/approval-queue'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 
@@ -47,6 +54,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
+  id: '/api/generate-image',
+  path: '/api/generate-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
@@ -79,6 +91,27 @@ const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReleasesRoute = AuthenticatedReleasesRouteImport.update({
+  id: '/releases',
+  path: '/releases',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPlatformSettingsRoute =
+  AuthenticatedPlatformSettingsRouteImport.update({
+    id: '/platform-settings',
+    path: '/platform-settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -89,6 +122,17 @@ const AuthenticatedCatalogRoute = AuthenticatedCatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedArtistsRoute = AuthenticatedArtistsRouteImport.update({
+  id: '/artists',
+  path: '/artists',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedApprovalQueueRoute =
+  AuthenticatedApprovalQueueRouteImport.update({
+    id: '/approval-queue',
+    path: '/approval-queue',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -96,9 +140,9 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
 } as any)
 const AuthenticatedReleasesNewRoute =
   AuthenticatedReleasesNewRouteImport.update({
-    id: '/releases/new',
-    path: '/releases/new',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedReleasesRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -107,14 +151,21 @@ export interface FileRoutesByFullPath {
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/approval-queue': typeof AuthenticatedApprovalQueueRoute
+  '/artists': typeof AuthenticatedArtistsRoute
   '/catalog': typeof AuthenticatedCatalogRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/help': typeof AuthenticatedHelpRoute
+  '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/releases': typeof AuthenticatedReleasesRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/royalties': typeof AuthenticatedRoyaltiesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
 }
 export interface FileRoutesByTo {
@@ -123,14 +174,21 @@ export interface FileRoutesByTo {
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/approval-queue': typeof AuthenticatedApprovalQueueRoute
+  '/artists': typeof AuthenticatedArtistsRoute
   '/catalog': typeof AuthenticatedCatalogRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/help': typeof AuthenticatedHelpRoute
+  '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/releases': typeof AuthenticatedReleasesRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/royalties': typeof AuthenticatedRoyaltiesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
 }
 export interface FileRoutesById {
@@ -141,14 +199,21 @@ export interface FileRoutesById {
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/approval-queue': typeof AuthenticatedApprovalQueueRoute
+  '/_authenticated/artists': typeof AuthenticatedArtistsRoute
   '/_authenticated/catalog': typeof AuthenticatedCatalogRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/help': typeof AuthenticatedHelpRoute
+  '/_authenticated/platform-settings': typeof AuthenticatedPlatformSettingsRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/releases': typeof AuthenticatedReleasesRouteWithChildren
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/royalties': typeof AuthenticatedRoyaltiesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
 }
 export interface FileRouteTypes {
@@ -159,14 +224,21 @@ export interface FileRouteTypes {
     | '/pending'
     | '/reset-password'
     | '/analytics'
+    | '/approval-queue'
+    | '/artists'
     | '/catalog'
     | '/dashboard'
+    | '/help'
+    | '/platform-settings'
+    | '/profile'
+    | '/releases'
     | '/reports'
     | '/royalties'
     | '/settings'
     | '/support'
     | '/tools'
     | '/users'
+    | '/api/generate-image'
     | '/releases/new'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -175,14 +247,21 @@ export interface FileRouteTypes {
     | '/pending'
     | '/reset-password'
     | '/analytics'
+    | '/approval-queue'
+    | '/artists'
     | '/catalog'
     | '/dashboard'
+    | '/help'
+    | '/platform-settings'
+    | '/profile'
+    | '/releases'
     | '/reports'
     | '/royalties'
     | '/settings'
     | '/support'
     | '/tools'
     | '/users'
+    | '/api/generate-image'
     | '/releases/new'
   id:
     | '__root__'
@@ -192,14 +271,21 @@ export interface FileRouteTypes {
     | '/pending'
     | '/reset-password'
     | '/_authenticated/analytics'
+    | '/_authenticated/approval-queue'
+    | '/_authenticated/artists'
     | '/_authenticated/catalog'
     | '/_authenticated/dashboard'
+    | '/_authenticated/help'
+    | '/_authenticated/platform-settings'
+    | '/_authenticated/profile'
+    | '/_authenticated/releases'
     | '/_authenticated/reports'
     | '/_authenticated/royalties'
     | '/_authenticated/settings'
     | '/_authenticated/support'
     | '/_authenticated/tools'
     | '/_authenticated/users'
+    | '/api/generate-image'
     | '/_authenticated/releases/new'
   fileRoutesById: FileRoutesById
 }
@@ -209,6 +295,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PendingRoute: typeof PendingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiGenerateImageRoute: typeof ApiGenerateImageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -246,6 +333,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generate-image': {
+      id: '/api/generate-image'
+      path: '/api/generate-image'
+      fullPath: '/api/generate-image'
+      preLoaderRoute: typeof ApiGenerateImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/users': {
@@ -290,6 +384,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/releases': {
+      id: '/_authenticated/releases'
+      path: '/releases'
+      fullPath: '/releases'
+      preLoaderRoute: typeof AuthenticatedReleasesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform-settings': {
+      id: '/_authenticated/platform-settings'
+      path: '/platform-settings'
+      fullPath: '/platform-settings'
+      preLoaderRoute: typeof AuthenticatedPlatformSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/help': {
+      id: '/_authenticated/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof AuthenticatedHelpRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -304,6 +426,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCatalogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/artists': {
+      id: '/_authenticated/artists'
+      path: '/artists'
+      fullPath: '/artists'
+      preLoaderRoute: typeof AuthenticatedArtistsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/approval-queue': {
+      id: '/_authenticated/approval-queue'
+      path: '/approval-queue'
+      fullPath: '/approval-queue'
+      preLoaderRoute: typeof AuthenticatedApprovalQueueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/analytics': {
       id: '/_authenticated/analytics'
       path: '/analytics'
@@ -313,38 +449,61 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/releases/new': {
       id: '/_authenticated/releases/new'
-      path: '/releases/new'
+      path: '/new'
       fullPath: '/releases/new'
       preLoaderRoute: typeof AuthenticatedReleasesNewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedReleasesRoute
     }
   }
 }
 
+interface AuthenticatedReleasesRouteChildren {
+  AuthenticatedReleasesNewRoute: typeof AuthenticatedReleasesNewRoute
+}
+
+const AuthenticatedReleasesRouteChildren: AuthenticatedReleasesRouteChildren = {
+  AuthenticatedReleasesNewRoute: AuthenticatedReleasesNewRoute,
+}
+
+const AuthenticatedReleasesRouteWithChildren =
+  AuthenticatedReleasesRoute._addFileChildren(
+    AuthenticatedReleasesRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedApprovalQueueRoute: typeof AuthenticatedApprovalQueueRoute
+  AuthenticatedArtistsRoute: typeof AuthenticatedArtistsRoute
   AuthenticatedCatalogRoute: typeof AuthenticatedCatalogRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
+  AuthenticatedPlatformSettingsRoute: typeof AuthenticatedPlatformSettingsRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedReleasesRoute: typeof AuthenticatedReleasesRouteWithChildren
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedRoyaltiesRoute: typeof AuthenticatedRoyaltiesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
-  AuthenticatedReleasesNewRoute: typeof AuthenticatedReleasesNewRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedApprovalQueueRoute: AuthenticatedApprovalQueueRoute,
+  AuthenticatedArtistsRoute: AuthenticatedArtistsRoute,
   AuthenticatedCatalogRoute: AuthenticatedCatalogRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedHelpRoute: AuthenticatedHelpRoute,
+  AuthenticatedPlatformSettingsRoute: AuthenticatedPlatformSettingsRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedReleasesRoute: AuthenticatedReleasesRouteWithChildren,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedRoyaltiesRoute: AuthenticatedRoyaltiesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
-  AuthenticatedReleasesNewRoute: AuthenticatedReleasesNewRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -356,6 +515,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PendingRoute: PendingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiGenerateImageRoute: ApiGenerateImageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
