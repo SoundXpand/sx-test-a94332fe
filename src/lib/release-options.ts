@@ -17,4 +17,6 @@ export const GENRES = [
   "Vocal/Nostalgia","World",
 ];
 
-export const P_YEARS = Array.from({ length: 2027 - 1950 + 1 }, (_, i) => 2027 - i);
+const __CURRENT_YEAR = new Date().getFullYear();
+export const P_YEARS = Array.from({ length: (__CURRENT_YEAR + 1) - 1950 + 1 }, (_, i) => (__CURRENT_YEAR + 1) - i);
+
