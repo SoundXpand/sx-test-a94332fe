@@ -126,7 +126,32 @@ function Settings() {
           if (error) return toast.error(error.message);
           toast.success("Label saved");
         }}>Save label</Button>
+
+        <div className="pt-3 border-t border-border space-y-2">
+          <Label>Sub labels</Label>
+          <p className="text-xs text-muted-foreground">Imprint sub-labels selectable in the release wizard.</p>
+          {subLabels.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {subLabels.map(s => (
+                <Badge key={s} variant="secondary" className="gap-1.5">
+                  {s}
+                  <button onClick={() => saveSubLabels(subLabels.filter(x => x !== s))} className="opacity-60 hover:opacity-100">×</button>
+                </Badge>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Input value={newSubLabel} onChange={e => setNewSubLabel(e.target.value)} placeholder="Sub-label name" />
+            <Button variant="outline" onClick={() => {
+              const v = newSubLabel.trim();
+              if (!v) return;
+              if (subLabels.includes(v)) return toast.error("Already added");
+              saveSubLabels([...subLabels, v]); setNewSubLabel("");
+            }}>Add</Button>
+          </div>
+        </div>
       </Card>
+
 
       <Card className="p-6 space-y-4 bg-card/60">
         <div className="flex items-center justify-between">
