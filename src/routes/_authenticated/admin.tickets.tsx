@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/tickets")({
 
 function AdminTickets() {
   const { data: me, isLoading } = useCurrentUser();
-  const isAdmin = me?.primaryRole === "administrator" || (me?.primaryRole as any) === "admin";
+  const isAdmin = me?.primaryRole === "administrator" || me?.primaryRole === "sx_manager" || (me?.primaryRole as any) === "admin";
   const [tickets, setTickets] = useState<any[]>([]);
   const [open, setOpen] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);

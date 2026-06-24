@@ -12,6 +12,7 @@ import { Label as UILabel } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Plus, Pencil, Trash2, Star, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: Settings,
