@@ -11,6 +11,9 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Check, ChevronRight, ChevronLeft, Save, Sparkles, ImageIcon, Disc3, Music as MusicIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ArtistMultiSelect, useMyArtists } from "@/components/artist-multi-select";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { LANGUAGES, GENRES, P_YEARS } from "@/lib/release-options";
 
 export const Route = createFileRoute("/_authenticated/releases/new")({
   component: NewRelease,
@@ -27,15 +30,17 @@ type Track = {
   title: string; version: string; language: string; explicit: boolean; isrc: string;
   composer: string; lyricist: string; producer: string; featured_artist: string;
   copyright_owner: string; publishing_info: string;
-  artist_ids: string[];
+  artist_ids: string[]; primary_genre: string;
 };
 
 const blankTrack = (): Track => ({
   title: "", version: "", language: "English", explicit: false, isrc: "",
   composer: "", lyricist: "", producer: "", featured_artist: "",
   copyright_owner: "", publishing_info: "",
-  artist_ids: [],
+  artist_ids: [], primary_genre: "",
 });
+
+const genCatalog = () => `SXM${String(Math.floor(Math.random() * 9999) + 1).padStart(4, "0")}`;
 
 function NewRelease() {
   const navigate = useNavigate();
@@ -51,8 +56,12 @@ function NewRelease() {
     title: "", artist_name: "", primary_artist: "", version: "", release_type: "single",
     primary_genre: "", secondary_genre: "", language: "English",
     release_date: "", original_release_date: "", copyright_year: new Date().getFullYear(),
-    record_label: "", upc: "", catalog_number: "", parental_advisory: false,
-    description: "", producer_info: "", copyright_info: "",
+    record_label: "", sub_label: "", upc: "", catalog_number: "", parental_advisory: false,
+    p_year: new Date().getFullYear(), p_name: "", c_year: new Date().getFullYear(), c_name: "",
+  });
+  const [singleMode, setSingleMode] = useState(true);
+  const [profileMeta, setProfileMeta] = useState<{ label_name: string; sub_labels: string[]; role_type: string | null }>({
+    label_name: "", sub_labels: [], role_type: null,
   });
   const [artwork, setArtwork] = useState<{ file: File | null; preview: string | null; width?: number; height?: number; size?: number; valid: boolean }>({
     file: null, preview: null, valid: false,
@@ -67,6 +76,43 @@ function NewRelease() {
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [releaseArtistIds, setReleaseArtistIds] = useState<string[]>([]);
   const { artists: myArtists } = useMyArtists();
+
+  // Load profile defaults (label, sub-labels, role) + auto-gen catalog
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      const { data: p } = await supabase.from("profiles").select("label_name,sub_labels,role_type").eq("user_id", u.user.id).maybeSingle();
+      if (p) {
+        setProfileMeta({
+          label_name: (p as any).label_name ?? "",
+          sub_labels: ((p as any).sub_labels as string[]) ?? [],
+          role_type: (p as any).role_type ?? null,
+        });
+        setRelease(r => ({ ...r, record_label: r.record_label || ((p as any).label_name ?? ""), p_name: r.p_name || ((p as any).label_name ?? ""), c_name: r.c_name || ((p as any).label_name ?? "") }));
+      }
+      // Generate unique catalog number
+      for (let i = 0; i < 6; i++) {
+        const cand = genCatalog();
+        const { data: hit } = await supabase.from("releases").select("id").eq("catalog_number", cand).maybeSingle();
+        if (!hit) { setRelease(r => r.catalog_number ? r : { ...r, catalog_number: cand }); break; }
+      }
+    })();
+  }, []);
+
+  // Keep single-track mode in sync with release_type
+  useEffect(() => {
+    if (release.release_type === "single") {
+      setSingleMode(true);
+      if (tracks.length > 1) {
+        setTracks(tracks.slice(0, 1));
+        setAudioFiles(audioFiles.slice(0, 1));
+        setAudioMeta(audioMeta.slice(0, 1));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [release.release_type]);
+
 
   // AI artwork
   const [aiOpen, setAiOpen] = useState(false);
@@ -110,9 +156,11 @@ function NewRelease() {
         language: rel.language || "English",
         release_date: rel.release_date || "", original_release_date: rel.original_release_date || "",
         copyright_year: rel.copyright_year || new Date().getFullYear(),
-        record_label: rel.record_label || "", upc: rel.upc || "", catalog_number: rel.catalog_number || "",
+        record_label: rel.record_label || "", sub_label: (rel as any).sub_label || "",
+        upc: rel.upc || "", catalog_number: rel.catalog_number || "",
         parental_advisory: !!rel.parental_advisory,
-        description: "", producer_info: "", copyright_info: "",
+        p_year: (rel as any).p_year || new Date().getFullYear(), p_name: (rel as any).p_name || "",
+        c_year: (rel as any).c_year || new Date().getFullYear(), c_name: (rel as any).c_name || "",
       };
       const trackState: Track[] = (trk ?? []).map(t => ({
         title: t.title, version: t.version || "", language: t.language || "English",
@@ -120,7 +168,7 @@ function NewRelease() {
         composer: t.composer || "", lyricist: t.lyricist || "",
         producer: t.producer || "", featured_artist: t.featured_artist || "",
         copyright_owner: t.copyright_owner || "", publishing_info: t.publishing_info || "",
-        artist_ids: [],
+        artist_ids: [], primary_genre: (t as any).primary_genre || "",
       }));
       setRelease(releaseState);
       if (trackState.length) {
@@ -228,10 +276,32 @@ function NewRelease() {
   const submit = async () => {
     if (!sourceReleaseId && !artwork.valid) return toast.error("Artwork is required");
     if (!rightsConfirmed) return toast.error("Confirm rights ownership");
+    if (!release.title) return toast.error("Release title is required");
+    if (!releaseArtistIds.length) return toast.error("Select at least one artist");
+    if (!release.record_label) return toast.error("Label name is required");
+    if (!release.primary_genre) return toast.error("Primary genre is required");
+    if (!release.language) return toast.error("Language is required");
+    if (!release.catalog_number) return toast.error("Catalog number is required");
+    if (!release.p_name || !release.c_name) return toast.error("P Name and C Name are required");
+    if (release.upc && !release.original_release_date) return toast.error("Original release date is required when UPC is set");
     setBusy(true);
     try {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Not signed in");
+
+      // Ensure catalog uniqueness (skip self when editing)
+      let catalog = release.catalog_number;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const q = supabase.from("releases").select("id").eq("catalog_number", catalog);
+        const { data: hit } = await q.maybeSingle();
+        if (!hit || (sourceReleaseId && hit.id === sourceReleaseId)) break;
+        catalog = genCatalog();
+      }
+      if (catalog !== release.catalog_number) {
+        toast.info(`Catalog number reassigned to ${catalog} (was taken)`);
+        setRelease(r => ({ ...r, catalog_number: catalog }));
+      }
+
       let artwork_path: string | null = null;
       if (artwork.file) {
         const path = `${u.user.id}/${Date.now()}-${artwork.file.name}`;
@@ -244,10 +314,11 @@ function NewRelease() {
         title: release.title, version: release.version, release_type: release.release_type,
         primary_genre: release.primary_genre, secondary_genre: release.secondary_genre, language: release.language,
         release_date: release.release_date || null, original_release_date: release.original_release_date || null,
-        copyright_year: release.copyright_year, record_label: release.record_label,
-        upc: release.upc, catalog_number: release.catalog_number, parental_advisory: release.parental_advisory,
+        copyright_year: release.p_year, record_label: release.record_label, sub_label: release.sub_label || null,
+        upc: release.upc, catalog_number: catalog, parental_advisory: release.parental_advisory,
         store_selection: stores, status: "pending", rejection_reason: null,
         artist_ids: releaseArtistIds,
+        p_year: release.p_year, p_name: release.p_name, c_year: release.c_year, c_name: release.c_name,
       };
       if (primaryName && !release.artist_name) release.artist_name = primaryName;
       if (artwork_path) releasePayload.artwork_path = artwork_path;
@@ -257,7 +328,6 @@ function NewRelease() {
         const { error: upErr } = await supabase.from("releases").update(releasePayload).eq("id", sourceReleaseId);
         if (upErr) throw upErr;
         releaseId = sourceReleaseId;
-        // Replace tracks: delete then re-insert
         await supabase.from("release_tracks").delete().eq("release_id", releaseId);
       } else {
         const { data: rel, error: relErr } = await supabase.from("releases").insert({
@@ -267,8 +337,16 @@ function NewRelease() {
         releaseId = rel.id;
       }
 
+      const isSingle = singleMode || release.release_type === "single";
       for (let i = 0; i < tracks.length; i++) {
         const t = tracks[i];
+        const eff = isSingle && i === 0 ? {
+          title: t.title || release.title,
+          version: t.version || release.version,
+          language: t.language || release.language,
+          primary_genre: t.primary_genre || release.primary_genre,
+          artist_ids: t.artist_ids.length ? t.artist_ids : releaseArtistIds,
+        } : { title: t.title, version: t.version, language: t.language, primary_genre: t.primary_genre, artist_ids: t.artist_ids };
         let audio_path: string | null = null;
         const af = audioFiles[i];
         if (af) {
@@ -276,17 +354,19 @@ function NewRelease() {
           const { error } = await supabase.storage.from("audio").upload(p, af, { upsert: true });
           if (!error) audio_path = p;
         }
-        const tArtistNames = myArtists.filter(a => t.artist_ids.includes(a.id)).map(a => a.name).join(", ");
+        const tArtistNames = myArtists.filter(a => eff.artist_ids.includes(a.id)).map(a => a.name).join(", ");
         await supabase.from("release_tracks").insert({
           release_id: releaseId, track_number: i + 1,
-          title: t.title, version: t.version, language: t.language, isrc: t.isrc || null,
+          title: eff.title, version: eff.version, language: eff.language, isrc: t.isrc || null,
           explicit: t.explicit, composer: t.composer || null, lyricist: t.lyricist || null,
           producer: t.producer || null, featured_artist: tArtistNames || t.featured_artist || null,
           copyright_owner: t.copyright_owner || null, publishing_info: t.publishing_info || null,
+          primary_genre: eff.primary_genre || null,
           audio_path, file_size_bytes: af?.size ?? null,
           duration_seconds: audioMeta[i]?.duration ?? null,
-        });
+        } as any);
       }
+
       // Seed per-DSP delivery rows + submission event
       const deliveryRows = stores.map(p => ({ release_id: releaseId, platform: p, status: "queued" }));
       if (deliveryRows.length) {
@@ -331,35 +411,105 @@ function NewRelease() {
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         <Card className="p-6 bg-card/60 border-border">
           {step === 0 && (
-            <div className="grid md:grid-cols-2 gap-4">
-              <Field label="Release title *"><Input value={release.title} onChange={e => setRelease({ ...release, title: e.target.value })} /></Field>
-              <Field label="Release type *">
-                <Select value={release.release_type} onValueChange={v => setRelease({ ...release, release_type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="single">Single</SelectItem>
-                    <SelectItem value="ep">EP</SelectItem>
-                    <SelectItem value="album">Album</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Label name"><Input value={release.record_label} onChange={e => setRelease({ ...release, record_label: e.target.value })} /></Field>
-              <Field label="Genre *"><Input value={release.primary_genre} onChange={e => setRelease({ ...release, primary_genre: e.target.value })} /></Field>
-              <Field label="Sub genre"><Input value={release.secondary_genre} onChange={e => setRelease({ ...release, secondary_genre: e.target.value })} /></Field>
-              <Field label="Language *"><Input value={release.language} onChange={e => setRelease({ ...release, language: e.target.value })} /></Field>
-              
-              <Field label="Original release date"><Input type="date" value={release.original_release_date} onChange={e => setRelease({ ...release, original_release_date: e.target.value })} /></Field>
-              <Field label="UPC"><Input value={release.upc} onChange={e => setRelease({ ...release, upc: e.target.value })} /></Field>
-              <Field label="Catalog number"><Input value={release.catalog_number} onChange={e => setRelease({ ...release, catalog_number: e.target.value })} /></Field>
-              <Field label="Copyright info"><Input value={release.copyright_info} onChange={e => setRelease({ ...release, copyright_info: e.target.value })} placeholder="© 2026 …" /></Field>
-              <Field label="Producer info"><Input value={release.producer_info} onChange={e => setRelease({ ...release, producer_info: e.target.value })} /></Field>
-              <label className="flex items-center gap-2 col-span-full">
-                <Checkbox checked={release.parental_advisory} onCheckedChange={v => setRelease({ ...release, parental_advisory: !!v })} />
-                Parental advisory
-              </label>
-              <div className="col-span-full"><Label>Description</Label><Textarea value={release.description} onChange={e => setRelease({ ...release, description: e.target.value })} rows={3} /></div>
+            <div className="space-y-4">
+              {profileMeta.role_type && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">You are:</span>
+                  <Badge variant="secondary">{profileMeta.role_type}</Badge>
+                </div>
+              )}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Field label="Release title *"><Input value={release.title} onChange={e => setRelease({ ...release, title: e.target.value })} placeholder="e.g. Midnight Echoes" /></Field>
+                <Field label="Version"><Input value={release.version} onChange={e => setRelease({ ...release, version: e.target.value })} placeholder="e.g. Remix, Acoustic" /></Field>
+
+                <Field label="Release type *">
+                  <Select value={release.release_type} onValueChange={v => setRelease({ ...release, release_type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="single">Single</SelectItem>
+                      <SelectItem value="ep">EP</SelectItem>
+                      <SelectItem value="album">Album</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Catalog number * (auto-generated)">
+                  <Input value={release.catalog_number} onChange={e => setRelease({ ...release, catalog_number: e.target.value })} placeholder="SXM0001" />
+                </Field>
+
+                <Field label="Select artists *">
+                  <ArtistMultiSelect value={releaseArtistIds} onChange={setReleaseArtistIds} />
+                </Field>
+                <Field label="Label name *">
+                  <Input value={release.record_label} onChange={e => setRelease({ ...release, record_label: e.target.value })} placeholder={profileMeta.label_name || "Your label"} />
+                </Field>
+
+                <Field label="Sub label">
+                  <Select value={release.sub_label || "__none"} onValueChange={v => setRelease({ ...release, sub_label: v === "__none" ? "" : v })}>
+                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">None</SelectItem>
+                      {profileMeta.sub_labels.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Primary genre *">
+                  <Select value={release.primary_genre} onValueChange={v => setRelease({ ...release, primary_genre: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>{GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label="Sub genre">
+                  <Select value={release.secondary_genre || "__none"} onValueChange={v => setRelease({ ...release, secondary_genre: v === "__none" ? "" : v })}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">None</SelectItem>
+                      {GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Language *">
+                  <Select value={release.language} onValueChange={v => setRelease({ ...release, language: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label={`Original release date${release.upc ? " *" : ""}`}>
+                  <Input type="date" value={release.original_release_date} onChange={e => setRelease({ ...release, original_release_date: e.target.value })} />
+                </Field>
+                <Field label="UPC / Barcode">
+                  <Input value={release.upc} onChange={e => setRelease({ ...release, upc: e.target.value })} placeholder="8888888888" />
+                </Field>
+
+                <Field label="P Year *">
+                  <Select value={String(release.p_year)} onValueChange={v => setRelease({ ...release, p_year: Number(v) })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{P_YEARS.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+                <Field label="P Name *">
+                  <Input value={release.p_name} onChange={e => setRelease({ ...release, p_name: e.target.value })} placeholder="℗ Copyright holder of the sound recording" />
+                </Field>
+
+                <Field label="C Year *">
+                  <Select value={String(release.c_year)} onValueChange={v => setRelease({ ...release, c_year: Number(v) })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{P_YEARS.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+                <Field label="C Name *">
+                  <Input value={release.c_name} onChange={e => setRelease({ ...release, c_name: e.target.value })} placeholder="© Copyright holder of the work" />
+                </Field>
+
+                <label className="flex items-center gap-2 col-span-full">
+                  <Checkbox checked={release.parental_advisory} onCheckedChange={v => setRelease({ ...release, parental_advisory: !!v })} />
+                  Parental advisory
+                </label>
+              </div>
             </div>
           )}
+
 
           {step === 1 && (
             <div className="space-y-5">
@@ -425,53 +575,105 @@ function NewRelease() {
             </div>
           )}
 
-          {step === 2 && (
-            <div className="space-y-4">
-              {tracks.map((t, i) => (
-                <Card key={i} className="p-4 bg-muted/10">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium">Track {i + 1}</span>
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => {
-                        const ct = [...tracks]; ct.splice(i + 1, 0, { ...t });
-                        const ca = [...audioFiles]; ca.splice(i + 1, 0, null);
-                        const cm = [...audioMeta]; cm.splice(i + 1, 0, null);
-                        setTracks(ct); setAudioFiles(ca); setAudioMeta(cm);
-                      }}>Duplicate</Button>
-                      {tracks.length > 1 && (
-                        <Button size="sm" variant="ghost" onClick={() => {
-                          setTracks(tracks.filter((_, j) => j !== i));
-                          setAudioFiles(audioFiles.filter((_, j) => j !== i));
-                          setAudioMeta(audioMeta.filter((_, j) => j !== i));
-                        }}>Remove</Button>
-                      )}
-                    </div>
+          {step === 2 && (() => {
+            // Auto-prefill track 1 from release-level fields when single
+            const isSingle = singleMode || release.release_type === "single";
+            return (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap rounded-lg border border-border bg-muted/20 p-3">
+                  <div>
+                    <div className="text-sm font-medium">Single track release?</div>
+                    <div className="text-xs text-muted-foreground">When on, the release has exactly one track and inherits release-level details.</div>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    <Field label="Title *"><Input value={t.title} onChange={e => upd(tracks, setTracks, i, { title: e.target.value })} /></Field>
-                    <Field label="Version"><Input value={t.version} onChange={e => upd(tracks, setTracks, i, { version: e.target.value })} /></Field>
-                    <Field label="Language"><Input value={t.language} onChange={e => upd(tracks, setTracks, i, { language: e.target.value })} /></Field>
-                    <Field label="ISRC"><Input value={t.isrc} onChange={e => upd(tracks, setTracks, i, { isrc: e.target.value })} /></Field>
-                    <Field label="Composer"><Input value={t.composer} onChange={e => upd(tracks, setTracks, i, { composer: e.target.value })} /></Field>
-                    <Field label="Lyricist"><Input value={t.lyricist} onChange={e => upd(tracks, setTracks, i, { lyricist: e.target.value })} /></Field>
-                    <Field label="Producer"><Input value={t.producer} onChange={e => upd(tracks, setTracks, i, { producer: e.target.value })} /></Field>
-                    <Field label="Artists"><ArtistMultiSelect value={t.artist_ids} onChange={(ids) => upd(tracks, setTracks, i, { artist_ids: ids })} /></Field>
-                    <Field label="Copyright owner"><Input value={t.copyright_owner} onChange={e => upd(tracks, setTracks, i, { copyright_owner: e.target.value })} /></Field>
-                    <Field label="Publisher"><Input value={t.publishing_info} onChange={e => upd(tracks, setTracks, i, { publishing_info: e.target.value })} /></Field>
-                    <label className="flex items-center gap-2 col-span-full">
-                      <Checkbox checked={t.explicit} onCheckedChange={v => upd(tracks, setTracks, i, { explicit: !!v })} />
-                      Explicit content
-                    </label>
-                  </div>
-                </Card>
-              ))}
-              <Button variant="outline" onClick={() => {
-                setTracks([...tracks, blankTrack()]);
-                setAudioFiles([...audioFiles, null]);
-                setAudioMeta([...audioMeta, null]);
-              }}>+ Add track</Button>
-            </div>
-          )}
+                  <Switch
+                    checked={isSingle}
+                    onCheckedChange={(v) => {
+                      setSingleMode(v);
+                      if (v) {
+                        setRelease({ ...release, release_type: "single" });
+                        if (tracks.length > 1) {
+                          setTracks(tracks.slice(0, 1));
+                          setAudioFiles(audioFiles.slice(0, 1));
+                          setAudioMeta(audioMeta.slice(0, 1));
+                        }
+                      } else if (release.release_type === "single") {
+                        setRelease({ ...release, release_type: "ep" });
+                      }
+                    }}
+                  />
+                </div>
+
+                {tracks.map((t, i) => {
+                  const v = isSingle && i === 0 ? {
+                    title: t.title || release.title,
+                    version: t.version || release.version,
+                    language: t.language || release.language,
+                    primary_genre: t.primary_genre || release.primary_genre,
+                    artist_ids: t.artist_ids.length ? t.artist_ids : releaseArtistIds,
+                  } : t;
+                  return (
+                    <Card key={i} className="p-4 bg-muted/10">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium">Track {i + 1}</span>
+                        <div className="flex gap-1">
+                          {!isSingle && (
+                            <Button size="sm" variant="ghost" onClick={() => {
+                              const ct = [...tracks]; ct.splice(i + 1, 0, { ...t });
+                              const ca = [...audioFiles]; ca.splice(i + 1, 0, null);
+                              const cm = [...audioMeta]; cm.splice(i + 1, 0, null);
+                              setTracks(ct); setAudioFiles(ca); setAudioMeta(cm);
+                            }}>Duplicate</Button>
+                          )}
+                          {!isSingle && tracks.length > 1 && (
+                            <Button size="sm" variant="ghost" onClick={() => {
+                              setTracks(tracks.filter((_, j) => j !== i));
+                              setAudioFiles(audioFiles.filter((_, j) => j !== i));
+                              setAudioMeta(audioMeta.filter((_, j) => j !== i));
+                            }}>Remove</Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <Field label="Title *"><Input value={v.title} onChange={e => upd(tracks, setTracks, i, { title: e.target.value })} placeholder="Track title" /></Field>
+                        <Field label="Version"><Input value={v.version} onChange={e => upd(tracks, setTracks, i, { version: e.target.value })} placeholder="e.g. Remix, Acoustic" /></Field>
+                        <Field label="Primary genre">
+                          <Select value={v.primary_genre} onValueChange={val => upd(tracks, setTracks, i, { primary_genre: val })}>
+                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                            <SelectContent>{GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </Field>
+                        <Field label="Language">
+                          <Select value={v.language} onValueChange={val => upd(tracks, setTracks, i, { language: val })}>
+                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                            <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </Field>
+                        <Field label="ISRC"><Input value={t.isrc} onChange={e => upd(tracks, setTracks, i, { isrc: e.target.value })} placeholder="e.g. USRC17607839" /></Field>
+                        <Field label="Artists"><ArtistMultiSelect value={v.artist_ids} onChange={(ids) => upd(tracks, setTracks, i, { artist_ids: ids })} /></Field>
+                        <Field label="Composer"><Input value={t.composer} onChange={e => upd(tracks, setTracks, i, { composer: e.target.value })} /></Field>
+                        <Field label="Lyricist"><Input value={t.lyricist} onChange={e => upd(tracks, setTracks, i, { lyricist: e.target.value })} /></Field>
+                        <Field label="Producer"><Input value={t.producer} onChange={e => upd(tracks, setTracks, i, { producer: e.target.value })} /></Field>
+                        <Field label="Copyright owner"><Input value={t.copyright_owner} onChange={e => upd(tracks, setTracks, i, { copyright_owner: e.target.value })} /></Field>
+                        <Field label="Publisher"><Input value={t.publishing_info} onChange={e => upd(tracks, setTracks, i, { publishing_info: e.target.value })} /></Field>
+                        <label className="flex items-center gap-2 col-span-full">
+                          <Checkbox checked={t.explicit} onCheckedChange={v => upd(tracks, setTracks, i, { explicit: !!v })} />
+                          Explicit content
+                        </label>
+                      </div>
+                    </Card>
+                  );
+                })}
+                {!isSingle && (
+                  <Button variant="outline" onClick={() => {
+                    setTracks([...tracks, blankTrack()]);
+                    setAudioFiles([...audioFiles, null]);
+                    setAudioMeta([...audioMeta, null]);
+                  }}>+ Add track</Button>
+                )}
+              </div>
+            );
+          })()}
+
 
           {step === 3 && (
             <div className="space-y-3">
@@ -503,13 +705,11 @@ function NewRelease() {
           {step === 4 && (
             <div className="space-y-5">
               <div className="grid md:grid-cols-2 gap-4">
-                <Field label="Select artists *">
-                  <ArtistMultiSelect value={releaseArtistIds} onChange={setReleaseArtistIds} />
-                </Field>
                 <Field label="Release date *">
                   <Input type="date" value={release.release_date} onChange={e => setRelease({ ...release, release_date: e.target.value })} />
                 </Field>
               </div>
+
               <div>
                 <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
                   <Input value={storeQuery} onChange={e => setStoreQuery(e.target.value)} placeholder="Search stores…" className="w-64" />

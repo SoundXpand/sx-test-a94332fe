@@ -17,7 +17,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiDspLookupRouteImport } from './routes/api/dsp-lookup'
-import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -32,6 +31,7 @@ import { Route as AuthenticatedCatalogRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedArtistsRouteImport } from './routes/_authenticated/artists'
 import { Route as AuthenticatedApprovalQueueRouteImport } from './routes/_authenticated/approval-queue'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users.index'
 import { Route as AuthenticatedReleasesIndexRouteImport } from './routes/_authenticated/releases.index'
 import { Route as AuthenticatedUsersUsernameRouteImport } from './routes/_authenticated/users.$username'
 import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authenticated/tools.dsp-lookup'
@@ -78,11 +78,6 @@ const ApiDspLookupRoute = ApiDspLookupRouteImport.update({
   id: '/api/dsp-lookup',
   path: '/api/dsp-lookup',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
   id: '/tools',
@@ -156,6 +151,11 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedReleasesIndexRoute =
   AuthenticatedReleasesIndexRouteImport.update({
     id: '/',
@@ -164,9 +164,9 @@ const AuthenticatedReleasesIndexRoute =
   } as any)
 const AuthenticatedUsersUsernameRoute =
   AuthenticatedUsersUsernameRouteImport.update({
-    id: '/$username',
-    path: '/$username',
-    getParentRoute: () => AuthenticatedUsersRoute,
+    id: '/users/$username',
+    path: '/users/$username',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedToolsDspLookupRoute =
   AuthenticatedToolsDspLookupRouteImport.update({
@@ -217,7 +217,6 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tools': typeof AuthenticatedToolsRouteWithChildren
-  '/users': typeof AuthenticatedUsersRouteWithChildren
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
@@ -227,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
   '/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/releases/': typeof AuthenticatedReleasesIndexRoute
+  '/users/': typeof AuthenticatedUsersIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesByTo {
@@ -247,7 +247,6 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tools': typeof AuthenticatedToolsRouteWithChildren
-  '/users': typeof AuthenticatedUsersRouteWithChildren
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
@@ -257,6 +256,7 @@ export interface FileRoutesByTo {
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
   '/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/releases': typeof AuthenticatedReleasesIndexRoute
+  '/users': typeof AuthenticatedUsersIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesById {
@@ -280,7 +280,6 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRouteWithChildren
-  '/_authenticated/users': typeof AuthenticatedUsersRouteWithChildren
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
@@ -290,6 +289,7 @@ export interface FileRoutesById {
   '/_authenticated/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
   '/_authenticated/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/_authenticated/releases/': typeof AuthenticatedReleasesIndexRoute
+  '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRouteTypes {
@@ -313,7 +313,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/support'
     | '/tools'
-    | '/users'
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
@@ -323,6 +322,7 @@ export interface FileRouteTypes {
     | '/tools/dsp-lookup'
     | '/users/$username'
     | '/releases/'
+    | '/users/'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -343,7 +343,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/support'
     | '/tools'
-    | '/users'
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
@@ -353,6 +352,7 @@ export interface FileRouteTypes {
     | '/tools/dsp-lookup'
     | '/users/$username'
     | '/releases'
+    | '/users'
     | '/api/public/dsp-webhook/$platform'
   id:
     | '__root__'
@@ -375,7 +375,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/support'
     | '/_authenticated/tools'
-    | '/_authenticated/users'
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
@@ -385,6 +384,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tools/dsp-lookup'
     | '/_authenticated/users/$username'
     | '/_authenticated/releases/'
+    | '/_authenticated/users/'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesById: FileRoutesById
 }
@@ -457,13 +457,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/dsp-lookup'
       preLoaderRoute: typeof ApiDspLookupRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/users': {
-      id: '/_authenticated/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AuthenticatedUsersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tools': {
       id: '/_authenticated/tools'
@@ -563,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/users/': {
+      id: '/_authenticated/users/'
+      path: '/users'
+      fullPath: '/users/'
+      preLoaderRoute: typeof AuthenticatedUsersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/releases/': {
       id: '/_authenticated/releases/'
       path: '/'
@@ -572,10 +572,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/users/$username': {
       id: '/_authenticated/users/$username'
-      path: '/$username'
+      path: '/users/$username'
       fullPath: '/users/$username'
       preLoaderRoute: typeof AuthenticatedUsersUsernameRouteImport
-      parentRoute: typeof AuthenticatedUsersRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tools/dsp-lookup': {
       id: '/_authenticated/tools/dsp-lookup'
@@ -643,17 +643,6 @@ const AuthenticatedToolsRouteChildren: AuthenticatedToolsRouteChildren = {
 const AuthenticatedToolsRouteWithChildren =
   AuthenticatedToolsRoute._addFileChildren(AuthenticatedToolsRouteChildren)
 
-interface AuthenticatedUsersRouteChildren {
-  AuthenticatedUsersUsernameRoute: typeof AuthenticatedUsersUsernameRoute
-}
-
-const AuthenticatedUsersRouteChildren: AuthenticatedUsersRouteChildren = {
-  AuthenticatedUsersUsernameRoute: AuthenticatedUsersUsernameRoute,
-}
-
-const AuthenticatedUsersRouteWithChildren =
-  AuthenticatedUsersRoute._addFileChildren(AuthenticatedUsersRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedApprovalQueueRoute: typeof AuthenticatedApprovalQueueRoute
@@ -669,8 +658,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRouteWithChildren
-  AuthenticatedUsersRoute: typeof AuthenticatedUsersRouteWithChildren
   AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
+  AuthenticatedUsersUsernameRoute: typeof AuthenticatedUsersUsernameRoute
+  AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -688,8 +678,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRouteWithChildren,
-  AuthenticatedUsersRoute: AuthenticatedUsersRouteWithChildren,
   AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
+  AuthenticatedUsersUsernameRoute: AuthenticatedUsersUsernameRoute,
+  AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

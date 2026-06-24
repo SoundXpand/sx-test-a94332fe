@@ -22,6 +22,8 @@ type Artist = {
 
 function Settings() {
   const [profile, setProfile] = useState({ full_name: "", artist_name: "", mobile: "", country: "", label_name: "" });
+  const [subLabels, setSubLabels] = useState<string[]>([]);
+  const [newSubLabel, setNewSubLabel] = useState("");
   const [password, setPassword] = useState("");
   const [artists, setArtists] = useState<Artist[]>([]);
   const [editing, setEditing] = useState<Partial<Artist> | null>(null);
@@ -37,14 +39,27 @@ function Settings() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
-      supabase.from("profiles").select("full_name,artist_name,mobile,country,label_name").eq("user_id", data.user.id).maybeSingle()
-        .then(({ data: p }) => p && setProfile({
-          full_name: p.full_name ?? "", artist_name: p.artist_name ?? "",
-          mobile: p.mobile ?? "", country: p.country ?? "", label_name: (p as any).label_name ?? "",
-        }));
+      supabase.from("profiles").select("full_name,artist_name,mobile,country,label_name,sub_labels").eq("user_id", data.user.id).maybeSingle()
+        .then(({ data: p }) => {
+          if (!p) return;
+          setProfile({
+            full_name: p.full_name ?? "", artist_name: p.artist_name ?? "",
+            mobile: p.mobile ?? "", country: p.country ?? "", label_name: (p as any).label_name ?? "",
+          });
+          setSubLabels(((p as any).sub_labels as string[]) ?? []);
+        });
     });
     loadArtists();
   }, []);
+
+  const saveSubLabels = async (next: string[]) => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    setSubLabels(next);
+    const { error } = await supabase.from("profiles").update({ sub_labels: next } as any).eq("user_id", u.user.id);
+    if (error) toast.error(error.message);
+  };
+
 
   const saveArtist = async () => {
     if (!editing?.name?.trim()) return toast.error("Artist name is required");
@@ -111,7 +126,32 @@ function Settings() {
           if (error) return toast.error(error.message);
           toast.success("Label saved");
         }}>Save label</Button>
+
+        <div className="pt-3 border-t border-border space-y-2">
+          <Label>Sub labels</Label>
+          <p className="text-xs text-muted-foreground">Imprint sub-labels selectable in the release wizard.</p>
+          {subLabels.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {subLabels.map(s => (
+                <Badge key={s} variant="secondary" className="gap-1.5">
+                  {s}
+                  <button onClick={() => saveSubLabels(subLabels.filter(x => x !== s))} className="opacity-60 hover:opacity-100">×</button>
+                </Badge>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Input value={newSubLabel} onChange={e => setNewSubLabel(e.target.value)} placeholder="Sub-label name" />
+            <Button variant="outline" onClick={() => {
+              const v = newSubLabel.trim();
+              if (!v) return;
+              if (subLabels.includes(v)) return toast.error("Already added");
+              saveSubLabels([...subLabels, v]); setNewSubLabel("");
+            }}>Add</Button>
+          </div>
+        </div>
       </Card>
+
 
       <Card className="p-6 space-y-4 bg-card/60">
         <div className="flex items-center justify-between">
