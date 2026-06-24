@@ -42,14 +42,14 @@ export function LandingNav() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Link
-            to="/"
+            to="/auth"
             hash="login"
             className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
           >
             Sign in
           </Link>
           <Link
-            to="/"
+            to="/auth"
             hash="login"
             className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-[var(--brand-violet-deep)] to-[var(--brand-violet)] px-4 py-2 font-display text-sm font-semibold text-white shadow-[0_0_24px_-4px_var(--brand-violet-deep)] transition-transform hover:-translate-y-0.5"
           >

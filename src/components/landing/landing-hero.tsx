@@ -62,7 +62,7 @@ export function LandingHero() {
           className="mt-10 flex items-center justify-center gap-3"
         >
           <Link
-            to="/"
+            to="/auth"
             hash="login"
             className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-[var(--brand-violet-deep)] to-[var(--brand-violet)] px-7 py-3.5 font-display text-[15px] font-semibold text-white shadow-[0_0_40px_-8px_var(--brand-violet-deep)] transition-transform hover:-translate-y-0.5"
           >

@@ -14,158 +14,394 @@ export type Database = {
   }
   public: {
     Tables: {
-      asset_assignments: {
+      activity_logs: {
         Row: {
-          asset_id: string
-          assigned_date: string
+          action: string
           created_at: string
-          employee_id: string
           id: string
-          notes: string | null
-          returned_date: string | null
+          metadata: Json
+          user_id: string | null
         }
         Insert: {
-          asset_id: string
-          assigned_date?: string
+          action: string
           created_at?: string
-          employee_id: string
           id?: string
-          notes?: string | null
-          returned_date?: string | null
+          metadata?: Json
+          user_id?: string | null
         }
         Update: {
-          asset_id?: string
-          assigned_date?: string
+          action?: string
           created_at?: string
-          employee_id?: string
           id?: string
-          notes?: string | null
-          returned_date?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "asset_assignments_asset_id_fkey"
-            columns: ["asset_id"]
-            isOneToOne: false
-            referencedRelation: "assets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "asset_assignments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      asset_categories: {
-        Row: {
-          created_at: string
-          default_useful_life_years: number
-          id: string
-          name: string
-          residual_value_percent: number
-        }
-        Insert: {
-          created_at?: string
-          default_useful_life_years?: number
-          id?: string
-          name: string
-          residual_value_percent?: number
-        }
-        Update: {
-          created_at?: string
-          default_useful_life_years?: number
-          id?: string
-          name?: string
-          residual_value_percent?: number
+          metadata?: Json
+          user_id?: string | null
         }
         Relationships: []
       }
-      assets: {
+      analytics_rows: {
         Row: {
-          category_id: string | null
-          condition: Database["public"]["Enums"]["asset_condition"]
+          country: string | null
           created_at: string
-          created_by: string | null
+          date: string
           id: string
-          is_archived: boolean
-          location: string | null
-          name: string
-          notes: string | null
-          purchase_cost: number
-          purchase_date: string
-          residual_value_percent: number
-          serial_number: string | null
-          updated_at: string
-          useful_life_years: number
+          owner_id: string
+          platform: string
+          release_id: string | null
+          revenue: number
+          streams: number
+          track_id: string | null
         }
         Insert: {
-          category_id?: string | null
-          condition?: Database["public"]["Enums"]["asset_condition"]
+          country?: string | null
           created_at?: string
-          created_by?: string | null
+          date: string
           id?: string
-          is_archived?: boolean
-          location?: string | null
-          name: string
-          notes?: string | null
-          purchase_cost?: number
-          purchase_date: string
-          residual_value_percent?: number
-          serial_number?: string | null
-          updated_at?: string
-          useful_life_years?: number
+          owner_id: string
+          platform: string
+          release_id?: string | null
+          revenue?: number
+          streams?: number
+          track_id?: string | null
         }
         Update: {
-          category_id?: string | null
-          condition?: Database["public"]["Enums"]["asset_condition"]
+          country?: string | null
           created_at?: string
-          created_by?: string | null
+          date?: string
           id?: string
-          is_archived?: boolean
-          location?: string | null
-          name?: string
-          notes?: string | null
-          purchase_cost?: number
-          purchase_date?: string
-          residual_value_percent?: number
-          serial_number?: string | null
-          updated_at?: string
-          useful_life_years?: number
+          owner_id?: string
+          platform?: string
+          release_id?: string | null
+          revenue?: number
+          streams?: number
+          track_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "assets_category_id_fkey"
-            columns: ["category_id"]
+            foreignKeyName: "analytics_rows_release_id_fkey"
+            columns: ["release_id"]
             isOneToOne: false
-            referencedRelation: "asset_categories"
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_rows_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "release_tracks"
             referencedColumns: ["id"]
           },
         ]
       }
-      employees: {
+      notify_waitlist: {
         Row: {
           created_at: string
-          department: string | null
-          email: string | null
+          email: string
           id: string
-          name: string
+          tool: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
-          department?: string | null
-          email?: string | null
+          email: string
           id?: string
-          name: string
+          tool: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
-          department?: string | null
-          email?: string | null
+          email?: string
           id?: string
-          name?: string
+          tool?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          artist_name: string
+          country: string | null
+          created_at: string
+          email: string
+          full_name: string
+          mobile: string | null
+          notification_prefs: Json
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["account_status"]
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          artist_name?: string
+          country?: string | null
+          created_at?: string
+          email: string
+          full_name?: string
+          mobile?: string | null
+          notification_prefs?: Json
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          artist_name?: string
+          country?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          mobile?: string | null
+          notification_prefs?: Json
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      release_tracks: {
+        Row: {
+          audio_path: string | null
+          composer: string | null
+          contributors: string | null
+          copyright_owner: string | null
+          created_at: string
+          duration_seconds: number | null
+          explicit: boolean
+          featured_artist: string | null
+          file_size_bytes: number | null
+          id: string
+          isrc: string | null
+          language: string | null
+          lyricist: string | null
+          producer: string | null
+          publishing_info: string | null
+          release_id: string
+          title: string
+          track_number: number
+          version: string | null
+        }
+        Insert: {
+          audio_path?: string | null
+          composer?: string | null
+          contributors?: string | null
+          copyright_owner?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          explicit?: boolean
+          featured_artist?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          isrc?: string | null
+          language?: string | null
+          lyricist?: string | null
+          producer?: string | null
+          publishing_info?: string | null
+          release_id: string
+          title: string
+          track_number: number
+          version?: string | null
+        }
+        Update: {
+          audio_path?: string | null
+          composer?: string | null
+          contributors?: string | null
+          copyright_owner?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          explicit?: boolean
+          featured_artist?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          isrc?: string | null
+          language?: string | null
+          lyricist?: string | null
+          producer?: string | null
+          publishing_info?: string | null
+          release_id?: string
+          title?: string
+          track_number?: number
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_tracks_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      releases: {
+        Row: {
+          artwork_path: string | null
+          catalog_number: string | null
+          copyright_year: number | null
+          created_at: string
+          id: string
+          language: string | null
+          original_release_date: string | null
+          owner_id: string
+          parental_advisory: boolean
+          primary_genre: string | null
+          record_label: string | null
+          rejection_reason: string | null
+          release_date: string | null
+          release_type: string
+          secondary_genre: string | null
+          status: string
+          store_selection: Json
+          title: string
+          upc: string | null
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          artwork_path?: string | null
+          catalog_number?: string | null
+          copyright_year?: number | null
+          created_at?: string
+          id?: string
+          language?: string | null
+          original_release_date?: string | null
+          owner_id: string
+          parental_advisory?: boolean
+          primary_genre?: string | null
+          record_label?: string | null
+          rejection_reason?: string | null
+          release_date?: string | null
+          release_type?: string
+          secondary_genre?: string | null
+          status?: string
+          store_selection?: Json
+          title: string
+          upc?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          artwork_path?: string | null
+          catalog_number?: string | null
+          copyright_year?: number | null
+          created_at?: string
+          id?: string
+          language?: string | null
+          original_release_date?: string | null
+          owner_id?: string
+          parental_advisory?: boolean
+          primary_genre?: string | null
+          record_label?: string | null
+          rejection_reason?: string | null
+          release_date?: string | null
+          release_type?: string
+          secondary_genre?: string | null
+          status?: string
+          store_selection?: Json
+          title?: string
+          upc?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: []
+      }
+      royalty_statements: {
+        Row: {
+          breakdown: Json
+          created_at: string
+          id: string
+          owner_id: string
+          period_end: string
+          period_start: string
+          total: number
+        }
+        Insert: {
+          breakdown?: Json
+          created_at?: string
+          id?: string
+          owner_id: string
+          period_end: string
+          period_start: string
+          total?: number
+        }
+        Update: {
+          breakdown?: Json
+          created_at?: string
+          id?: string
+          owner_id?: string
+          period_end?: string
+          period_start?: string
+          total?: number
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          created_at: string
+          id: string
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -204,7 +440,15 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      account_status: "pending_approval" | "approved" | "rejected" | "suspended"
+      app_role:
+        | "admin"
+        | "moderator"
+        | "user"
+        | "artist"
+        | "manager"
+        | "viewer"
+        | "administrator"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "retired"
     }
     CompositeTypes: {
@@ -333,7 +577,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      account_status: ["pending_approval", "approved", "rejected", "suspended"],
+      app_role: [
+        "admin",
+        "moderator",
+        "user",
+        "artist",
+        "manager",
+        "viewer",
+        "administrator",
+      ],
       asset_condition: ["excellent", "good", "fair", "poor", "retired"],
     },
   },
