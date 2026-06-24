@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
-import { Disc3 } from "lucide-react";
+import { Disc3, Plus } from "lucide-react";
 import { ReleaseRowActions, statusBadgeClass } from "@/components/catalog/release-row-actions";
 
 export const Route = createFileRoute("/_authenticated/releases/")({
@@ -23,7 +24,16 @@ function ReleasesAdmin() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-semibold">All releases</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <h1 className="font-display text-2xl font-semibold">Releases</h1>
+          <nav className="ml-4 flex gap-1">
+            <Link to="/releases" activeOptions={{ exact: true }} className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground data-[status=active]:bg-primary data-[status=active]:text-primary-foreground">All releases</Link>
+            <Link to="/releases/new" className="px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground data-[status=active]:bg-primary data-[status=active]:text-primary-foreground">New release</Link>
+          </nav>
+        </div>
+        <Button asChild size="sm"><Link to="/releases/new"><Plus className="h-4 w-4 mr-1.5" />New release</Link></Button>
+      </div>
       <Card className="p-4 bg-card/60 border-border">
         {rows.length === 0 ? (
           <EmptyState icon={Disc3} title="No releases on the platform yet" description="When artists submit releases they'll appear here." />
