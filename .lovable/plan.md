@@ -1,116 +1,104 @@
 
+# SoundXpand — Full Replacement Plan
 
-## Plan: Security hardening with RLS and user roles
+A complete pivot from AssetWise to **SoundXpand**, a premium music distribution platform. The attached HTML is the visual north star for the landing page (Syne + DM Sans, deep violet/pink/cyan on near-black, noise overlay, glass nav, animated network/stats). The rest of the app extends this aesthetic into a Vercel/Linear-style SaaS dashboard.
 
-### Current state
-- RLS is enabled on all 4 tables (good)
-- All policies are wide-open: `for all to authenticated using (true) with check (true)`
-- No user_roles table exists
-- No role-checking functions exist
-- AI chat edge function uses service_role_key (bypasses RLS — no changes needed there)
+This is a large build. I'll deliver it in **5 sequential phases**, each shippable on its own. After each phase you can preview, give feedback, and approve the next.
 
-### What this changes
+---
 
-**1. Database migration — new tables and functions**
+## Phase 1 — Foundation + Landing
 
-Create `app_role` enum, `user_roles` table, and `has_role` security definer function:
+**Design system**
+- Replace `src/styles.css` tokens with the SoundXpand palette (bg `#060608`, text `#f0eeff`, accent `#a78bfa`/`#7c3aed`, pink `#f472b6`, cyan `#22d3ee`, green `#34d399`, orange `#fb923c`) plus a mirrored light theme.
+- Add **Syne** (display) + **DM Sans** (body) via `@fontsource` packages, referenced from `@theme` in `src/styles.css`.
+- Add reusable primitives: noise overlay, glass card, gradient border, glow button, animated gradient text.
+- Theme toggle (next-themes-style, class on `<html>`, persisted), exposed in nav and dashboard.
 
-```sql
--- Role enum
-CREATE TYPE public.app_role AS ENUM ('admin', 'moderator', 'user');
+**Landing route** (`src/routes/index.tsx` — replaces current AssetWise landing)
+- Sticky glass nav (logo, links, theme toggle, Sign in, Start free).
+- Hero: animated headline "Distribute Your Music Everywhere", subhead, dual CTAs, animated SVG distribution-network graphic (central node → 12 platform logos with pulsing connections), live-counter stat strip (Artists, Tracks, Countries, Royalties).
+- Features grid: Global Distribution (logo wall: Spotify, Apple, Amazon, YouTube, TikTok, Instagram, Facebook, Deezer, Tidal, Boomplay, JioSaavn, Wynk), Fast Delivery, Royalty Collection, Analytics.
+- Artist Success showcase (horizontal scroll of release cards with cover art + stream counts).
+- Pricing: 3 cards (Starter ₹999, Pro ₹2999, Label ₹4999) with comparison table beneath.
+- FAQ accordion (shadcn Accordion).
+- Footer (company, legal, support, social).
 
--- Roles table (NOT on profiles)
-CREATE TABLE public.user_roles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  role app_role NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE (user_id, role)
-);
+All sections live in `src/components/landing/` (Hero, Features, Network, Stats, Pricing, FAQ, Footer).
 
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+---
 
--- Users can only read their own roles
-CREATE POLICY "Users can view own roles"
-  ON public.user_roles FOR SELECT
-  TO authenticated
-  USING (auth.uid() = user_id);
+## Phase 2 — Auth
 
--- Security definer function (avoids RLS recursion)
-CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role app_role)
-RETURNS BOOLEAN
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = _user_id AND role = _role
-  )
-$$;
-```
+- Wipe AssetWise routes (`assets.*`, `employees.tsx`, `ai-chat.tsx`, `settings.tsx`, related components).
+- Drop AssetWise tables (`assets`, `asset_assignments`, `asset_categories`, `employees`) via migration; **keep** `user_roles`, `has_role`, `handle_new_user_role`.
+- New tables: `profiles` (full_name, artist_name, mobile, country, avatar_url) with auto-insert trigger on signup; appropriate GRANTs + RLS (`auth.uid() = id`).
+- `/auth` route — split-screen layout, branded left panel (animated gradient + tagline), right panel toggles Login ↔ Register.
+- Email/password + Google OAuth (via `lovable.auth.signInWithOAuth`); enable Google provider in same turn.
+- "Use demo account" button (auto-fills `demo@soundxpand.com` / `Demo@123`); demo user seeded via migration.
+- `/reset-password` route.
+- Move all dashboard routes under `src/routes/_authenticated/` (integration-managed gate).
 
-**2. Database migration — replace existing RLS policies**
+---
 
-Drop the 4 catch-all policies and replace with granular per-operation policies:
+## Phase 3 — Dashboard shell + Catalog + Upload Wizard
 
-For **asset_categories**, **employees**, **assets**, **asset_assignments**:
-- `SELECT` — all authenticated users (internal staff all need read access)
-- `INSERT` — all authenticated users (staff create assets/employees)
-- `UPDATE` — all authenticated users OR restrict to admins (for categories/sensitive ops)
-- `DELETE` — admin only via `has_role(auth.uid(), 'admin')`
+**Shell** (`_authenticated/route.tsx` child layout)
+- Linear/Vercel-inspired: collapsible left sidebar (Dashboard, Catalog, Upload, Analytics, Royalties, Team, Support), top bar (search, theme, user menu).
 
-Specific policies:
+**Dashboard home** (`/dashboard`)
+- Stat widgets (Total Releases, Monthly Streams, Revenue, Active Artists), Recharts area/bar/pie for Revenue trend, Stream analytics, Platform breakdown, Recent activity list.
 
-| Table | SELECT | INSERT | UPDATE | DELETE |
-|---|---|---|---|---|
-| asset_categories | authenticated | authenticated | authenticated | admin only |
-| employees | authenticated | authenticated | authenticated | admin only |
-| assets | authenticated | authenticated (with `created_by = auth.uid()` check) | authenticated | admin only |
-| asset_assignments | authenticated | authenticated | authenticated | admin only |
+**Catalog** (`/catalog`)
+- Table of releases (cover, title, type, status, release date, streams), filters, row actions (view, edit metadata, archive).
 
-The `assets` INSERT policy adds `WITH CHECK (created_by = auth.uid())` to ensure users can't spoof the creator.
+**Upload Wizard** (`/upload`) — 6 steps with progress rail, draft auto-save:
+1. Release info (title, version, type Single/EP/Album, genres, language, copyright year)
+2. Artwork upload (validates JPG/PNG ≥3000×3000, preview)
+3. Audio upload (WAV/FLAC drag-drop, progress, in-browser preview, basic QC: file type, sample rate, channels)
+4. Per-track metadata (title, ISRC, UPC, explicit, composer, lyricist, producer, features, contributors, copyright, publishing)
+5. Distribution (multi-select stores, release date)
+6. Review + submit (validation checklist, submit → `status: pending`)
 
-**3. Auto-assign 'user' role on signup**
+**Backend**
+- Tables: `releases`, `release_tracks`, `release_distributions`, `release_drafts`.
+- Storage buckets: `artwork` (public), `audio` (private, signed URLs).
+- RLS scoped to owning user; service-role grants for future admin tooling.
 
-Create a trigger function that assigns the default `'user'` role when a new user signs up:
+---
 
-```sql
-CREATE OR REPLACE FUNCTION public.handle_new_user_role()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'user');
-  RETURN NEW;
-END;
-$$;
+## Phase 4 — Analytics, Royalties, Team, Support
 
-CREATE TRIGGER on_auth_user_created_role
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_role();
-```
+- **Analytics**: streams over time, revenue, top countries (choropleth-ish bar), platform split, audience demographics — all backed by seeded mock aggregates (`stream_stats`, `revenue_stats` tables) so the UI is real and live-queried.
+- **Royalties**: monthly earnings table, downloadable statements (client-side CSV), revenue splits config per release.
+- **Team**: invite by email, role assignment (admin/manager/artist) via `user_roles` extension, permissions matrix.
+- **Support**: ticket system (`support_tickets`, `support_messages` tables) with thread view; knowledge base as static MDX-style content; live chat stub (UI only, marked "coming soon").
 
-**4. Seed existing users with roles**
+---
 
-Use the insert tool to give all existing users the `'user'` role, and optionally promote one to `'admin'`.
+## Phase 5 — Polish
 
-**5. Add role-check hook (`src/lib/hooks.ts`)**
+- Scroll animations (Framer Motion `whileInView`), page transitions, hover micro-interactions.
+- Empty states + skeletons everywhere.
+- Light-mode pass across dashboard.
+- Mobile responsive sweep (sidebar → drawer, tables → cards).
+- SEO meta in every route `head()`.
+- Final security/lint pass.
 
-Add a `useUserRole` query hook so the UI can check the current user's role for conditional rendering (e.g., hide delete buttons for non-admins). This is for UX only — the real enforcement is RLS.
+---
 
-**6. No changes to AI chat**
+## Technical Notes
 
-The edge function uses `SUPABASE_SERVICE_ROLE_KEY` which bypasses RLS entirely. No modifications needed.
+- Stack stays as-is: TanStack Start + React 19 + Tailwind v4 + TanStack Query + shadcn + Recharts. No Next.js/Express despite the reference doc — those don't apply to this template.
+- Animations: Framer Motion (already implied by direction). Add via `bun add framer-motion`.
+- Payments (Razorpay/Stripe from the spec) deferred — pricing page CTAs route to a "Contact sales / coming soon" state until you explicitly enable a provider.
+- All custom colors go through CSS tokens in `src/styles.css` (`@theme`), never hardcoded.
+- Demo account + seed data via migration so the app is immediately explorable.
 
-### Files changed
+---
 
-| File | Action |
-|---|---|
-| Migration SQL | Create — roles table, has_role function, replace RLS policies, trigger |
-| `src/lib/hooks.ts` | Edit — add `useUserRole` hook |
+## What I need from you to start
 
-### What stays the same
-- All existing CRUD operations continue working for authenticated users
-- AI chat edge function untouched
-- No component changes needed (delete restrictions will surface as toast errors from RLS denials)
+Approve this plan, and I'll begin with **Phase 1 (Foundation + Landing)**. After you see it live, we move to Phase 2.
 
+If you'd rather compress phases (e.g. land Phase 1+2 together) or reorder, say so before approving.
