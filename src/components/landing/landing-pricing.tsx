@@ -100,7 +100,7 @@ export function LandingPricing() {
                 </div>
 
                 <Link
-                  to="/"
+                  to="/auth"
                   hash="login"
                   className={
                     t.highlight
