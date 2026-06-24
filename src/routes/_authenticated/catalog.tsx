@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/_authenticated/catalog")({
 });
 
 function Catalog() {
-  const navigate = useNavigate();
   const [rows, setRows] = useState<any[]>([]);
   const [drafts, setDrafts] = useState<any[]>([]);
   const [q, setQ] = useState("");
