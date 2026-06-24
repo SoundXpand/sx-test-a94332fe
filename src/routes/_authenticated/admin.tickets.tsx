@@ -107,13 +107,20 @@ function AdminTickets() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-              <th className="py-2 px-2">Subject</th><th>Priority</th><th>Status</th><th>Updated</th>
+              <th className="py-2 px-2">Subject</th><th>Opened by</th><th>Priority</th><th>Status</th><th>Updated</th>
             </tr></thead>
             <tbody>
-              {filtered.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-muted-foreground">No tickets match.</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No tickets match.</td></tr>}
               {filtered.map(t => (
                 <tr key={t.id} className="border-b border-border/40 hover:bg-muted/30 cursor-pointer" onClick={() => openThread(t)}>
                   <td className="py-2.5 px-2 font-medium">{t.subject}</td>
+                  <td className="text-xs">
+                    {t._profile ? (
+                      <Link to="/users/$username" params={{ username: t._profile.username }} onClick={e => e.stopPropagation()} className="inline-flex items-center gap-1 text-primary hover:underline">
+                        <UserIcon className="h-3 w-3" />{t._profile.username}
+                      </Link>
+                    ) : <span className="text-muted-foreground">—</span>}
+                  </td>
                   <td className="capitalize">{t.priority}</td>
                   <td><span className={`text-xs px-2 py-0.5 rounded-full capitalize ${ticketStatusClass(t.status)}`}>{t.status.replace(/_/g, " ")}</span></td>
                   <td className="text-muted-foreground text-xs">{new Date(t.updated_at).toLocaleString()}</td>
@@ -128,6 +135,11 @@ function AdminTickets() {
         <SheetContent className="w-full sm:max-w-lg flex flex-col">
           <SheetHeader>
             <SheetTitle className="truncate">{open?.subject}</SheetTitle>
+            {open?._profile && (
+              <Link to="/users/$username" params={{ username: open._profile.username }} className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1 w-fit">
+                <UserIcon className="h-3 w-3" />Opened by {open._profile.username} · {open._profile.full_name || open._profile.email}
+              </Link>
+            )}
           </SheetHeader>
           {open && (
             <div className="grid grid-cols-2 gap-2 my-3">
