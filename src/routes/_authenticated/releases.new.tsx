@@ -502,6 +502,14 @@ function NewRelease() {
 
           {step === 4 && (
             <div className="space-y-5">
+              <div className="grid md:grid-cols-2 gap-4">
+                <Field label="Select artists *">
+                  <ArtistMultiSelect value={releaseArtistIds} onChange={setReleaseArtistIds} />
+                </Field>
+                <Field label="Release date *">
+                  <Input type="date" value={release.release_date} onChange={e => setRelease({ ...release, release_date: e.target.value })} />
+                </Field>
+              </div>
               <div>
                 <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
                   <Input value={storeQuery} onChange={e => setStoreQuery(e.target.value)} placeholder="Search stores…" className="w-64" />
