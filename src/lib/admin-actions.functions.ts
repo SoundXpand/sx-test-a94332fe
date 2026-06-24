@@ -77,3 +77,66 @@ export const markDeliveredFn = createServerFn({ method: "POST" })
     if (delErr) throw delErr;
     return { ok: true };
   });
+
+export const archiveReleaseFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { releaseId: string; restore?: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId);
+    const { error } = await context.supabase
+      .from("releases")
+      .update({ archived_at: data.restore ? null : new Date().toISOString() })
+      .eq("id", data.releaseId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const updateReleaseAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    releaseId: string;
+    patch: Partial<{
+      status: string; upc: string | null; catalog_number: string | null;
+      admin_remarks: string | null; rejection_reason: string | null;
+      release_date: string | null;
+    }>;
+    trackPatches?: Array<{ id: string; isrc?: string | null; title?: string }>;
+  }) => d)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId);
+    if (Object.keys(data.patch).length) {
+      const { error } = await context.supabase.from("releases").update(data.patch).eq("id", data.releaseId);
+      if (error) throw error;
+    }
+    if (data.trackPatches?.length) {
+      for (const tp of data.trackPatches) {
+        const { id, ...rest } = tp;
+        await context.supabase.from("release_tracks").update(rest).eq("id", id);
+      }
+    }
+    return { ok: true };
+  });
+
+export const purgeArchivedFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.supabase, context.userId);
+    // Collect storage paths first so we can delete files
+    const { data: due } = await context.supabase
+      .from("releases").select("id, artwork_path")
+      .not("archived_at", "is", null)
+      .lt("archived_at", new Date(Date.now() - 7 * 86400 * 1000).toISOString());
+    const ids = (due ?? []).map((r: any) => r.id);
+    if (ids.length === 0) return { purged: 0 };
+    const { data: tracks } = await context.supabase
+      .from("release_tracks").select("id, audio_path").in("release_id", ids);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const audioPaths = (tracks ?? []).map((t: any) => t.audio_path).filter(Boolean);
+    const artPaths = (due ?? []).map((r: any) => r.artwork_path).filter(Boolean);
+    if (audioPaths.length) await supabaseAdmin.storage.from("audio").remove(audioPaths);
+    if (artPaths.length) await supabaseAdmin.storage.from("artwork").remove(artPaths);
+    await context.supabase.from("release_tracks").delete().in("release_id", ids);
+    await context.supabase.from("releases").delete().in("id", ids);
+    return { purged: ids.length };
+  });
+
