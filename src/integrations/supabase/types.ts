@@ -99,6 +99,42 @@ export type Database = {
           },
         ]
       }
+      artists: {
+        Row: {
+          apple_music_url: string | null
+          created_at: string
+          id: string
+          is_primary: boolean
+          name: string
+          owner_id: string
+          spotify_url: string | null
+          updated_at: string
+          youtube_music_url: string | null
+        }
+        Insert: {
+          apple_music_url?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name: string
+          owner_id: string
+          spotify_url?: string | null
+          updated_at?: string
+          youtube_music_url?: string | null
+        }
+        Update: {
+          apple_music_url?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name?: string
+          owner_id?: string
+          spotify_url?: string | null
+          updated_at?: string
+          youtube_music_url?: string | null
+        }
+        Relationships: []
+      }
       dsp_deliveries: {
         Row: {
           created_at: string
@@ -230,14 +266,30 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           artist_name: string
+          city: string | null
           country: string | null
           created_at: string
+          current_distributor: string | null
           email: string
+          first_name: string | null
           full_name: string
+          label_name: string | null
+          last_name: string | null
+          main_genre: string | null
           mobile: string | null
           notification_prefs: Json
+          privacy_accepted_at: string | null
+          private_link: string | null
           rejection_reason: string | null
+          role_type: string | null
+          social_facebook: string | null
+          social_instagram: string | null
+          social_tiktok: string | null
+          social_vk: string | null
+          social_youtube: string | null
+          spotify_monthly_listeners_bucket: string | null
           status: Database["public"]["Enums"]["account_status"]
+          tracks_released_bucket: string | null
           updated_at: string
           user_id: string
           username: string
@@ -246,14 +298,30 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           artist_name?: string
+          city?: string | null
           country?: string | null
           created_at?: string
+          current_distributor?: string | null
           email: string
+          first_name?: string | null
           full_name?: string
+          label_name?: string | null
+          last_name?: string | null
+          main_genre?: string | null
           mobile?: string | null
           notification_prefs?: Json
+          privacy_accepted_at?: string | null
+          private_link?: string | null
           rejection_reason?: string | null
+          role_type?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_tiktok?: string | null
+          social_vk?: string | null
+          social_youtube?: string | null
+          spotify_monthly_listeners_bucket?: string | null
           status?: Database["public"]["Enums"]["account_status"]
+          tracks_released_bucket?: string | null
           updated_at?: string
           user_id: string
           username: string
@@ -262,14 +330,30 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           artist_name?: string
+          city?: string | null
           country?: string | null
           created_at?: string
+          current_distributor?: string | null
           email?: string
+          first_name?: string | null
           full_name?: string
+          label_name?: string | null
+          last_name?: string | null
+          main_genre?: string | null
           mobile?: string | null
           notification_prefs?: Json
+          privacy_accepted_at?: string | null
+          private_link?: string | null
           rejection_reason?: string | null
+          role_type?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_tiktok?: string | null
+          social_vk?: string | null
+          social_youtube?: string | null
+          spotify_monthly_listeners_bucket?: string | null
           status?: Database["public"]["Enums"]["account_status"]
+          tracks_released_bucket?: string | null
           updated_at?: string
           user_id?: string
           username?: string
@@ -497,6 +581,7 @@ export type Database = {
       }
       releases: {
         Row: {
+          artist_ids: string[]
           artwork_path: string | null
           catalog_number: string | null
           copyright_year: number | null
@@ -523,6 +608,7 @@ export type Database = {
           version: string | null
         }
         Insert: {
+          artist_ids?: string[]
           artwork_path?: string | null
           catalog_number?: string | null
           copyright_year?: number | null
@@ -549,6 +635,7 @@ export type Database = {
           version?: string | null
         }
         Update: {
+          artist_ids?: string[]
           artwork_path?: string | null
           catalog_number?: string | null
           copyright_year?: number | null
