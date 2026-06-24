@@ -277,9 +277,19 @@ function NewRelease() {
           duration_seconds: audioMeta[i]?.duration ?? null,
         });
       }
+      // Seed per-DSP delivery rows + submission event
+      const deliveryRows = stores.map(p => ({ release_id: releaseId, platform: p, status: "queued" }));
+      if (deliveryRows.length) {
+        await supabase.from("dsp_deliveries" as any).upsert(deliveryRows, { onConflict: "release_id,platform" });
+      }
+      await supabase.from("release_events" as any).insert({
+        release_id: releaseId, type: "submitted", actor_id: u.user.id,
+        note: sourceReleaseId ? "Resubmitted for review" : "Submitted for review",
+        payload: { stores, territory, pricing },
+      });
       if (draftId) await supabase.from("release_drafts").delete().eq("id", draftId);
       toast.success(sourceReleaseId ? "Release resubmitted for review" : "Release submitted for review");
-      navigate({ to: "/catalog" });
+      navigate({ to: "/releases/$id", params: { id: releaseId } });
     } catch (e) {
       toast.error((e as Error).message);
     } finally { setBusy(false); }
@@ -298,11 +308,13 @@ function NewRelease() {
         <Button variant="outline" onClick={() => saveDraft(true)}><Save className="h-4 w-4 mr-1.5" />Save draft</Button>
       </div>
 
-      <div className="flex gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
         {STEPS.map((s, i) => (
-          <button key={s} onClick={() => i <= step && setStep(i)}
-            className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? "bg-primary" : "bg-muted"}`}
-            title={`Step ${i + 1}: ${s}`} />
+          <button key={s} onClick={() => setStep(i)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${i === step ? "bg-primary text-primary-foreground border-primary" : i < step ? "bg-primary/10 text-primary border-primary/30" : "bg-muted/30 text-muted-foreground border-border hover:text-foreground"}`}
+            title={`Step ${i + 1}: ${s}`}>
+            <span className="opacity-60 mr-1">{i + 1}.</span>{s}
+          </button>
         ))}
       </div>
 

@@ -54,6 +54,7 @@ const ROLE_NAV: Record<AppRole, Item[]> = {
     { to: "/royalties", label: "Royalties", icon: DollarSign },
     { to: "/reports", label: "Reports", icon: FileText },
     { to: "/approval-queue", label: "Approval queue", icon: ShieldCheck },
+    { to: "/admin/tickets", label: "Tickets (admin)", icon: LifeBuoy },
     { to: "/tools", label: "Tools", icon: Wrench },
     { to: "/tools/dsp-lookup", label: "DSP lookup", icon: Search },
     { to: "/platform-settings", label: "Platform settings", icon: Settings },

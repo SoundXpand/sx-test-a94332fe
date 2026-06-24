@@ -99,6 +99,60 @@ export type Database = {
           },
         ]
       }
+      dsp_deliveries: {
+        Row: {
+          created_at: string
+          error: string | null
+          external_id: string | null
+          external_url: string | null
+          id: string
+          last_event_at: string
+          platform: string
+          release_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          external_id?: string | null
+          external_url?: string | null
+          id?: string
+          last_event_at?: string
+          platform: string
+          release_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          external_id?: string | null
+          external_url?: string | null
+          id?: string
+          last_event_at?: string
+          platform?: string
+          release_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dsp_deliveries_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "public_releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dsp_deliveries_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dsp_lookup_cache: {
         Row: {
           fetched_at: string
@@ -264,6 +318,51 @@ export type Database = {
           {
             foreignKeyName: "release_drafts_source_release_id_fkey"
             columns: ["source_release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      release_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          note: string | null
+          payload: Json
+          release_id: string
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          payload?: Json
+          release_id: string
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          payload?: Json
+          release_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_events_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "public_releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "release_events_release_id_fkey"
+            columns: ["release_id"]
             isOneToOne: false
             referencedRelation: "releases"
             referencedColumns: ["id"]

@@ -1,90 +1,65 @@
-# Catalog actions, analytics charts, smartlinks, DSP lookup
+# Releases, delivery timeline & support
 
-Builds out the release lifecycle (takedown, edit-and-resubmit, delete drafts), finishes the Catalog row actions, ships a public smartlink page, charts the analytics view, and adds a DSP search panel that queries Spotify, YouTube, and Deezer by UPC or artist+title.
+## 1. Release wizard `/releases/new` — completion pass
 
-## 1. Release lifecycle + schema
+Refactor the existing 6-step wizard into a **tabbed stepper** (clickable tab strip + Next/Back) with strict per-step validation using `zod`. Tab is locked until prior steps validate.
 
-Migration:
-- `releases.status` enum widened to: `draft, pending, approved, live, rejected, takedown_requested, taken_down`.
-- New columns on `releases`: `slug text unique`, `rejection_reason text`, `taken_down_at timestamptz`, `published_url text`.
-- New table `release_links (release_id, platform, url, external_id)` — stores Spotify/YouTube/Deezer links discovered via DSP lookup or pasted by admin. GRANTs + RLS (owner read/write, admin all, anon select by `release_id` joined to `live` releases through the smartlink RPC).
-- `release_drafts`: add `source_release_id uuid null` so editing an existing release creates an edit-draft tied back to the original; on submit the original gets overwritten and re-set to `pending`.
-- Trigger: when `releases.status` becomes `live` and `slug is null`, generate a 6-char base36 slug.
+**Tabs & required fields**
+1. **Album details** — title*, primary artist*, release type (single/EP/album), primary genre*, language*, release date* (≥ today + 7d for new), copyright year, label, UPC (13-digit or auto), catalog #, parental advisory toggle, description.
+2. **Artwork** — drag-drop upload to `artwork` bucket. Client-side check: JPG/PNG, ≥ 3000×3000, square, ≤ 10 MB. Live preview, replace, AI-generate (existing endpoint).
+3. **Tracks** — upload audio files (WAV/FLAC/MP3 320, ≤ 200 MB) to `audio` bucket. **After each file resolves, expand a per-track form**: title*, version, ISRC (auto or manual, validated `^[A-Z]{2}[A-Z0-9]{3}\d{7}$`), explicit toggle, language, featured artist, composer*, lyricist*, producer, copyright owner*, publishing info. Reorderable list, auto track #, duration auto-read.
+4. **Distribution** — territory (worldwide / pick countries via multi-select with search), release date confirm, pricing tier, DSP checkboxes (Spotify, Apple Music, Amazon, YouTube Music, Tidal, Deezer, TikTok, Instagram/Facebook, Boomplay, JioSaavn, Wynk, Gaana, Pandora, Anghami — select all/none).
+5. **Review & submit** — read-only summary cards (artwork thumb, metadata, tracklist with durations, selected stores, territories), rights confirmation checkbox*, **Submit** → `releases.status='pending'` + seeds one `dsp_deliveries` row per selected store with status `queued`, writes a `release_events` row `submitted`.
 
-## 2. Catalog row actions
+Draft autosaves on every change (debounced 800 ms) into `release_drafts.payload`.
 
-`/catalog` and `/_authenticated/releases` (admin) — replace plain rows with an actions dropdown per row:
-- **Draft** → Resume edit, Delete draft (hard delete), Duplicate.
-- **Pending** → View, Withdraw (back to draft).
-- **Live** → View, Copy smartlink, Open smartlink (new tab), Request takedown.
-- **Rejected** → View reason, Edit & resubmit (opens wizard with prefilled data).
-- **Takedown requested** → View (admin sees approve/reject in approval queue).
-- **Taken down** → View, Restore request (re-submits as pending).
+## 2. Release detail page `/releases/$id`
 
-Smartlink button: copies `https://<host>/l/<slug>` and shows a toast. Disabled until status=live.
+New route (also linked from Catalog "View" action). Layout: header (artwork, title, status badge, action buttons) + tabs:
+- **Overview** — metadata, smartlink button (if `live`), download artwork.
+- **Tracklist** — table of tracks with ISRC, duration, explicit.
+- **Delivery** — table of `dsp_deliveries` per platform showing status (`queued | in_delivery | delivered | live | rejected | takedown`), last update, external URL, retry button (admin). Status pills color-coded.
+- **Timeline** — vertical timeline from `release_events` (submitted, approved, rejected w/ reason, delivery_started, delivered, live, takedown_requested, taken_down, edited). Each event shows actor, timestamp, optional note.
 
-## 3. Approval queue (admin)
+## 3. DSP delivery + webhooks
 
-`/approval-queue` already exists — extend it with two tabs: **New submissions** (status=pending) and **Takedown requests** (status=takedown_requested). Approve/Reject on each, with a reason textarea on reject. Approve on a takedown sets status=taken_down + `taken_down_at=now()`.
+New tables (migration):
+- `dsp_deliveries` (release_id, platform, status, external_id, external_url, last_event_at, error). RLS: owner read; service_role write.
+- `release_events` (release_id, type, actor_id, note, payload jsonb, created_at). RLS: owner read; service_role write; admin write via has_role.
+- Trigger on `releases.status` UPDATE → insert matching `release_events` row.
 
-## 4. Edit & resubmit flow
+Public webhook route `src/routes/api/public/dsp-webhook/$platform.ts` (POST). Verifies `x-webhook-secret` header against `DSP_WEBHOOK_SECRET` (generated via `generate_secret`), looks up delivery by `external_id` or `(release_id, platform)`, updates status, inserts a `release_events` row. Returns 200/401. Includes an admin "Simulate webhook" button on the Delivery tab that calls the same handler with valid secret for demoing the full lifecycle.
 
-`/releases/new` accepts `?edit=<releaseId>`:
-- Loads the release + tracks, copies them into a new `release_drafts` row with `source_release_id` set, and runs the wizard.
-- Step 6 Submit: when `source_release_id` is set, updates the original release + tracks (replacing all tracks) and sets status back to `pending`, clears `rejection_reason`. Otherwise inserts new.
+Approval-queue admin actions now also flip `dsp_deliveries.status` to `in_delivery` on approve.
 
-## 5. Public smartlink page
+## 4. Support ticket system
 
-New public route `src/routes/l.$slug.tsx` (SSR on, no auth gate):
-- Loader calls a public server fn that uses the publishable Supabase client + a `TO anon` SELECT policy on a `public_releases` view (slug, title, artist, artwork_path, release_date) joined with `release_links` filtered to `live` releases only.
-- Renders artwork hero, title, artist, release date, and a stacked list of DSP buttons (Spotify, Apple, YouTube, Deezer, etc.) from `release_links`. Each button is `target=_blank rel=noopener`.
-- `head()` sets title/description/og:image from artwork; this is the shareable card.
-- Bottom: subtle "Powered by SoundXpand" with link to `/`.
-- Settings slot in `/platform-settings` for future provider swap (Feature.fm/Linkfire) — store provider + token in `platform_settings.smartlink` jsonb.
+Tables already exist (`support_tickets`, `support_messages`). Rebuild `/support` with tabs:
+- **My tickets** — table (subject, priority, status, updated). Row click → drawer with full message thread + reply box (writes `support_messages`).
+- **New ticket** — form: subject*, category (billing/technical/release/other), priority (low/normal/high), message*, optional release link. Validates with zod, inserts ticket + first message, toast confirms.
+- **FAQ** — keep current accordion.
 
-Wizard step 6: after successful submit, shows the smartlink + "Copy" + QR (use `qrcode` npm) once the admin approves to live.
+Admin route `/admin/tickets` (gated by `has_role('admin')` via current `_authenticated` layout + in-component check; sidebar item visible only to admins):
+- Table of ALL tickets with filters (status, priority, search).
+- Open ticket → drawer with thread, status select (open/in_progress/waiting_user/resolved/closed), priority select, internal reply.
+- Counter badge in sidebar for `open + in_progress` tickets assigned to admins.
 
-## 6. Analytics charts
+## 5. Admin enhancements for submissions
 
-`/analytics` — replace the single bar list with a real dashboard using `recharts` (already common in shadcn). Sections:
-- KPI strip: total streams, total revenue, active releases, top platform.
-- Line chart: streams over time (group analytics_rows by `period` month).
-- Stacked bar: streams by platform per month.
-- Donut: revenue share by platform.
-- Table: top tracks (release_tracks joined to analytics_rows, sortable, top 10).
-- Filters: date range (last 30d / 90d / 12m / all), release dropdown, platform multi-select.
-Skeletons during load; reuse `<EmptyState />` when no data.
+Extend existing `/approval-queue`:
+- Submission row → "Review" opens the new `/releases/$id` page in admin mode (extra actions: Approve, Reject w/ reason, Mark live, Force takedown, Resend to DSPs).
+- New "Activity" tab on approval queue showing recent `release_events` system-wide (last 50).
+- Sample seed: backfill `dsp_deliveries` + `release_events` rows for the "Lost Trails" demo release across 4 DSPs with realistic timeline.
 
-## 7. DSP lookup (Spotify, YouTube, Deezer)
+## Technical details
 
-New page `/_authenticated/tools/dsp-lookup` (also embedded as a panel in release detail):
-- Inputs: UPC (preferred), or artist + title.
-- "Search" calls a server fn that fans out to:
-  - **Spotify**: `client_credentials` token, then `/v1/search?q=upc:<UPC>&type=album` or `q=artist:.. track:..&type=track`. Needs `SPOTIFY_CLIENT_ID` + `SPOTIFY_CLIENT_SECRET` — request via `add_secret`.
-  - **YouTube Data API v3**: `/youtube/v3/search?q=<title artist>&type=video`. Needs `YOUTUBE_API_KEY` — request via `add_secret`. No UPC support — fall back to artist+title.
-  - **Deezer**: keyless `https://api.deezer.com/album/upc:<UPC>` or `/search?q=...`. No secret.
-- Returns normalized `{ platform, title, artist, url, externalId, artwork }`. UI shows a card grid; admin can click "Attach to release" → writes into `release_links`.
-- Cache hits in a `dsp_lookup_cache (query_hash, platform, payload, fetched_at)` table for 24h to avoid quota burn.
+- **Validation:** single `src/lib/release-schemas.ts` exporting zod schemas per step; wizard uses `safeParse` and surfaces errors inline.
+- **Storage:** signed-URL reads in detail page; uploads keep current `artwork`/`audio` buckets.
+- **Routes added:** `src/routes/_authenticated/releases.$id.tsx`, `src/routes/_authenticated/admin.tickets.tsx`, `src/routes/api/public/dsp-webhook/$platform.ts`.
+- **Server fns added:** `src/lib/releases.functions.ts` (`submitRelease`, `simulateDspEvent`, `adminUpdateDelivery`), `src/lib/support.functions.ts` (`createTicket`, `replyTicket`, `adminUpdateTicket`).
+- **Secret:** `DSP_WEBHOOK_SECRET` via `generate_secret`.
+- **Sidebar:** add "Admin → Tickets" group (admin-only) and badge counts on Approval queue + Tickets.
 
-## 8. Sample data
+## Out of scope
 
-Seed `release_links` for the demo "Lost Trails" release so the public smartlink page has buttons immediately. Seed analytics across 6 months so charts have shape.
-
-## Out of scope this turn
-
-Feature.fm/Linkfire API integration (UI slot only), Apple Music API (iTunes Search keyless is fine as a stretch but not promised), DSP delivery automation, real payout processing.
-
-## Secrets to request after plan approval
-
-- `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` (Spotify Developer Dashboard → Create app → Client credentials).
-- `YOUTUBE_API_KEY` (Google Cloud Console → APIs & Services → Credentials → API key with YouTube Data API v3 enabled).
-
-Deezer needs no key.
-
-## Technical notes
-
-- New deps: `recharts`, `qrcode`.
-- New tables: `release_links`, `dsp_lookup_cache`. View: `public_releases`. Trigger: slug generator.
-- New routes: `src/routes/l.$slug.tsx` (public), `src/routes/_authenticated/tools/dsp-lookup.tsx`.
-- New server fns: `lookup-dsp.functions.ts` (auth-required, fans out + caches), `public-smartlink.functions.ts` (public, publishable key), release lifecycle fns (`takedown-request`, `withdraw`, `delete-draft`, `start-edit`, `approve`, `reject`, `approve-takedown`).
-- Wizard reads `?edit=` and `?draft=` search params; submit branches on `source_release_id`.
+Real DSP delivery API integration (we simulate via the webhook), file ingestion/transcoding, ticket email notifications, ticket attachments.

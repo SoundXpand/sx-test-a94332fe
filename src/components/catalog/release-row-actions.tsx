@@ -61,6 +61,10 @@ export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged:
             <Button size="icon" variant="ghost" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => navigate({ to: "/releases/$id", params: { id: row.id } })}>
+              <Eye className="h-4 w-4 mr-2" />View details
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {row.status === "draft" && (
               <>
                 <DropdownMenuItem onClick={() => navigate({ to: "/releases/new", search: { draft: row.id } as any })}>
