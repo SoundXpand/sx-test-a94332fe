@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -14,7 +14,6 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/releases/new")({
   component: NewRelease,
   head: () => ({ meta: [{ title: "New release — SoundXpand" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ draft: typeof s.draft === "string" ? s.draft : undefined }),
 });
 
 const STORES = [
@@ -37,7 +36,7 @@ const blankTrack = (): Track => ({
 
 function NewRelease() {
   const navigate = useNavigate();
-  const { draft } = useSearch({ from: "/_authenticated/releases/new" });
+  const draft = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("draft") : null;
   const [draftId, setDraftId] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
