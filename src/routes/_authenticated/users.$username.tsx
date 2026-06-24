@@ -22,6 +22,7 @@ function UserDetail() {
   const [artists, setArtists] = useState<any[]>([]);
   const [releases, setReleases] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
+  const [activity, setActivity] = useState<any[]>([]);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -29,14 +30,16 @@ function UserDetail() {
     const { data: p } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
     setProfile(p);
     if (p) {
-      const [{ data: a }, { data: rels }, { data: tks }] = await Promise.all([
+      const [{ data: a }, { data: rels }, { data: tks }, { data: acts }] = await Promise.all([
         supabase.from("artists" as any).select("*").eq("owner_id", (p as any).user_id),
         supabase.from("releases").select("id,title,release_type,status,release_date,upc,catalog_number,slug,delivered_at,created_at").eq("owner_id", (p as any).user_id).order("created_at", { ascending: false }),
         supabase.from("support_tickets").select("id,subject,status,priority,updated_at").eq("user_id", (p as any).user_id).order("updated_at", { ascending: false }),
+        supabase.from("user_activity_log" as any).select("*").eq("user_id", (p as any).user_id).order("created_at", { ascending: false }).limit(50),
       ]);
       setArtists((a as any[]) ?? []);
       setReleases(rels ?? []);
       setTickets(tks ?? []);
+      setActivity((acts as any[]) ?? []);
     }
     setLoading(false);
   };
@@ -166,6 +169,23 @@ function UserDetail() {
               <li key={t.id} className="py-2 flex justify-between text-sm">
                 <span>{t.subject}</span>
                 <span className="text-xs text-muted-foreground capitalize">{t.status.replace(/_/g," ")} · {t.priority}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card className="p-6 bg-card/60 space-y-3">
+        <h2 className="font-semibold">Logbook ({activity.length})</h2>
+        {activity.length === 0 ? <div className="text-sm text-muted-foreground">No activity yet.</div> : (
+          <ul className="divide-y divide-border max-h-96 overflow-y-auto">
+            {activity.map((a: any) => (
+              <li key={a.id} className="py-2 flex justify-between gap-3 text-sm">
+                <div className="min-w-0">
+                  <div className="font-medium capitalize">{a.kind}</div>
+                  <div className="text-xs text-muted-foreground truncate">{a.summary || "—"}</div>
+                </div>
+                <span className="text-xs text-muted-foreground shrink-0">{new Date(a.created_at).toLocaleString()}</span>
               </li>
             ))}
           </ul>

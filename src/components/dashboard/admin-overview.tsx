@@ -36,7 +36,7 @@ export function AdminOverview() {
   const cards = [
     { label: "Total users", value: stats?.users ?? "—", icon: Users, to: "/users" },
     { label: "Users pending approval", value: stats?.pendingUsers ?? "—", icon: ShieldCheck, to: "/users" },
-    { label: "Releases pending review", value: stats?.pendingReleases ?? "—", icon: Disc3, to: "/approval-queue" },
+    { label: "Releases pending review", value: stats?.pendingReleases ?? "—", icon: Disc3, to: "/releases" },
     { label: "Delivered (last 30 days)", value: stats?.delivered30 ?? "—", icon: Truck, to: "/releases" },
     { label: "Open tickets", value: stats?.openTickets ?? "—", icon: LifeBuoy, to: "/admin/tickets" },
     { label: "Accounting uploads", value: stats?.uploads ?? "—", icon: Receipt, to: "/accounting" },
@@ -49,7 +49,7 @@ export function AdminOverview() {
           <h1 className="font-display text-2xl font-semibold">Operations overview</h1>
           <p className="text-sm text-muted-foreground">Approve users and releases, monitor deliveries, manage tickets.</p>
         </div>
-        <Button asChild><Link to="/approval-queue"><ShieldCheck className="h-4 w-4 mr-1.5" />Review queue</Link></Button>
+        <Button asChild><Link to="/releases"><ShieldCheck className="h-4 w-4 mr-1.5" />Review queue</Link></Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

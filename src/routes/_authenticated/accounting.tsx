@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Download, FileSpreadsheet, Loader2, Receipt } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, Loader2, Receipt, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { ACCOUNTING_HEADERS, downloadAccountingTemplate, parseAccountingFile } from "@/lib/metadata-export";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/accounting")({
   component: Accounting,
@@ -48,8 +49,13 @@ function Accounting() {
       if (missing.length > 5) toast.warning(`Missing columns: ${missing.slice(0, 5).join(", ")}…`);
 
       const usernames = Array.from(new Set(rows.map(r => String(r.username || "").trim()).filter(Boolean)));
+      const usernamesLower = usernames.map(u => u.toLowerCase());
       const { data: profs } = await supabase.from("profiles").select("user_id,username").in("username", usernames);
-      const usernameToId = new Map((profs ?? []).map((p: any) => [p.username, p.user_id]));
+      // Also try case-insensitive match for unmatched
+      const usernameToId = new Map<string, string>();
+      (profs ?? []).forEach((p: any) => usernameToId.set(p.username.toLowerCase(), p.user_id));
+      const unmatched = usernamesLower.filter(u => !usernameToId.has(u));
+      if (unmatched.length) toast.warning(`${unmatched.length} username(s) had no matching user — rows ingested with no owner.`);
 
       const { data: u } = await supabase.auth.getUser();
       const { data: upload, error: upErr } = await (supabase.from("analytics_uploads" as any).insert({
@@ -57,36 +63,43 @@ function Accounting() {
       }).select().single() as any);
       if (upErr) throw upErr;
 
-      const toInsert = rows.map(r => ({
-        upload_id: (upload as any).id,
-        owner_id: usernameToId.get(String(r.username || "").trim()) ?? null,
-        username: r.username ?? null,
-        sale_type: r.sale_type ?? null,
-        censor_catalogue_number: r.censor_catalogue_number ?? null,
-        recording_title: r.recording_title ?? null,
-        artists: r.artists ?? null,
-        isrc: r.isrc ?? null,
-        licensee_catalogue_number: r.licensee_catalogue_number ?? null,
-        source: r.source ?? null,
-        period_begins: r.period_begins || null,
-        period_ends: r.period_ends || null,
-        country: r.country ?? null,
-        right_type_group: r.right_type_group ?? null,
-        use_type: r.use_type ?? null,
-        outlet: r.outlet ?? null,
-        collection_share: numOrNull(r.collection_share),
-        quantity: numOrNull(r.quantity),
-        licensor_revenue: numOrNull(r.licensor_revenue),
-        source_currency: r.source_currency ?? null,
-        licensor_currency: r.licensor_currency ?? null,
-        conversion_rate: numOrNull(r.conversion_rate),
-        release_title: r.release_title ?? null,
-        release_ean: r.release_ean ?? null,
-        commercial_model: r.commercial_model ?? null,
-        product: r.product ?? null,
-        streams: Number(r.quantity) || 0,
-        revenue: Number(r.licensor_revenue) || 0,
-      }));
+      const toInsert = rows.map(r => {
+        const uname = String(r.username || "").trim().toLowerCase();
+        const pb = r.period_begins || null;
+        const pe = r.period_ends || null;
+        return {
+          upload_id: (upload as any).id,
+          owner_id: usernameToId.get(uname) ?? null,
+          username: r.username ?? null,
+          sale_type: r.sale_type ?? null,
+          censor_catalogue_number: r.censor_catalogue_number ?? null,
+          recording_title: r.recording_title ?? null,
+          artists: r.artists ?? null,
+          isrc: r.isrc ?? null,
+          licensee_catalogue_number: r.licensee_catalogue_number ?? null,
+          source: r.source ?? null,
+          period_begins: pb,
+          period_ends: pe,
+          date: pb || pe || new Date().toISOString().slice(0, 10),
+          country: r.country ?? null,
+          platform: r.outlet ?? r.source ?? "unknown",
+          right_type_group: r.right_type_group ?? null,
+          use_type: r.use_type ?? null,
+          outlet: r.outlet ?? null,
+          collection_share: numOrNull(r.collection_share),
+          quantity: numOrNull(r.quantity),
+          licensor_revenue: numOrNull(r.licensor_revenue),
+          source_currency: r.source_currency ?? null,
+          licensor_currency: r.licensor_currency ?? null,
+          conversion_rate: numOrNull(r.conversion_rate),
+          release_title: r.release_title ?? null,
+          release_ean: r.release_ean ?? null,
+          commercial_model: r.commercial_model ?? null,
+          product: r.product ?? null,
+          streams: Number(r.quantity) || 0,
+          revenue: Number(r.licensor_revenue) || 0,
+        };
+      });
 
       const chunkSize = 500;
       for (let i = 0; i < toInsert.length; i += chunkSize) {
@@ -150,7 +163,7 @@ function Accounting() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                <th className="py-2">When</th><th>File</th><th>Period</th><th>Rows</th><th>Status</th>
+                <th className="py-2">When</th><th>File</th><th>Period</th><th>Rows</th><th>Status</th><th className="text-right">Actions</th>
               </tr></thead>
               <tbody>
                 {uploads.map(u => (
@@ -160,6 +173,28 @@ function Accounting() {
                     <td>{u.period_label || "—"}</td>
                     <td>{u.row_count}</td>
                     <td><Badge variant={u.status === "completed" ? "default" : "secondary"} className="capitalize text-[10px]">{u.status}</Badge></td>
+                    <td className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete upload?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This permanently deletes <span className="font-mono">{u.filename}</span> and all {u.row_count} analytics rows imported with it.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={async () => {
+                              const { error } = await supabase.from("analytics_uploads" as any).delete().eq("id", u.id);
+                              if (error) toast.error(error.message); else { toast.success("Upload deleted"); loadUploads(); }
+                            }}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </td>
                   </tr>
                 ))}
               </tbody>
