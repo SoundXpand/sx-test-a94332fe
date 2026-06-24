@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { Disc3, Download, Truck, Check, X, ShieldCheck, ArrowDownToLine } from "lucide-react";
+import { Disc3, Download, Truck, Check, X, ShieldCheck, ArrowDownToLine, Trash2, RotateCcw } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { ReleaseRowActions, statusBadgeClass } from "@/components/catalog/release-row-actions";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
