@@ -1,65 +1,41 @@
-# Releases, delivery timeline & support
+## Goal
+Restructure the new-release wizard, introduce a reusable Artists/Label section in Settings, expand registration onboarding, and surface that data in admin user review.
 
-## 1. Release wizard `/releases/new` — completion pass
+## 1. Database
 
-Refactor the existing 6-step wizard into a **tabbed stepper** (clickable tab strip + Next/Back) with strict per-step validation using `zod`. Tab is locked until prior steps validate.
+New migration:
+- `artists` table: `id`, `owner_id` (auth.users), `name` (req), `spotify_url`, `apple_music_url`, `youtube_music_url`, `is_primary` (bool), timestamps. RLS: owner CRUD, admin read; GRANTs.
+- Extend `profiles` with onboarding columns: `role_type` (enum: artist/label/songwriter/publisher), `first_name`, `last_name`, `city`, `main_genre`, `current_distributor`, `tracks_released_bucket`, `private_link`, `spotify_monthly_listeners_bucket`, `social_instagram`, `social_facebook`, `social_tiktok`, `social_vk`, `social_youtube`, `privacy_accepted_at`, `label_name`.
+- Extend `releases`: `artist_ids uuid[]` (selected artists for the release).
+- Username uniqueness already enforced via `sx_username_seq` + unique index — keep as-is (atomic via sequence prevents race conditions).
 
-**Tabs & required fields**
-1. **Album details** — title*, primary artist*, release type (single/EP/album), primary genre*, language*, release date* (≥ today + 7d for new), copyright year, label, UPC (13-digit or auto), catalog #, parental advisory toggle, description.
-2. **Artwork** — drag-drop upload to `artwork` bucket. Client-side check: JPG/PNG, ≥ 3000×3000, square, ≤ 10 MB. Live preview, replace, AI-generate (existing endpoint).
-3. **Tracks** — upload audio files (WAV/FLAC/MP3 320, ≤ 200 MB) to `audio` bucket. **After each file resolves, expand a per-track form**: title*, version, ISRC (auto or manual, validated `^[A-Z]{2}[A-Z0-9]{3}\d{7}$`), explicit toggle, language, featured artist, composer*, lyricist*, producer, copyright owner*, publishing info. Reorderable list, auto track #, duration auto-read.
-4. **Distribution** — territory (worldwide / pick countries via multi-select with search), release date confirm, pricing tier, DSP checkboxes (Spotify, Apple Music, Amazon, YouTube Music, Tidal, Deezer, TikTok, Instagram/Facebook, Boomplay, JioSaavn, Wynk, Gaana, Pandora, Anghami — select all/none).
-5. **Review & submit** — read-only summary cards (artwork thumb, metadata, tracklist with durations, selected stores, territories), rights confirmation checkbox*, **Submit** → `releases.status='pending'` + seeds one `dsp_deliveries` row per selected store with status `queued`, writes a `release_events` row `submitted`.
+## 2. Registration (`src/routes/auth.tsx`)
+Expand RegisterForm into a 2-step flow:
+- Step 1 (existing): email/password/full_name/artist_name/mobile/country.
+- Step 2 (new, before submit): "You are" (radio), first/last name, city, your name (artist/band/label), main music genre (full list from spec), current distributor (full list), tracks released bucket, private link (optional), Spotify monthly listeners bucket, socials (optional), privacy checkbox (required).
+- Save extras to `raw_user_meta_data`; update `handle_new_user_soundxpand()` to map them into `profiles`.
 
-Draft autosaves on every change (debounced 800 ms) into `release_drafts.payload`.
+## 3. Settings (`src/routes/_authenticated/settings.tsx`)
+Add two cards:
+- **Label details** — edit `label_name` + label-level fields on profile.
+- **Artists management** — list user's `artists`, "Add artist" dialog (name required; Spotify/Apple/YouTube Music URLs optional), edit/delete actions. Mark one as primary.
 
-## 2. Release detail page `/releases/$id`
+## 4. New Release wizard (`src/routes/_authenticated/releases.new.tsx`)
+- **Release details step**: remove the Release date field.
+- **Distribution step**: add Release date field here. Remove Artist name + Primary artist text fields. Add **multi-select Artists dropdown** populated from the current user's `artists` table, with an inline "Add new artist in Settings" link.
+- **Tracks step**: same artist multi-select replaces the free-text featured/primary artist input on each track.
+- Submit writes `artist_ids` to `releases` and per-track artist links.
 
-New route (also linked from Catalog "View" action). Layout: header (artwork, title, status badge, action buttons) + tabs:
-- **Overview** — metadata, smartlink button (if `live`), download artwork.
-- **Tracklist** — table of tracks with ISRC, duration, explicit.
-- **Delivery** — table of `dsp_deliveries` per platform showing status (`queued | in_delivery | delivered | live | rejected | takedown`), last update, external URL, retry button (admin). Status pills color-coded.
-- **Timeline** — vertical timeline from `release_events` (submitted, approved, rejected w/ reason, delivery_started, delivered, live, takedown_requested, taken_down, edited). Each event shows actor, timestamp, optional note.
+## 5. Admin user review (`src/routes/_authenticated/users.tsx` + new `users.$username.tsx`)
+- Make each row link to `/users/SX001`.
+- New detail route shows all profile data (onboarding answers, socials, distributor, etc.), the user's artists list, and Approve / Reject (with reason) actions.
 
-## 3. DSP delivery + webhooks
-
-New tables (migration):
-- `dsp_deliveries` (release_id, platform, status, external_id, external_url, last_event_at, error). RLS: owner read; service_role write.
-- `release_events` (release_id, type, actor_id, note, payload jsonb, created_at). RLS: owner read; service_role write; admin write via has_role.
-- Trigger on `releases.status` UPDATE → insert matching `release_events` row.
-
-Public webhook route `src/routes/api/public/dsp-webhook/$platform.ts` (POST). Verifies `x-webhook-secret` header against `DSP_WEBHOOK_SECRET` (generated via `generate_secret`), looks up delivery by `external_id` or `(release_id, platform)`, updates status, inserts a `release_events` row. Returns 200/401. Includes an admin "Simulate webhook" button on the Delivery tab that calls the same handler with valid secret for demoing the full lifecycle.
-
-Approval-queue admin actions now also flip `dsp_deliveries.status` to `in_delivery` on approve.
-
-## 4. Support ticket system
-
-Tables already exist (`support_tickets`, `support_messages`). Rebuild `/support` with tabs:
-- **My tickets** — table (subject, priority, status, updated). Row click → drawer with full message thread + reply box (writes `support_messages`).
-- **New ticket** — form: subject*, category (billing/technical/release/other), priority (low/normal/high), message*, optional release link. Validates with zod, inserts ticket + first message, toast confirms.
-- **FAQ** — keep current accordion.
-
-Admin route `/admin/tickets` (gated by `has_role('admin')` via current `_authenticated` layout + in-component check; sidebar item visible only to admins):
-- Table of ALL tickets with filters (status, priority, search).
-- Open ticket → drawer with thread, status select (open/in_progress/waiting_user/resolved/closed), priority select, internal reply.
-- Counter badge in sidebar for `open + in_progress` tickets assigned to admins.
-
-## 5. Admin enhancements for submissions
-
-Extend existing `/approval-queue`:
-- Submission row → "Review" opens the new `/releases/$id` page in admin mode (extra actions: Approve, Reject w/ reason, Mark live, Force takedown, Resend to DSPs).
-- New "Activity" tab on approval queue showing recent `release_events` system-wide (last 50).
-- Sample seed: backfill `dsp_deliveries` + `release_events` rows for the "Lost Trails" demo release across 4 DSPs with realistic timeline.
-
-## Technical details
-
-- **Validation:** single `src/lib/release-schemas.ts` exporting zod schemas per step; wizard uses `safeParse` and surfaces errors inline.
-- **Storage:** signed-URL reads in detail page; uploads keep current `artwork`/`audio` buckets.
-- **Routes added:** `src/routes/_authenticated/releases.$id.tsx`, `src/routes/_authenticated/admin.tickets.tsx`, `src/routes/api/public/dsp-webhook/$platform.ts`.
-- **Server fns added:** `src/lib/releases.functions.ts` (`submitRelease`, `simulateDspEvent`, `adminUpdateDelivery`), `src/lib/support.functions.ts` (`createTicket`, `replyTicket`, `adminUpdateTicket`).
-- **Secret:** `DSP_WEBHOOK_SECRET` via `generate_secret`.
-- **Sidebar:** add "Admin → Tickets" group (admin-only) and badge counts on Approval queue + Tickets.
+## Technical notes
+- Artist multi-select: simple checkbox popover or `cmdk` combobox using existing shadcn primitives — no new deps.
+- Race-safe usernames already covered by the Postgres sequence in `handle_new_user_soundxpand`.
+- All new public-schema tables get GRANTs + RLS in the same migration.
+- Privacy acceptance stored as timestamp (`privacy_accepted_at`) so we can audit.
 
 ## Out of scope
-
-Real DSP delivery API integration (we simulate via the webhook), file ingestion/transcoding, ticket email notifications, ticket attachments.
+- Editing the auto-generated SX### username format.
+- Migrating existing releases' free-text `artist_name`/`primary_artist` into the new `artist_ids` array (left as-is for back-compat; new submissions use artists).
