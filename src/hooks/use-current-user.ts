@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "artist" | "manager" | "viewer" | "administrator";
+export type AppRole = "artist" | "manager" | "viewer" | "administrator" | "sx_manager";
 
 export function useCurrentUser() {
   return useQuery({
@@ -18,6 +18,8 @@ export function useCurrentUser() {
       const roles = (roleRows ?? []).map(r => r.role as AppRole);
       const primary: AppRole = roles.includes("administrator")
         ? "administrator"
+        : roles.includes("sx_manager")
+        ? "sx_manager"
         : roles.includes("manager")
         ? "manager"
         : roles.includes("viewer")
@@ -28,6 +30,10 @@ export function useCurrentUser() {
   });
 }
 
+export function isStaff(role?: AppRole) {
+  return role === "administrator" || role === "sx_manager";
+}
+
 export function roleLabel(r: AppRole) {
-  return { artist: "Artist", manager: "Manager", viewer: "Viewer", administrator: "Administrator" }[r];
+  return { artist: "Artist", manager: "Manager", viewer: "Viewer", administrator: "Administrator", sx_manager: "SX Manager" }[r];
 }
