@@ -130,9 +130,8 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
 
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Button variant="ghost" size="icon" title="Notifications">
-            <Bell className="h-4 w-4" />
-          </Button>
+          <NotificationsBell />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" title="Quick actions"><Plus className="h-4 w-4" /></Button>
