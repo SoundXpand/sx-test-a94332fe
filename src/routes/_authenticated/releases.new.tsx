@@ -135,7 +135,7 @@ function NewRelease() {
         if (p.release) setRelease(p.release);
         if (p.tracks) setTracks(p.tracks);
         if (p.stores) setStores(p.stores);
-        if (p.territory) setTerritory(p.territory);
+        if (p.territory) { setTerritoryWorldwide(p.territory === "worldwide" || p.territory?.worldwide); setTerritoryCountries(p.territory?.countries ?? ALL_COUNTRY_CODES); }
         if (p.pricing) setPricing(p.pricing);
         if (p.rightsConfirmed) setRightsConfirmed(true);
       }
