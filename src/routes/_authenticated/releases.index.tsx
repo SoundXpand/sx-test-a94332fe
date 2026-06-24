@@ -138,8 +138,14 @@ function ReleasesAdmin() {
                         <Button size="sm" variant="outline" onClick={async () => {
                           const { data: tracks } = await supabase.from("release_tracks").select("*").eq("release_id", r.id).order("track_number");
                           downloadReleaseMetadataXlsx(r, tracks ?? []);
-                        }}>
+                        }} title="Excel only">
                           <Download className="h-3.5 w-3.5 mr-1" />Excel
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={async () => {
+                          try { await downloadReleaseBundle(r); toast.success("Bundle ready"); }
+                          catch (e: any) { toast.error(e.message ?? "Bundle failed"); }
+                        }} title="Excel + artwork + audio renamed by barcode">
+                          <Package className="h-3.5 w-3.5 mr-1" />Bundle ZIP
                         </Button>
                         <Button size="sm" onClick={() => setDeliverFor(r)}>
                           <Truck className="h-3.5 w-3.5 mr-1" />Mark delivered
