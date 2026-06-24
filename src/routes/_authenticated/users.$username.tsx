@@ -5,52 +5,38 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/users/$username")({
   component: UserDetail,
 });
 
-type Profile = {
-  user_id: string; username: string; email: string; full_name: string; artist_name: string;
-  mobile: string | null; country: string | null; status: string;
-  role_type: string | null; first_name: string | null; last_name: string | null;
-  city: string | null; main_genre: string | null; current_distributor: string | null;
-  tracks_released_bucket: string | null; private_link: string | null;
-  spotify_monthly_listeners_bucket: string | null;
-  social_instagram: string | null; social_facebook: string | null;
-  social_tiktok: string | null; social_vk: string | null; social_youtube: string | null;
-  label_name: string | null; privacy_accepted_at: string | null;
-  rejection_reason: string | null; created_at: string;
-};
-
-type Artist = { id: string; name: string; is_primary: boolean; spotify_url: string | null; apple_music_url: string | null; youtube_music_url: string | null };
-
 function UserDetail() {
   const { username } = Route.useParams();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [artists, setArtists] = useState<Artist[]>([]);
+  const { data: me } = useCurrentUser();
+  const staff = isStaff(me?.primaryRole);
+  const [profile, setProfile] = useState<any>(null);
+  const [artists, setArtists] = useState<any[]>([]);
   const [releases, setReleases] = useState<any[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
-    setIsAdmin(roles?.some(r => r.role === "administrator") ?? false);
     const { data: p } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
-    setProfile((p as unknown) as Profile);
+    setProfile(p);
     if (p) {
-      const [{ data: a }, { data: rels }] = await Promise.all([
+      const [{ data: a }, { data: rels }, { data: tks }] = await Promise.all([
         supabase.from("artists" as any).select("*").eq("owner_id", (p as any).user_id),
-        supabase.from("releases").select("id,title,release_type,status,release_date,upc,catalog_number,slug,created_at").eq("owner_id", (p as any).user_id).order("created_at", { ascending: false }),
+        supabase.from("releases").select("id,title,release_type,status,release_date,upc,catalog_number,slug,delivered_at,created_at").eq("owner_id", (p as any).user_id).order("created_at", { ascending: false }),
+        supabase.from("support_tickets").select("id,subject,status,priority,updated_at").eq("user_id", (p as any).user_id).order("updated_at", { ascending: false }),
       ]);
-      setArtists(((a as unknown) as Artist[]) ?? []);
+      setArtists((a as any[]) ?? []);
       setReleases(rels ?? []);
+      setTickets(tks ?? []);
     }
     setLoading(false);
   };
@@ -69,11 +55,13 @@ function UserDetail() {
   };
 
   if (loading) return <div className="text-sm text-muted-foreground">Loading…</div>;
-  if (!isAdmin) return <div className="text-sm text-muted-foreground">Administrators only.</div>;
+  if (!staff) return <div className="text-sm text-muted-foreground">Staff only.</div>;
   if (!profile) return <div>
     <Button variant="ghost" onClick={() => navigate({ to: "/users" })}><ArrowLeft className="h-4 w-4 mr-1" />Back</Button>
     <div className="mt-4 text-sm text-muted-foreground">User not found.</div>
   </div>;
+
+  const payout = (profile.payout_details ?? {}) as Record<string, string>;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -99,6 +87,21 @@ function UserDetail() {
       </Card>
 
       <Card className="p-6 bg-card/60 space-y-2">
+        <div className="flex items-center gap-2 mb-2"><Wallet className="h-4 w-4 text-primary" /><h2 className="font-semibold">Payment & withdrawal preference</h2></div>
+        <Row k="Method" v={profile.payout_method} />
+        {profile.payout_method === "upi" && <Row k="UPI ID" v={payout.upi_id} />}
+        {profile.payout_method === "bank" && (<>
+          <Row k="Account holder" v={payout.account_holder} />
+          <Row k="Bank name" v={payout.bank_name} />
+          <Row k="Account number" v={payout.account_number} />
+          <Row k="IFSC / Routing" v={payout.ifsc_or_routing} />
+          <Row k="SWIFT" v={payout.swift} />
+        </>)}
+        {profile.payout_method === "paypal" && <Row k="PayPal email" v={payout.paypal_email} />}
+        {!profile.payout_method && <div className="text-sm text-muted-foreground">No payout method configured.</div>}
+      </Card>
+
+      <Card className="p-6 bg-card/60 space-y-2">
         <h2 className="font-semibold mb-2">Music profile</h2>
         <Row k="Main genre" v={profile.main_genre} />
         <Row k="Current distributor" v={profile.current_distributor} />
@@ -118,9 +121,7 @@ function UserDetail() {
 
       <Card className="p-6 bg-card/60 space-y-3">
         <h2 className="font-semibold">Artists ({artists.length})</h2>
-        {artists.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No artists added.</div>
-        ) : artists.map(a => (
+        {artists.length === 0 ? <div className="text-sm text-muted-foreground">No artists added.</div> : artists.map(a => (
           <div key={a.id} className="rounded-lg border border-border p-3">
             <div className="font-medium">{a.name} {a.is_primary && <Badge variant="secondary" className="text-[10px] ml-1">Primary</Badge>}</div>
             <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
@@ -134,9 +135,7 @@ function UserDetail() {
 
       <Card className="p-6 bg-card/60 space-y-3">
         <h2 className="font-semibold">Catalog ({releases.length})</h2>
-        {releases.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No releases yet.</div>
-        ) : (
+        {releases.length === 0 ? <div className="text-sm text-muted-foreground">No releases yet.</div> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
@@ -145,13 +144,11 @@ function UserDetail() {
               <tbody>
                 {releases.map(r => (
                   <tr key={r.id} className="border-b border-border/40 hover:bg-muted/30">
-                    <td className="py-2 font-medium">
-                      <Link to="/releases/$id" params={{ id: r.id }} className="hover:text-primary">{r.title}</Link>
-                    </td>
+                    <td className="py-2 font-medium"><Link to="/releases/$id" params={{ id: r.id }} className="hover:text-primary">{r.title}</Link></td>
                     <td className="capitalize text-muted-foreground">{r.release_type}</td>
                     <td className="text-muted-foreground">{r.upc || "—"}</td>
                     <td className="text-muted-foreground">{r.catalog_number || "—"}</td>
-                    <td><Badge variant="secondary" className="text-[10px] capitalize">{r.status}</Badge></td>
+                    <td><Badge variant="secondary" className="text-[10px] capitalize">{r.status.replace(/_/g," ")}</Badge></td>
                     <td className="text-muted-foreground">{r.release_date || "—"}</td>
                   </tr>
                 ))}
@@ -161,6 +158,19 @@ function UserDetail() {
         )}
       </Card>
 
+      <Card className="p-6 bg-card/60 space-y-3">
+        <h2 className="font-semibold">Support tickets ({tickets.length})</h2>
+        {tickets.length === 0 ? <div className="text-sm text-muted-foreground">No tickets.</div> : (
+          <ul className="divide-y divide-border">
+            {tickets.map(t => (
+              <li key={t.id} className="py-2 flex justify-between text-sm">
+                <span>{t.subject}</span>
+                <span className="text-xs text-muted-foreground capitalize">{t.status.replace(/_/g," ")} · {t.priority}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       <Card className="p-6 bg-card/60 space-y-3">
         <h2 className="font-semibold">Review</h2>
