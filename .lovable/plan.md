@@ -1,78 +1,81 @@
-# SoundXpand v2 — Build Plan
+# Dashboard UX & Release Workflow Overhaul
 
-Phase 1 (landing) is already done. This plan covers everything else.
+Rebuild the SoundXpand dashboard shell and release wizard to match Vercel/Linear/Stripe quality, with role-aware navigation, a full topbar, a 6-step wizard with live preview + AI artwork + waveform, and polished empty states across every page.
 
-## Stack reality (important)
+## 1. Dashboard shell (sidebar + topbar)
 
-The spec lists Next.js 15 + Express + Prisma + AWS S3. This project is **TanStack Start + React 19 + Tailwind v4 + Lovable Cloud (Supabase)**. We will not switch stacks — that would throw away everything working. The mapping:
+Replace `src/components/dashboard/dashboard-shell.tsx` with a two-part shell.
 
-- Next.js → TanStack Start (already in place, equivalent SSR)
-- Express + Prisma + Postgres → Lovable Cloud (Supabase Postgres + RLS + auto-generated REST)
-- JWT/refresh tokens → Supabase Auth (handles both)
-- AWS S3 → Supabase Storage (S3-compatible, signed URLs, same model)
-- Email verification → Supabase Auth built-in
+**Sidebar** (`src/components/dashboard/app-sidebar.tsx`)
+- Collapsible: expanded (240px) ↔ icon-only (64px), persisted to `localStorage`, smooth width transition.
+- Mobile: slide-in drawer (already partly there) with backdrop.
+- Role-aware nav, computed from `user_roles` fetched once into a `useCurrentUser()` hook:
+  - **artist**: Dashboard, My Releases, Create Release, Analytics, Royalties, Tools, Support, Settings
+  - **manager**: Dashboard, Artists, Catalog, Create Release, Analytics, Royalties, Reports, Tools, Support, Settings
+  - **viewer**: Dashboard, Catalog, Analytics, Reports, Tools, Support, Settings
+  - **administrator**: Dashboard, Releases, Catalog, Users, Analytics, Royalties, Reports, Approval Queue, Tools, Platform Settings, Support, Settings
+- Active highlight via pathname match; notification badge slot (count from `support_tickets` open / approval queue).
+- Footer block: `© 2026 SoundXpand`, `v2.0.0`, `Production` chip. **No Logout in sidebar.**
 
-If you specifically need AWS S3 or a separate Express backend, tell me and I'll add it — otherwise Cloud is the right call and ships faster.
+**Topbar** (`src/components/dashboard/topbar.tsx`) — sticky, on every authenticated page
+- Left: sidebar toggle, auto-generated breadcrumbs from the current route (`Dashboard / Releases / New release`).
+- Center: global search (Cmd+K `<CommandDialog>`) over releases / tracks / artists (profiles) / users / reports — Supabase ilike queries, grouped results, keyboard navigation.
+- Right: theme toggle, notifications bell (popover listing recent `activity_logs` + open tickets), quick-actions menu (New release, Invite user [admin], Upload analytics [admin]), user profile badge.
+- **Profile badge**: avatar (initials fallback), name, role, `SX###` username; dropdown → Profile, Account settings, Notifications, Help center, **Logout**.
 
-## Phase 2 — Foundation reset + Auth + Roles + Approval
+New routes to back the dropdown: `/profile`, `/help` (settings + notifications already exist).
 
-1. Wipe AssetWise: delete `routes/{ai-chat,employees,settings,reset-password,assets.*,index}.tsx`, components `app-layout`, `asset-*`, `assets-list-view`, `dashboard-view`, `employees-list-view`, `settings-view`, `landing-demo-dashboard`, `login-page`, `ai-chat` edge function, `csv-utils`, hooks/types tied to assets.
-2. Drop AssetWise tables (`assets`, `asset_assignments`, `asset_categories`, `employees`). Keep `user_roles` + `has_role` (extend enum).
-3. New migration:
-   - `app_role` enum → `artist | manager | viewer | administrator` (+ keep `user` for back-compat or drop).
-   - `account_status` enum → `pending_email | pending_approval | approved | rejected | suspended`.
-   - `profiles` (user_id PK→auth.users, full_name, artist_name, username `SX###` unique, mobile unique, country, status, rejection_reason, approved_by, approved_at).
-   - Sequence + trigger to mint `SX001, SX002…` on profile insert.
-   - `handle_new_user` trigger inserts profile (status `pending_approval` after email verify) + assigns default `artist` role.
-   - RLS: users read/update own profile; admins read/update all (via `has_role`).
-   - `activity_logs`, `support_tickets`, `support_messages`, `notify_waitlist` (for "Coming Soon" tools).
-4. Routes:
-   - Public: `/`, `/auth/login`, `/auth/register`, `/auth/forgot`, `/auth/reset-password`, `/auth/verify`, `/auth/pending`, `/auth/rejected`.
-   - `_authenticated/route.tsx` (integration-managed) gates the dashboard. Add an inner guard component that checks `profile.status === 'approved'` and otherwise redirects to `/auth/pending` or `/auth/rejected`.
-   - Admin-only: `_authenticated/_admin/route.tsx` gate via `has_role('administrator')`.
-5. Configure Supabase auth (email confirm ON, signups ON, HIBP ON) + Google OAuth via `lovable.auth`.
-6. Auth pages: split-screen dark UI, back/home buttons, Zod validation, success/error toasts, uniqueness checks for username/email/mobile.
+## 2. New role-aware pages
 
-## Phase 3 — Dashboard shell + Catalog + Upload Wizard
+Add routes so sidebar links resolve for every role:
+- `/_authenticated/releases.tsx` (admin "Releases" — all releases table)
+- `/_authenticated/artists.tsx` (manager — artists list from profiles)
+- `/_authenticated/approval-queue.tsx` (admin — pending releases approve/reject)
+- `/_authenticated/platform-settings.tsx` (admin — brand, logo, favicon, SMTP, email templates, storage, approval rules, DSP config, announcements, maintenance mode, audit logs from `activity_logs`, system health pings)
+- `/_authenticated/profile.tsx`, `/_authenticated/help.tsx`
 
-Sidebar nav: Dashboard, Catalog, New Release, Analytics, Royalties, Users (admin), Reports (admin), Tools, Settings, Support, Logout.
+Gate admin-only routes with a `requireRole(['administrator'])` check in `beforeLoad` reading `user_roles`.
 
-Tables:
-- `releases` (title, version, type, primary_genre, secondary_genre, language, release_date, original_release_date, copyright_year, label, upc, catalog_number, parental_advisory, artwork_path, status `draft|pending|approved|rejected|live|archived`, store_selection jsonb, owner_id, rejection_reason).
-- `release_tracks` (release_id, track_number, title, version, language, explicit, isrc, composer, lyricist, producer, featured_artist, contributors, publishing_info, copyright_owner, audio_path, duration_seconds, file_size_bytes).
-- `release_drafts` (autosave wizard state jsonb).
-- Storage buckets `artwork` (public read) + `audio` (private, signed URLs).
-- RLS: owner full CRUD on own releases; manager can act on assigned artists (later); admin all.
+## 3. Release submission wizard
 
-Wizard `routes/_authenticated/releases.new.tsx`: 6 steps (Release Details → Artwork → Tracks → Audio → Stores → Review). Client-side artwork validation (3000×3000 RGB, ≤10MB), audio metadata extraction (web-audio-api decodeAudioData for duration; basic MP3 bitrate check), drag-drop + progress bars, waveform via `wavesurfer.js`, autosave to `release_drafts` every 10s.
+Rebuild `/_authenticated/releases/new` as a polished 6-step wizard with a 2-column layout: **wizard on the left, live preview card on the right** (sticky, updates as fields change — artwork thumb, title, artist, type, store count, status: Draft).
 
-AI artwork generator: server fn → AI Gateway `openai/gpt-image-2` streaming, saves to `artwork` bucket. Gradient artwork generator: client-side canvas → 3000×3000 PNG.
+Top progress strip shows `Step N of 6` + step titles, clickable to jump back to completed steps. **Save draft** button persists to a new `release_drafts` table (jsonb wizard state, autosave every 10s + on step change) and a **Resume later** banner on `/catalog` lists drafts.
 
-Catalog: TanStack Table with search/filter/sort/status tabs, row actions (edit/duplicate/archive), bulk select.
+**Step 1 — Release details:** title, artist name, primary artist, release type (Single/EP/Album), label, genre + sub-genre, language, release date, original release date, UPC, catalog number, parental advisory toggle, copyright info, producer info, description.
 
-## Phase 4 — Analytics, Royalties, Users, Reports, Tools, Support, Settings
+**Step 2 — Artwork:** drag-drop uploader, client validation (decode image → assert 3000×3000, RGB via canvas pixel sample, JPG/PNG, ≤10MB). Show resolution, file size, color mode, pass/fail. Zoom-on-hover preview, Replace / Remove buttons.
+- **AI Artwork Studio** panel: inputs (artist, album, genre, mood, color theme, style) → call new server route `/api/generate-image` (stream from `openai/gpt-image-2`), generate 4 concepts into a preview grid, click to attach.
 
-- `analytics_rows` (release_id, track_id, platform, country, date, streams, revenue). Admin CSV/Excel upload via `papaparse` + `xlsx`, server fn bulk insert. Charts via Recharts (already a dep).
-- `royalty_statements` (period, artist_id, total, breakdown jsonb, pdf_path). PDF via `@react-pdf/renderer`, Excel via `xlsx`.
-- Users page (admin): approve/reject/suspend, role assignment via `user_roles`, activity log table.
-- Reports: filterable reads + PDF/Excel/CSV export.
-- Tools: 3 "Coming Soon" cards with notify-me form writing to `notify_waitlist`.
-- Support: tickets + threaded messages, FAQ accordion, knowledge base markdown pages, contact form.
-- Settings: profile edit, password change, 2FA enroll (supabase.auth.mfa), notification prefs (`profiles.notification_prefs jsonb`), theme toggle (already wired).
+**Step 3 — Tracks:** per-track card with title, version, language, explicit, ISRC, duration (auto from audio decode), composer, lyricist, producer, featured artist, copyright owner, publisher. Add / remove / duplicate, drag-and-drop reorder (`@dnd-kit/sortable`).
 
-## Phase 5 — Polish
+**Step 4 — Audio validation:** per-track audio upload. Use Web Audio API + `music-metadata-browser` to extract filename, duration, bitrate, channels, sample rate, file size. Pass = MP3 / 320kbps / 44.1kHz / stereo; else show ✕ with reason. `wavesurfer.js` waveform + play/pause preview.
 
-Framer Motion page transitions, skeleton loaders, empty states, full mobile responsiveness, light-mode QA on every surface, SEO `head()` per public route, security scan + lint pass.
+**Step 5 — Distribution:** searchable store grid (Spotify, Apple Music, Amazon, YouTube Music, TikTok, Instagram, Facebook, Deezer, Tidal, Boomplay, JioSaavn, Wynk, Gaana) with Select all / Deselect all; territory selector (Worldwide vs custom country multi-select); pricing tier (Budget / Mid / Premium); rights ownership confirmation checkbox.
+
+**Step 6 — Review & submit:** full summary (artwork, details, tracks, stores, validation), checklist (Metadata / Artwork / Audio / Rights), Submit (insert release + tracks, status `pending`, clears draft), Save draft, Return to edit.
+
+## 4. Sample data & empty states
+
+- Seed migration: insert demo release "Lost Trails" (Sahil Hansda, Album, 10 tracks, status `live`, release_date 2026-06-01) owned by the existing admin, plus `analytics_rows` for Spotify 68k / Apple 31k / YouTube Music 42k / JioSaavn 11k streams summing to 152,430, revenue ₹12,840.
+- Dashboard widgets read real aggregates from `releases` + `analytics_rows` for the current user (or all releases for admin).
+- Every list page (`catalog`, `releases`, `analytics`, `royalties`, `reports`, `users`, `support`, `approval-queue`) gets an `<EmptyState>` component: lucide icon illustration, headline, subcopy, primary CTA.
+
+## 5. Polish
+
+- Dark + light mode QA on every new component (use semantic tokens only).
+- Mobile responsive: sidebar drawer, topbar collapses search into icon, wizard stacks preview below on `<lg`.
+- Skeleton loaders on data tables.
+- Framer Motion fade/slide for sidebar collapse + wizard step transitions.
 
 ## Technical notes
 
-- All colors via CSS tokens already set in Phase 1 — no hardcoded hex in components.
-- Server fns under `src/lib/*.functions.ts` with `requireSupabaseAuth`; admin ops verify role inside handler then `await import('@/integrations/supabase/client.server')`.
-- No Edge Functions for app-internal logic.
-- Demo accounts seeded via migration (1 admin, 1 approved artist, 1 pending).
-- New deps: `wavesurfer.js`, `papaparse`, `xlsx`, `@react-pdf/renderer`, `react-dropzone`, `zod` (already), `@tanstack/react-table`.
+- New deps: `@dnd-kit/core`, `@dnd-kit/sortable`, `wavesurfer.js`, `music-metadata-browser`, `cmdk` (already via shadcn command), `framer-motion` (likely already).
+- New table `release_drafts (id, owner_id, payload jsonb, updated_at)` with RLS owner-only; new server route `src/routes/api/generate-image.ts` streaming from Lovable AI Gateway.
+- New helper hook `src/hooks/use-current-user.ts` returns `{ user, profile, roles, hasRole }` cached via TanStack Query.
+- Topbar breadcrumbs derived from `useRouterState` + a route→label map.
+- Global search uses one `Promise.all` of 5 small Supabase `ilike` queries with debounced input.
 
-## Open questions before I start
+## Out of scope this turn
 
-1. **Stack swap?** Confirm sticking with TanStack Start + Lovable Cloud (recommended), or you really want Next.js + Express + Prisma + AWS S3 (full rewrite, much longer).
-2. **Phase size:** ship Phase 2 first and review before 3–5, or fire all phases in sequence without checkpoints?
+Real SMTP send, real DSP API integrations, real payout processing — Platform Settings exposes the UI + persists config to a `platform_settings` jsonb table; wiring to live providers is a later phase.
