@@ -106,6 +106,7 @@ export type Database = {
           payload: Json
           platform: string
           query_hash: string
+          user_id: string | null
         }
         Insert: {
           fetched_at?: string
@@ -113,6 +114,7 @@ export type Database = {
           payload: Json
           platform: string
           query_hash: string
+          user_id?: string | null
         }
         Update: {
           fetched_at?: string
@@ -120,6 +122,7 @@ export type Database = {
           payload?: Json
           platform?: string
           query_hash?: string
+          user_id?: string | null
         }
         Relationships: []
       }
