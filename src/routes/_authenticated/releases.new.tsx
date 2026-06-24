@@ -14,16 +14,17 @@ import { ArtistMultiSelect, useMyArtists } from "@/components/artist-multi-selec
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { LANGUAGES, GENRES, P_YEARS } from "@/lib/release-options";
+import { DSPS_FULL } from "@/lib/dsp-list";
+import { TerritoryPicker } from "@/components/territory-picker";
+import { ALL_COUNTRY_CODES } from "@/lib/territories";
 
 export const Route = createFileRoute("/_authenticated/releases/new")({
   component: NewRelease,
   head: () => ({ meta: [{ title: "New release — SoundXpand" }] }),
 });
 
-const STORES = [
-  "Spotify", "Apple Music", "Amazon Music", "YouTube Music", "TikTok", "Instagram",
-  "Facebook", "Deezer", "Tidal", "Boomplay", "JioSaavn", "Wynk", "Gaana",
-];
+const STORES = DSPS_FULL.map(d => d.name);
+const STORE_LOGO: Record<string, string | undefined> = Object.fromEntries(DSPS_FULL.map(d => [d.name, d.logo]));
 const STEPS = ["Release details", "Artwork", "Tracks", "Audio", "Distribution", "Review"];
 
 type Track = {
