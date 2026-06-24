@@ -14,7 +14,9 @@ import { Route as PendingRouteImport } from './routes/pending'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
+import { Route as ApiDspLookupRouteImport } from './routes/api/dsp-lookup'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
@@ -30,6 +32,7 @@ import { Route as AuthenticatedCatalogRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedArtistsRouteImport } from './routes/_authenticated/artists'
 import { Route as AuthenticatedApprovalQueueRouteImport } from './routes/_authenticated/approval-queue'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authenticated/tools.dsp-lookup'
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -56,9 +59,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LSlugRoute = LSlugRouteImport.update({
+  id: '/l/$slug',
+  path: '/l/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
   id: '/api/generate-image',
   path: '/api/generate-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDspLookupRoute = ApiDspLookupRouteImport.update({
+  id: '/api/dsp-lookup',
+  path: '/api/dsp-lookup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
@@ -138,6 +151,12 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedToolsDspLookupRoute =
+  AuthenticatedToolsDspLookupRouteImport.update({
+    id: '/dsp-lookup',
+    path: '/dsp-lookup',
+    getParentRoute: () => AuthenticatedToolsRoute,
+  } as any)
 const AuthenticatedReleasesNewRoute =
   AuthenticatedReleasesNewRouteImport.update({
     id: '/new',
@@ -163,10 +182,13 @@ export interface FileRoutesByFullPath {
   '/royalties': typeof AuthenticatedRoyaltiesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
-  '/tools': typeof AuthenticatedToolsRoute
+  '/tools': typeof AuthenticatedToolsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
+  '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
+  '/l/$slug': typeof LSlugRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
+  '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -186,10 +208,13 @@ export interface FileRoutesByTo {
   '/royalties': typeof AuthenticatedRoyaltiesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/support': typeof AuthenticatedSupportRoute
-  '/tools': typeof AuthenticatedToolsRoute
+  '/tools': typeof AuthenticatedToolsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
+  '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
+  '/l/$slug': typeof LSlugRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
+  '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -211,10 +236,13 @@ export interface FileRoutesById {
   '/_authenticated/royalties': typeof AuthenticatedRoyaltiesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
-  '/_authenticated/tools': typeof AuthenticatedToolsRoute
+  '/_authenticated/tools': typeof AuthenticatedToolsRouteWithChildren
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
+  '/l/$slug': typeof LSlugRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
+  '/_authenticated/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -238,8 +266,11 @@ export interface FileRouteTypes {
     | '/support'
     | '/tools'
     | '/users'
+    | '/api/dsp-lookup'
     | '/api/generate-image'
+    | '/l/$slug'
     | '/releases/new'
+    | '/tools/dsp-lookup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -261,8 +292,11 @@ export interface FileRouteTypes {
     | '/support'
     | '/tools'
     | '/users'
+    | '/api/dsp-lookup'
     | '/api/generate-image'
+    | '/l/$slug'
     | '/releases/new'
+    | '/tools/dsp-lookup'
   id:
     | '__root__'
     | '/'
@@ -285,8 +319,11 @@ export interface FileRouteTypes {
     | '/_authenticated/support'
     | '/_authenticated/tools'
     | '/_authenticated/users'
+    | '/api/dsp-lookup'
     | '/api/generate-image'
+    | '/l/$slug'
     | '/_authenticated/releases/new'
+    | '/_authenticated/tools/dsp-lookup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -295,7 +332,9 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PendingRoute: typeof PendingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiDspLookupRoute: typeof ApiDspLookupRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
+  LSlugRoute: typeof LSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -335,11 +374,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/l/$slug': {
+      id: '/l/$slug'
+      path: '/l/$slug'
+      fullPath: '/l/$slug'
+      preLoaderRoute: typeof LSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generate-image': {
       id: '/api/generate-image'
       path: '/api/generate-image'
       fullPath: '/api/generate-image'
       preLoaderRoute: typeof ApiGenerateImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/dsp-lookup': {
+      id: '/api/dsp-lookup'
+      path: '/api/dsp-lookup'
+      fullPath: '/api/dsp-lookup'
+      preLoaderRoute: typeof ApiDspLookupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/users': {
@@ -447,6 +500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tools/dsp-lookup': {
+      id: '/_authenticated/tools/dsp-lookup'
+      path: '/dsp-lookup'
+      fullPath: '/tools/dsp-lookup'
+      preLoaderRoute: typeof AuthenticatedToolsDspLookupRouteImport
+      parentRoute: typeof AuthenticatedToolsRoute
+    }
     '/_authenticated/releases/new': {
       id: '/_authenticated/releases/new'
       path: '/new'
@@ -470,6 +530,17 @@ const AuthenticatedReleasesRouteWithChildren =
     AuthenticatedReleasesRouteChildren,
   )
 
+interface AuthenticatedToolsRouteChildren {
+  AuthenticatedToolsDspLookupRoute: typeof AuthenticatedToolsDspLookupRoute
+}
+
+const AuthenticatedToolsRouteChildren: AuthenticatedToolsRouteChildren = {
+  AuthenticatedToolsDspLookupRoute: AuthenticatedToolsDspLookupRoute,
+}
+
+const AuthenticatedToolsRouteWithChildren =
+  AuthenticatedToolsRoute._addFileChildren(AuthenticatedToolsRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedApprovalQueueRoute: typeof AuthenticatedApprovalQueueRoute
@@ -484,7 +555,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRoyaltiesRoute: typeof AuthenticatedRoyaltiesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
-  AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
+  AuthenticatedToolsRoute: typeof AuthenticatedToolsRouteWithChildren
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
 }
 
@@ -502,7 +573,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRoyaltiesRoute: AuthenticatedRoyaltiesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
-  AuthenticatedToolsRoute: AuthenticatedToolsRoute,
+  AuthenticatedToolsRoute: AuthenticatedToolsRouteWithChildren,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
 }
 
@@ -515,7 +586,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PendingRoute: PendingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiDspLookupRoute: ApiDspLookupRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
+  LSlugRoute: LSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

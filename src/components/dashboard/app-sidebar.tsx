@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Disc3, Plus, BarChart3, DollarSign, Users, FileText,
   Wrench, Settings, LifeBuoy, Music, ChevronsLeft, ChevronsRight,
-  ShieldCheck, ListChecks, UserCircle2, X,
+  ShieldCheck, ListChecks, UserCircle2, X, Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AppRole } from "@/hooks/use-current-user";
@@ -19,6 +19,7 @@ const ROLE_NAV: Record<AppRole, Item[]> = {
     { to: "/analytics", label: "Analytics", icon: BarChart3 },
     { to: "/royalties", label: "Royalties", icon: DollarSign },
     { to: "/tools", label: "Tools", icon: Wrench },
+    { to: "/tools/dsp-lookup", label: "DSP lookup", icon: Search },
     { to: "/support", label: "Support", icon: LifeBuoy },
     { to: "/settings", label: "Settings", icon: Settings },
   ],
@@ -31,6 +32,7 @@ const ROLE_NAV: Record<AppRole, Item[]> = {
     { to: "/royalties", label: "Royalties", icon: DollarSign },
     { to: "/reports", label: "Reports", icon: FileText },
     { to: "/tools", label: "Tools", icon: Wrench },
+    { to: "/tools/dsp-lookup", label: "DSP lookup", icon: Search },
     { to: "/support", label: "Support", icon: LifeBuoy },
     { to: "/settings", label: "Settings", icon: Settings },
   ],
@@ -53,6 +55,7 @@ const ROLE_NAV: Record<AppRole, Item[]> = {
     { to: "/reports", label: "Reports", icon: FileText },
     { to: "/approval-queue", label: "Approval queue", icon: ShieldCheck },
     { to: "/tools", label: "Tools", icon: Wrench },
+    { to: "/tools/dsp-lookup", label: "DSP lookup", icon: Search },
     { to: "/platform-settings", label: "Platform settings", icon: Settings },
     { to: "/support", label: "Support", icon: LifeBuoy },
     { to: "/settings", label: "Settings", icon: Settings },
