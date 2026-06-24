@@ -78,6 +78,18 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        supabase.from("user_activity_log" as any).insert({
+          user_id: session.user.id, kind: "login",
+          summary: "Signed in",
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        } as any).then(() => {});
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
