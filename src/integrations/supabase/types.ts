@@ -810,6 +810,8 @@ export type Database = {
       }
       releases: {
         Row: {
+          admin_remarks: string | null
+          archived_at: string | null
           artist_ids: string[]
           artwork_path: string | null
           c_name: string | null
@@ -844,6 +846,8 @@ export type Database = {
           version: string | null
         }
         Insert: {
+          admin_remarks?: string | null
+          archived_at?: string | null
           artist_ids?: string[]
           artwork_path?: string | null
           c_name?: string | null
@@ -878,6 +882,8 @@ export type Database = {
           version?: string | null
         }
         Update: {
+          admin_remarks?: string | null
+          archived_at?: string | null
           artist_ids?: string[]
           artwork_path?: string | null
           c_name?: string | null
@@ -1144,6 +1150,7 @@ export type Database = {
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       next_sx_username: { Args: never; Returns: string }
+      purge_archived_releases: { Args: never; Returns: number }
     }
     Enums: {
       account_status: "pending_approval" | "approved" | "rejected" | "suspended"

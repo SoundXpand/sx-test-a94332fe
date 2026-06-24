@@ -5,27 +5,41 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ExternalLink, Copy, RefreshCw, Disc3, ImageIcon, Check, X, Clock, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, ExternalLink, Copy, RefreshCw, Disc3, Check, X, Clock, Send, Save, Trash2, Package, Download } from "lucide-react";
 import { toast } from "sonner";
 import { statusBadgeClass } from "@/components/catalog/release-row-actions";
-import { useCurrentUser } from "@/hooks/use-current-user";
+import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
+import { useServerFn } from "@tanstack/react-start";
+import { archiveReleaseFn, updateReleaseAdminFn } from "@/lib/admin-actions.functions";
+import { ArtworkImage } from "@/components/catalog/artwork-image";
+import { AudioPlayButton } from "@/components/catalog/audio-play-button";
+import { downloadReleaseBundle } from "@/lib/release-bundle";
+import { downloadReleaseMetadataXlsx } from "@/lib/metadata-export";
 
 export const Route = createFileRoute("/_authenticated/releases/$id")({
   component: ReleaseDetail,
   head: () => ({ meta: [{ title: "Release detail — SoundXpand" }] }),
 });
 
+const STATUS_OPTIONS = ["draft", "pending", "approved", "live", "delivered", "rejected", "takedown_requested", "taken_down"];
+
 function ReleaseDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const { data: me } = useCurrentUser();
-  const isAdmin = me?.primaryRole === "administrator" || me?.primaryRole === "admin" as any;
+  const staff = isStaff(me?.primaryRole);
   const [release, setRelease] = useState<any>(null);
   const [tracks, setTracks] = useState<any[]>([]);
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [artworkUrl, setArtworkUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const updateFn = useServerFn(updateReleaseAdminFn);
+  const archiveFn = useServerFn(archiveReleaseFn);
 
   const load = useCallback(async () => {
     const [r, t, d, e] = await Promise.all([
@@ -41,7 +55,7 @@ function ReleaseDetail() {
     if (r.data?.artwork_path) {
       const { data: s } = await supabase.storage.from("artwork").createSignedUrl(r.data.artwork_path, 3600);
       setArtworkUrl(s?.signedUrl ?? null);
-    }
+    } else setArtworkUrl(null);
     setLoading(false);
   }, [id]);
 
@@ -66,34 +80,27 @@ function ReleaseDetail() {
     else toast.error(`Webhook failed (${res.status})`);
   };
 
-  const adminUpdateStatus = async (status: string) => {
-    const { error } = await supabase.from("releases").update({ status, ...(status === "rejected" ? { rejection_reason: prompt("Rejection reason?") || "Not specified" } : {}) }).eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success(`Release → ${status}`);
-    load();
-  };
-
   if (loading) return <div className="p-8 text-muted-foreground">Loading…</div>;
   if (!release) return <div className="p-8">Not found. <Link to="/catalog" className="text-primary">Back to catalog</Link></div>;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <Button size="icon" variant="ghost" onClick={() => navigate({ to: "/catalog" })}><ArrowLeft className="h-4 w-4" /></Button>
         <h1 className="font-display text-2xl font-semibold truncate">{release.title}</h1>
         <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusBadgeClass(release.status)}`}>{release.status.replace(/_/g, " ")}</span>
+        {release.archived_at && <Badge variant="destructive">Archived</Badge>}
       </div>
 
       <Card className="p-6 bg-card/60 border-border">
         <div className="flex gap-6 flex-wrap">
-          <div className="h-40 w-40 rounded-xl bg-muted overflow-hidden grid place-items-center shrink-0">
-            {artworkUrl ? <img src={artworkUrl} className="h-full w-full object-cover" alt="" /> : <ImageIcon className="h-10 w-10 text-muted-foreground" />}
-          </div>
+          <ArtworkImage src={artworkUrl} alt={release.title} className="h-40 w-40 rounded-xl shrink-0" />
           <div className="flex-1 min-w-[240px] space-y-2">
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <Badge variant="outline" className="capitalize"><Disc3 className="h-3 w-3 mr-1" />{release.release_type}</Badge>
               {release.primary_genre && <Badge variant="outline">{release.primary_genre}</Badge>}
               {release.upc && <span className="text-muted-foreground text-xs">UPC {release.upc}</span>}
+              {release.catalog_number && <span className="text-muted-foreground text-xs">CAT {release.catalog_number}</span>}
               {release.release_date && <span className="text-muted-foreground text-xs">Release {release.release_date}</span>}
             </div>
             <div className="text-sm text-muted-foreground">{release.record_label || "Independent"}</div>
@@ -104,17 +111,28 @@ function ReleaseDetail() {
                   <Button size="sm" variant="outline" asChild><a href={smartlink} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5 mr-1" />Open</a></Button>
                 </>
               )}
-              {isAdmin && release.status === "pending" && (
+              {staff && (
                 <>
-                  <Button size="sm" onClick={() => adminUpdateStatus("approved")}><Check className="h-3.5 w-3.5 mr-1" />Approve</Button>
-                  <Button size="sm" variant="outline" onClick={() => adminUpdateStatus("rejected")}><X className="h-3.5 w-3.5 mr-1" />Reject</Button>
+                  <Button size="sm" variant="outline" onClick={() => downloadReleaseMetadataXlsx(release, tracks)}>
+                    <Download className="h-3.5 w-3.5 mr-1" />Metadata
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    try { await downloadReleaseBundle(release); toast.success("Bundle ready"); }
+                    catch (e: any) { toast.error(e.message ?? "Bundle failed"); }
+                  }}>
+                    <Package className="h-3.5 w-3.5 mr-1" />Bundle ZIP
+                  </Button>
+                  {release.archived_at ? (
+                    <Button size="sm" variant="outline" onClick={async () => {
+                      await archiveFn({ data: { releaseId: id, restore: true } }); toast.success("Restored"); load();
+                    }}>Restore</Button>
+                  ) : (
+                    <Button size="sm" variant="destructive" onClick={async () => {
+                      if (!confirm("Archive this release? It will permanently delete after 7 days (along with audio, artwork, tracks).")) return;
+                      await archiveFn({ data: { releaseId: id } }); toast.success("Archived"); load();
+                    }}><Trash2 className="h-3.5 w-3.5 mr-1" />Archive</Button>
+                  )}
                 </>
-              )}
-              {isAdmin && release.status === "approved" && (
-                <Button size="sm" onClick={() => adminUpdateStatus("live")}><Send className="h-3.5 w-3.5 mr-1" />Mark live</Button>
-              )}
-              {isAdmin && release.status === "takedown_requested" && (
-                <Button size="sm" variant="destructive" onClick={() => adminUpdateStatus("taken_down")}>Approve takedown</Button>
               )}
             </div>
           </div>
@@ -126,7 +144,8 @@ function ReleaseDetail() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tracks">Tracklist ({tracks.length})</TabsTrigger>
           <TabsTrigger value="delivery">Delivery ({deliveries.length})</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline ({events.length})</TabsTrigger>
+          <TabsTrigger value="timeline">Activity log ({events.length})</TabsTrigger>
+          {staff && <TabsTrigger value="admin">Admin</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="overview">
@@ -152,6 +171,11 @@ function ReleaseDetail() {
                 <strong>Rejection reason:</strong> {release.rejection_reason}
               </div>
             )}
+            {release.admin_remarks && (
+              <div className="mt-4 p-3 rounded-lg bg-muted/40 text-sm">
+                <strong>Admin remarks:</strong> {release.admin_remarks}
+              </div>
+            )}
           </Card>
         </TabsContent>
 
@@ -159,13 +183,14 @@ function ReleaseDetail() {
           <Card className="p-0 bg-card/60 border-border overflow-hidden">
             <table className="w-full text-sm">
               <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                <th className="py-2 px-4">#</th><th>Title</th><th>ISRC</th><th>Duration</th><th>Explicit</th>
+                <th className="py-2 px-2 w-10"></th><th className="px-2 w-10">#</th><th>Title</th><th>ISRC</th><th>Duration</th><th>Explicit</th>
               </tr></thead>
               <tbody>
-                {tracks.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No tracks</td></tr>}
+                {tracks.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No tracks</td></tr>}
                 {tracks.map(t => (
                   <tr key={t.id} className="border-b border-border/40">
-                    <td className="py-2.5 px-4 text-muted-foreground">{t.track_number}</td>
+                    <td className="py-2 px-2"><AudioPlayButton path={t.audio_path} /></td>
+                    <td className="py-2.5 px-2 text-muted-foreground">{t.track_number}</td>
                     <td className="font-medium">{t.title}{t.version ? <span className="text-muted-foreground"> ({t.version})</span> : null}</td>
                     <td className="text-muted-foreground font-mono text-xs">{t.isrc || "—"}</td>
                     <td className="text-muted-foreground">{t.duration_seconds ? formatDur(t.duration_seconds) : "—"}</td>
@@ -192,7 +217,7 @@ function ReleaseDetail() {
                     <td className="text-muted-foreground text-xs">{new Date(d.last_event_at).toLocaleString()}</td>
                     <td>{d.external_url ? <a href={d.external_url} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1"><ExternalLink className="h-3 w-3" />Open</a> : <span className="text-muted-foreground">—</span>}</td>
                     <td className="text-right pr-4">
-                      {isAdmin && (
+                      {staff && (
                         <div className="inline-flex gap-1">
                           <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "in_delivery")} title="Mark in delivery"><RefreshCw className="h-3 w-3" /></Button>
                           <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "delivered")}>Delivered</Button>
@@ -204,11 +229,6 @@ function ReleaseDetail() {
                 ))}
               </tbody>
             </table>
-            {isAdmin && (
-              <div className="p-3 border-t border-border text-xs text-muted-foreground">
-                Admin: action buttons call the DSP webhook locally to simulate the lifecycle for demo purposes.
-              </div>
-            )}
           </Card>
         </TabsContent>
 
@@ -233,8 +253,100 @@ function ReleaseDetail() {
             )}
           </Card>
         </TabsContent>
+
+        {staff && (
+          <TabsContent value="admin">
+            <AdminEditor release={release} tracks={tracks} onSave={async (patch, trackPatches) => {
+              try { await updateFn({ data: { releaseId: id, patch, trackPatches } }); toast.success("Saved"); load(); }
+              catch (e: any) { toast.error(e.message ?? "Save failed"); }
+            }} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
+  );
+}
+
+function AdminEditor({ release, tracks, onSave }: {
+  release: any; tracks: any[];
+  onSave: (patch: any, trackPatches?: Array<{ id: string; isrc?: string | null; title?: string }>) => Promise<void>;
+}) {
+  const [status, setStatus] = useState(release.status);
+  const [upc, setUpc] = useState(release.upc ?? "");
+  const [cat, setCat] = useState(release.catalog_number ?? "");
+  const [remarks, setRemarks] = useState(release.admin_remarks ?? "");
+  const [rejection, setRejection] = useState(release.rejection_reason ?? "");
+  const [date, setDate] = useState(release.release_date ?? "");
+  const [trackEdits, setTrackEdits] = useState<Record<string, { isrc: string; title: string }>>(
+    Object.fromEntries(tracks.map(t => [t.id, { isrc: t.isrc ?? "", title: t.title ?? "" }]))
+  );
+
+  return (
+    <Card className="p-6 bg-card/60 border-border space-y-6">
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <select className="bg-background border border-input rounded-md text-sm px-2 py-2 w-full" value={status} onChange={e => setStatus(e.target.value)}>
+            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+          </select>
+        </div>
+        <div className="space-y-2">
+          <Label>Release date</Label>
+          <Input type="date" value={date || ""} onChange={e => setDate(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label>UPC / Barcode</Label>
+          <Input value={upc} onChange={e => setUpc(e.target.value)} placeholder="e.g. 884389000000" />
+        </div>
+        <div className="space-y-2">
+          <Label>Catalog number</Label>
+          <Input value={cat} onChange={e => setCat(e.target.value)} />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Admin remarks (internal)</Label>
+          <Textarea rows={3} value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Visible to staff and the release owner." />
+        </div>
+        {status === "rejected" && (
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Rejection reason (sent to artist)</Label>
+            <Textarea rows={3} value={rejection} onChange={e => setRejection(e.target.value)} />
+          </div>
+        )}
+      </div>
+
+      <div>
+        <Label className="mb-2 block">Tracks — ISRC & title</Label>
+        <div className="space-y-2">
+          {tracks.map(t => (
+            <div key={t.id} className="flex gap-2 items-center">
+              <span className="text-xs text-muted-foreground w-6">{t.track_number}</span>
+              <Input className="flex-1" value={trackEdits[t.id]?.title ?? ""} onChange={e => setTrackEdits(p => ({ ...p, [t.id]: { ...p[t.id], title: e.target.value } }))} placeholder="Track title" />
+              <Input className="w-48 font-mono text-xs" value={trackEdits[t.id]?.isrc ?? ""} onChange={e => setTrackEdits(p => ({ ...p, [t.id]: { ...p[t.id], isrc: e.target.value } }))} placeholder="ISRC" />
+            </div>
+          ))}
+          {tracks.length === 0 && <p className="text-xs text-muted-foreground">No tracks</p>}
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Button onClick={() => {
+          const patch: any = {
+            status,
+            upc: upc || null,
+            catalog_number: cat || null,
+            admin_remarks: remarks || null,
+            release_date: date || null,
+          };
+          if (status === "rejected") patch.rejection_reason = rejection || "Not specified";
+          const trackPatches = tracks
+            .filter(t => trackEdits[t.id] && (trackEdits[t.id].isrc !== (t.isrc ?? "") || trackEdits[t.id].title !== (t.title ?? "")))
+            .map(t => ({ id: t.id, isrc: trackEdits[t.id].isrc || null, title: trackEdits[t.id].title }));
+          onSave(patch, trackPatches);
+        }}>
+          <Save className="h-4 w-4 mr-1" />Save changes
+        </Button>
+      </div>
+    </Card>
   );
 }
 

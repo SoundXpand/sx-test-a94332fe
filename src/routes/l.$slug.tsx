@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { Music } from "lucide-react";
+import { ArtworkImage } from "@/components/catalog/artwork-image";
 
 const PLATFORM_COLORS: Record<string, string> = {
   Spotify: "bg-[#1DB954] text-black hover:bg-[#1ed760]",
@@ -100,7 +101,7 @@ function Smartlink() {
       <div className="mx-auto max-w-md px-5 py-10 sm:py-16">
         <div className="aspect-square rounded-2xl overflow-hidden border border-border shadow-2xl">
           {artworkUrl ? (
-            <img src={artworkUrl} alt={release.title} className="h-full w-full object-cover" />
+            <ArtworkImage src={artworkUrl} alt={release.title} className="h-full w-full" />
           ) : (
             <div className="h-full w-full grid place-items-center bg-muted"><Music className="h-12 w-12 text-muted-foreground" /></div>
           )}
