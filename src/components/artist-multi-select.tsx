@@ -17,7 +17,7 @@ export function useMyArtists() {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     const { data } = await supabase.from("artists" as any).select("*").eq("owner_id", u.user.id).order("is_primary", { ascending: false }).order("name");
-    setArtists((data as ArtistRow[]) ?? []);
+    setArtists(((data as unknown) as ArtistRow[]) ?? []);
   };
   useEffect(() => { reload(); }, []);
   return { artists, reload };
