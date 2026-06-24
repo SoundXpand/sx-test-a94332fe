@@ -455,7 +455,7 @@ function NewRelease() {
                     <Field label="Composer"><Input value={t.composer} onChange={e => upd(tracks, setTracks, i, { composer: e.target.value })} /></Field>
                     <Field label="Lyricist"><Input value={t.lyricist} onChange={e => upd(tracks, setTracks, i, { lyricist: e.target.value })} /></Field>
                     <Field label="Producer"><Input value={t.producer} onChange={e => upd(tracks, setTracks, i, { producer: e.target.value })} /></Field>
-                    <Field label="Featured artist"><Input value={t.featured_artist} onChange={e => upd(tracks, setTracks, i, { featured_artist: e.target.value })} /></Field>
+                    <Field label="Artists"><ArtistMultiSelect value={t.artist_ids} onChange={(ids) => upd(tracks, setTracks, i, { artist_ids: ids })} /></Field>
                     <Field label="Copyright owner"><Input value={t.copyright_owner} onChange={e => upd(tracks, setTracks, i, { copyright_owner: e.target.value })} /></Field>
                     <Field label="Publisher"><Input value={t.publishing_info} onChange={e => upd(tracks, setTracks, i, { publishing_info: e.target.value })} /></Field>
                     <label className="flex items-center gap-2 col-span-full">
