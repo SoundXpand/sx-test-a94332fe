@@ -34,6 +34,7 @@ import { Route as AuthenticatedApprovalQueueRouteImport } from './routes/_authen
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authenticated/tools.dsp-lookup'
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
+import { Route as AuthenticatedReleasesIdRouteImport } from './routes/_authenticated/releases.$id'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -163,6 +164,11 @@ const AuthenticatedReleasesNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedReleasesRoute,
   } as any)
+const AuthenticatedReleasesIdRoute = AuthenticatedReleasesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedReleasesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
 }
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
 }
@@ -241,6 +249,7 @@ export interface FileRoutesById {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
   '/_authenticated/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
 }
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
   fileRoutesByTo: FileRoutesByTo
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
   id:
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
     | '/_authenticated/tools/dsp-lookup'
   fileRoutesById: FileRoutesById
@@ -514,14 +526,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReleasesNewRouteImport
       parentRoute: typeof AuthenticatedReleasesRoute
     }
+    '/_authenticated/releases/$id': {
+      id: '/_authenticated/releases/$id'
+      path: '/$id'
+      fullPath: '/releases/$id'
+      preLoaderRoute: typeof AuthenticatedReleasesIdRouteImport
+      parentRoute: typeof AuthenticatedReleasesRoute
+    }
   }
 }
 
 interface AuthenticatedReleasesRouteChildren {
+  AuthenticatedReleasesIdRoute: typeof AuthenticatedReleasesIdRoute
   AuthenticatedReleasesNewRoute: typeof AuthenticatedReleasesNewRoute
 }
 
 const AuthenticatedReleasesRouteChildren: AuthenticatedReleasesRouteChildren = {
+  AuthenticatedReleasesIdRoute: AuthenticatedReleasesIdRoute,
   AuthenticatedReleasesNewRoute: AuthenticatedReleasesNewRoute,
 }
 
