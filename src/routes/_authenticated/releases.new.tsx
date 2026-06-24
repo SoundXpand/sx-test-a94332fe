@@ -125,7 +125,7 @@ function NewRelease() {
         composer: t.composer || "", lyricist: t.lyricist || "",
         producer: t.producer || "", featured_artist: t.featured_artist || "",
         copyright_owner: t.copyright_owner || "", publishing_info: t.publishing_info || "",
-        artist_ids: [],
+        artist_ids: [], primary_genre: (t as any).primary_genre || "",
       }));
       setRelease(releaseState);
       if (trackState.length) {
