@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Label as UILabel } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Plus, Pencil, Trash2, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Star, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -28,6 +30,9 @@ function Settings() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [editing, setEditing] = useState<Partial<Artist> | null>(null);
   const [open, setOpen] = useState(false);
+  const [payoutMethod, setPayoutMethod] = useState<string>("");
+  const [payoutDetails, setPayoutDetails] = useState<Record<string, string>>({});
+  const [payoutSaving, setPayoutSaving] = useState(false);
 
   const loadArtists = async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -39,7 +44,7 @@ function Settings() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
-      supabase.from("profiles").select("full_name,artist_name,mobile,country,label_name,sub_labels").eq("user_id", data.user.id).maybeSingle()
+      supabase.from("profiles").select("full_name,artist_name,mobile,country,label_name,sub_labels,payout_method,payout_details").eq("user_id", data.user.id).maybeSingle()
         .then(({ data: p }) => {
           if (!p) return;
           setProfile({
@@ -47,10 +52,26 @@ function Settings() {
             mobile: p.mobile ?? "", country: p.country ?? "", label_name: (p as any).label_name ?? "",
           });
           setSubLabels(((p as any).sub_labels as string[]) ?? []);
+          setPayoutMethod((p as any).payout_method ?? "");
+          setPayoutDetails(((p as any).payout_details as Record<string, string>) ?? {});
         });
     });
     loadArtists();
   }, []);
+
+  const savePayout = async () => {
+    if (!payoutMethod) return toast.error("Select a payout method");
+    setPayoutSaving(true);
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) { setPayoutSaving(false); return; }
+    const { error } = await supabase.from("profiles").update({
+      payout_method: payoutMethod, payout_details: payoutDetails,
+    } as any).eq("user_id", u.user.id);
+    setPayoutSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Payout preference saved");
+  };
+  const pdSet = (k: string) => (v: string) => setPayoutDetails(d => ({ ...d, [k]: v }));
 
   const saveSubLabels = async (next: string[]) => {
     const { data: u } = await supabase.auth.getUser();
@@ -211,6 +232,51 @@ function Settings() {
             ))}
           </div>
         )}
+      </Card>
+
+      <Card className="p-6 space-y-4 bg-card/60">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold">Payment & withdrawal preference</h2>
+        </div>
+        <p className="text-xs text-muted-foreground">Choose how you'd like to receive your royalty payouts.</p>
+        <div className="space-y-1.5">
+          <UILabel>Payout method</UILabel>
+          <Select value={payoutMethod} onValueChange={(v) => { setPayoutMethod(v); setPayoutDetails({}); }}>
+            <SelectTrigger><SelectValue placeholder="Select method" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="upi">UPI</SelectItem>
+              <SelectItem value="bank">Bank transfer</SelectItem>
+              <SelectItem value="paypal">PayPal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {payoutMethod === "upi" && (
+          <div className="space-y-1.5">
+            <UILabel>UPI ID *</UILabel>
+            <Input value={payoutDetails.upi_id ?? ""} onChange={e => pdSet("upi_id")(e.target.value)} placeholder="yourname@bank" />
+          </div>
+        )}
+
+        {payoutMethod === "bank" && (
+          <div className="grid md:grid-cols-2 gap-3">
+            <div><UILabel>Account holder name *</UILabel><Input value={payoutDetails.account_holder ?? ""} onChange={e => pdSet("account_holder")(e.target.value)} /></div>
+            <div><UILabel>Bank name *</UILabel><Input value={payoutDetails.bank_name ?? ""} onChange={e => pdSet("bank_name")(e.target.value)} /></div>
+            <div><UILabel>Account number *</UILabel><Input value={payoutDetails.account_number ?? ""} onChange={e => pdSet("account_number")(e.target.value)} /></div>
+            <div><UILabel>IFSC / Routing *</UILabel><Input value={payoutDetails.ifsc_or_routing ?? ""} onChange={e => pdSet("ifsc_or_routing")(e.target.value)} /></div>
+            <div className="md:col-span-2"><UILabel>SWIFT (international, optional)</UILabel><Input value={payoutDetails.swift ?? ""} onChange={e => pdSet("swift")(e.target.value)} /></div>
+          </div>
+        )}
+
+        {payoutMethod === "paypal" && (
+          <div className="space-y-1.5">
+            <UILabel>PayPal email *</UILabel>
+            <Input type="email" value={payoutDetails.paypal_email ?? ""} onChange={e => pdSet("paypal_email")(e.target.value)} placeholder="you@example.com" />
+          </div>
+        )}
+
+        <Button onClick={savePayout} disabled={payoutSaving || !payoutMethod}>{payoutSaving ? "Saving…" : "Save payout preference"}</Button>
       </Card>
 
       <Card className="p-6 space-y-4 bg-card/60">

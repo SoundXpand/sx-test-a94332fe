@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Disc3, Plus, Search } from "lucide-react";
+import { Disc3, Plus, Search, Trash2 } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReleaseRowActions, statusBadgeClass } from "@/components/catalog/release-row-actions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/catalog")({
   component: Catalog,
@@ -19,6 +20,7 @@ function Catalog() {
   const [drafts, setDrafts] = useState<any[]>([]);
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("all");
+  const [showAllDrafts, setShowAllDrafts] = useState(false);
 
   const load = useCallback(async () => {
     const [r, d] = await Promise.all([
@@ -35,10 +37,35 @@ function Catalog() {
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = rows.filter(r =>
+  const deleteDraft = async (id: string) => {
+    if (!confirm("Delete this draft? This cannot be undone.")) return;
+    const { error } = await supabase.from("release_drafts").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Draft deleted");
+    load();
+  };
+
+  // Merge drafts into all-releases table as synthetic rows
+  const draftRows = drafts
+    .filter(d => !d.source_release_id) // exclude edit-drafts of existing releases
+    .map(d => ({
+      id: d.id,
+      title: d.title || "Untitled draft",
+      release_type: "—",
+      status: "draft" as const,
+      release_date: null,
+      _isDraft: true,
+      updated_at: d.updated_at,
+    }));
+
+  const combined = [...draftRows, ...rows];
+
+  const filtered = combined.filter(r =>
     (tab === "all" || r.status === tab) &&
-    (!q || r.title.toLowerCase().includes(q.toLowerCase()))
+    (!q || (r.title ?? "").toLowerCase().includes(q.toLowerCase()))
   );
+
+  const visibleDrafts = showAllDrafts ? drafts : drafts.slice(0, 2);
 
   return (
     <div className="space-y-6">
@@ -52,12 +79,26 @@ function Catalog() {
 
       {drafts.length > 0 && (
         <Card className="p-4 bg-primary/5 border-primary/20">
-          <div className="text-xs font-semibold text-primary mb-2">Continue where you left off</div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-semibold text-primary">Continue where you left off</div>
+            {drafts.length > 2 && (
+              <button onClick={() => setShowAllDrafts(s => !s)} className="text-xs text-primary hover:underline">
+                {showAllDrafts ? "Show less" : `View all (${drafts.length})`}
+              </button>
+            )}
+          </div>
           <ul className="space-y-1.5">
-            {drafts.map(d => (
-              <li key={d.id} className="flex items-center justify-between text-sm">
-                <span className="truncate">{d.title} <span className="text-muted-foreground">· Step {(d.current_step ?? 0) + 1}/6{d.source_release_id ? " · editing existing release" : ""}</span></span>
-                <Link to="/releases/new" search={{ draft: d.id } as any} className="text-primary hover:underline">Resume →</Link>
+            {visibleDrafts.map(d => (
+              <li key={d.id} className="flex items-center justify-between gap-2 text-sm">
+                <span className="truncate min-w-0">
+                  {d.title} <span className="text-muted-foreground">· Step {(d.current_step ?? 0) + 1}/6{d.source_release_id ? " · editing existing release" : ""}</span>
+                </span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Link to="/releases/new" search={{ draft: d.id } as any} className="text-primary hover:underline text-xs px-2">Resume →</Link>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteDraft(d.id)} aria-label="Delete draft">
+                    <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
@@ -93,14 +134,26 @@ function Catalog() {
               </tr></thead>
               <tbody>
                 {filtered.map(r => (
-                  <tr key={r.id} className="border-b border-border/50 hover:bg-muted/30">
+                  <tr key={(r._isDraft ? "d-" : "r-") + r.id} className="border-b border-border/50 hover:bg-muted/30">
                     <td className="py-3 px-2 font-medium">
-                      <Link to="/releases/$id" params={{ id: r.id }} className="hover:text-primary">{r.title}</Link>
+                      {r._isDraft ? (
+                        <Link to="/releases/new" search={{ draft: r.id } as any} className="hover:text-primary">{r.title}</Link>
+                      ) : (
+                        <Link to="/releases/$id" params={{ id: r.id }} className="hover:text-primary">{r.title}</Link>
+                      )}
                     </td>
                     <td className="capitalize text-muted-foreground">{r.release_type}</td>
                     <td className="text-muted-foreground">{r.release_date || "—"}</td>
                     <td><span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusBadgeClass(r.status)}`}>{r.status.replace(/_/g, " ")}</span></td>
-                    <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={load} /></td>
+                    <td className="text-right pr-2">
+                      {r._isDraft ? (
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteDraft(r.id)} aria-label="Delete draft">
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                        </Button>
+                      ) : (
+                        <ReleaseRowActions row={r} onChanged={load} />
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

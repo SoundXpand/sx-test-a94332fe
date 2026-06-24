@@ -596,8 +596,10 @@ function NewRelease() {
                           setAudioFiles(audioFiles.slice(0, 1));
                           setAudioMeta(audioMeta.slice(0, 1));
                         }
-                      } else if (release.release_type === "single") {
-                        setRelease({ ...release, release_type: "ep" });
+                      } else {
+                        const n = tracks.length;
+                        const t = n >= 7 ? "album" : n >= 2 ? "ep" : "ep";
+                        setRelease({ ...release, release_type: t });
                       }
                     }}
                   />
@@ -622,13 +624,17 @@ function NewRelease() {
                               const ca = [...audioFiles]; ca.splice(i + 1, 0, null);
                               const cm = [...audioMeta]; cm.splice(i + 1, 0, null);
                               setTracks(ct); setAudioFiles(ca); setAudioMeta(cm);
+                              setRelease(r => ({ ...r, release_type: ct.length >= 7 ? "album" : "ep" }));
                             }}>Duplicate</Button>
                           )}
                           {!isSingle && tracks.length > 1 && (
                             <Button size="sm" variant="ghost" onClick={() => {
-                              setTracks(tracks.filter((_, j) => j !== i));
+                              const ct = tracks.filter((_, j) => j !== i);
+                              setTracks(ct);
                               setAudioFiles(audioFiles.filter((_, j) => j !== i));
                               setAudioMeta(audioMeta.filter((_, j) => j !== i));
+                              setRelease(r => ({ ...r, release_type: ct.length === 1 ? "single" : ct.length >= 7 ? "album" : "ep" }));
+                              if (ct.length === 1) setSingleMode(true);
                             }}>Remove</Button>
                           )}
                         </div>
@@ -665,9 +671,11 @@ function NewRelease() {
                 })}
                 {!isSingle && (
                   <Button variant="outline" onClick={() => {
-                    setTracks([...tracks, blankTrack()]);
+                    const ct = [...tracks, blankTrack()];
+                    setTracks(ct);
                     setAudioFiles([...audioFiles, null]);
                     setAudioMeta([...audioMeta, null]);
+                    setRelease(r => ({ ...r, release_type: ct.length >= 7 ? "album" : "ep" }));
                   }}>+ Add track</Button>
                 )}
               </div>
