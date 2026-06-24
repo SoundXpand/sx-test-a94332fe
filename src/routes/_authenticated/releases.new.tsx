@@ -27,12 +27,14 @@ type Track = {
   title: string; version: string; language: string; explicit: boolean; isrc: string;
   composer: string; lyricist: string; producer: string; featured_artist: string;
   copyright_owner: string; publishing_info: string;
+  artist_ids: string[];
 };
 
 const blankTrack = (): Track => ({
   title: "", version: "", language: "English", explicit: false, isrc: "",
   composer: "", lyricist: "", producer: "", featured_artist: "",
   copyright_owner: "", publishing_info: "",
+  artist_ids: [],
 });
 
 function NewRelease() {
