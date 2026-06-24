@@ -306,7 +306,7 @@ function NewRelease() {
   };
 
   const allValidAudio = audioFiles.length === tracks.length && audioMeta.every(m => m?.valid);
-  const metadataComplete = !!(release.title && release.artist_name && release.primary_genre && release.release_date);
+  const metadataComplete = !!(release.title && releaseArtistIds.length > 0 && release.primary_genre && release.release_date);
 
   return (
     <div className="space-y-6">
