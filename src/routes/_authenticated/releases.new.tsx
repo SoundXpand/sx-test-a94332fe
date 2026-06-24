@@ -308,11 +308,13 @@ function NewRelease() {
         <Button variant="outline" onClick={() => saveDraft(true)}><Save className="h-4 w-4 mr-1.5" />Save draft</Button>
       </div>
 
-      <div className="flex gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
         {STEPS.map((s, i) => (
-          <button key={s} onClick={() => i <= step && setStep(i)}
-            className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? "bg-primary" : "bg-muted"}`}
-            title={`Step ${i + 1}: ${s}`} />
+          <button key={s} onClick={() => setStep(i)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${i === step ? "bg-primary text-primary-foreground border-primary" : i < step ? "bg-primary/10 text-primary border-primary/30" : "bg-muted/30 text-muted-foreground border-border hover:text-foreground"}`}
+            title={`Step ${i + 1}: ${s}`}>
+            <span className="opacity-60 mr-1">{i + 1}.</span>{s}
+          </button>
         ))}
       </div>
 
