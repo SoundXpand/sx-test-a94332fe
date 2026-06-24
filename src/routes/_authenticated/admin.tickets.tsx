@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ShieldCheck, Send, Search } from "lucide-react";
+import { ShieldCheck, Send, Search, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ticketStatusClass } from "@/routes/_authenticated/support";
@@ -29,7 +29,15 @@ function AdminTickets() {
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("support_tickets").select("*").order("updated_at", { ascending: false });
-    setTickets(data ?? []);
+    const list = data ?? [];
+    const ids = Array.from(new Set(list.map((t: any) => t.user_id).filter(Boolean)));
+    if (ids.length) {
+      const { data: profs } = await supabase.from("profiles").select("user_id,username,full_name,email").in("user_id", ids);
+      const map = new Map((profs ?? []).map((p: any) => [p.user_id, p]));
+      setTickets(list.map((t: any) => ({ ...t, _profile: map.get(t.user_id) })));
+    } else {
+      setTickets(list);
+    }
   }, []);
   useEffect(() => { if (isAdmin) load(); }, [load, isAdmin]);
 
