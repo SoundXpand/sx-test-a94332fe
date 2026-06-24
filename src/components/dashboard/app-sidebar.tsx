@@ -48,6 +48,7 @@ const ROLE_NAV: Record<AppRole, Item[]> = {
   administrator: [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/releases", label: "Releases", icon: Disc3 },
+    { to: "/releases/new", label: "New release", icon: Plus },
     { to: "/catalog", label: "Catalog", icon: ListChecks },
     { to: "/users", label: "Users", icon: Users },
     { to: "/analytics", label: "Analytics", icon: BarChart3 },
