@@ -276,11 +276,12 @@ function NewRelease() {
           const { error } = await supabase.storage.from("audio").upload(p, af, { upsert: true });
           if (!error) audio_path = p;
         }
+        const tArtistNames = myArtists.filter(a => t.artist_ids.includes(a.id)).map(a => a.name).join(", ");
         await supabase.from("release_tracks").insert({
           release_id: releaseId, track_number: i + 1,
           title: t.title, version: t.version, language: t.language, isrc: t.isrc || null,
           explicit: t.explicit, composer: t.composer || null, lyricist: t.lyricist || null,
-          producer: t.producer || null, featured_artist: t.featured_artist || null,
+          producer: t.producer || null, featured_artist: tArtistNames || t.featured_artist || null,
           copyright_owner: t.copyright_owner || null, publishing_info: t.publishing_info || null,
           audio_path, file_size_bytes: af?.size ?? null,
           duration_seconds: audioMeta[i]?.duration ?? null,
