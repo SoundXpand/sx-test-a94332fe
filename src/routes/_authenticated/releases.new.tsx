@@ -30,15 +30,17 @@ type Track = {
   title: string; version: string; language: string; explicit: boolean; isrc: string;
   composer: string; lyricist: string; producer: string; featured_artist: string;
   copyright_owner: string; publishing_info: string;
-  artist_ids: string[];
+  artist_ids: string[]; primary_genre: string;
 };
 
 const blankTrack = (): Track => ({
   title: "", version: "", language: "English", explicit: false, isrc: "",
   composer: "", lyricist: "", producer: "", featured_artist: "",
   copyright_owner: "", publishing_info: "",
-  artist_ids: [],
+  artist_ids: [], primary_genre: "",
 });
+
+const genCatalog = () => `SXM${String(Math.floor(Math.random() * 9999) + 1).padStart(4, "0")}`;
 
 function NewRelease() {
   const navigate = useNavigate();
