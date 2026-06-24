@@ -278,6 +278,8 @@ export type Database = {
           main_genre: string | null
           mobile: string | null
           notification_prefs: Json
+          payout_details: Json
+          payout_method: string | null
           privacy_accepted_at: string | null
           private_link: string | null
           rejection_reason: string | null
@@ -311,6 +313,8 @@ export type Database = {
           main_genre?: string | null
           mobile?: string | null
           notification_prefs?: Json
+          payout_details?: Json
+          payout_method?: string | null
           privacy_accepted_at?: string | null
           private_link?: string | null
           rejection_reason?: string | null
@@ -344,6 +348,8 @@ export type Database = {
           main_genre?: string | null
           mobile?: string | null
           notification_prefs?: Json
+          payout_details?: Json
+          payout_method?: string | null
           privacy_accepted_at?: string | null
           private_link?: string | null
           rejection_reason?: string | null
