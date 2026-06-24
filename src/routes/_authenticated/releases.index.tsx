@@ -35,9 +35,12 @@ function ReleasesAdmin() {
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [deliverFor, setDeliverFor] = useState<any | null>(null);
 
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
+
   const load = useCallback(async () => {
     const [r, d] = await Promise.all([
-      supabase.from("releases").select("id,title,release_type,status,release_date,owner_id,slug,rejection_reason,upc,catalog_number,primary_genre,artist_name,label_name,artwork_path,p_year,p_name,c_year,c_name,created_at,delivered_at,delivery_note").order("created_at", { ascending: false }),
+      supabase.from("releases").select("id,title,release_type,status,release_date,owner_id,slug,rejection_reason,upc,catalog_number,primary_genre,artwork_path,p_year,p_name,c_year,c_name,created_at,delivered_at,delivery_note,archived_at,admin_remarks").order("created_at", { ascending: false }),
       supabase.from("release_deliveries" as any).select("*").order("delivered_at", { ascending: false }).limit(100),
     ]);
     setRows(r.data ?? []);
@@ -48,10 +51,34 @@ function ReleasesAdmin() {
   if (isLoading) return <div className="p-8 text-muted-foreground">Loading…</div>;
   if (!staff) return <Navigate to="/catalog" />;
 
-  const pending = rows.filter(r => r.status === "pending");
-  const approved = rows.filter(r => r.status === "live");
-  const delivered = rows.filter(r => r.status === "delivered");
-  const takedowns = rows.filter(r => r.status === "takedown_requested" || r.status === "taken_down");
+  const active = rows.filter(r => !r.archived_at);
+  const pending = active.filter(r => r.status === "pending");
+  const approved = active.filter(r => r.status === "live");
+  const delivered = active.filter(r => r.status === "delivered");
+  const takedowns = active.filter(r => r.status === "takedown_requested" || r.status === "taken_down");
+  const archived = rows.filter(r => r.archived_at);
+
+  const toggleSel = (id: string) => setSelected(s => {
+    const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n;
+  });
+  const bulkDownload = async () => {
+    const picked = approved.filter(r => selected.has(r.id));
+    if (picked.length === 0) return toast.error("Select at least one approved release");
+    setBusy(true);
+    try { await downloadBulkBundles(picked); toast.success(`Bundled ${picked.length} releases`); }
+    catch (e: any) { toast.error(e.message ?? "Bundle failed"); }
+    finally { setBusy(false); }
+  };
+  const purge = async () => {
+    if (!confirm("Permanently delete releases archived >7 days?")) return;
+    const fn = (await import("@tanstack/react-start")).useServerFn;
+    void fn; // placeholder, use direct call below
+    try {
+      const res = await (await import("@/lib/admin-actions.functions")).purgeArchivedFn();
+      toast.success(`Purged ${(res as any).purged ?? 0} releases`);
+      load();
+    } catch (e: any) { toast.error(e.message ?? "Purge failed"); }
+  };
 
   return (
     <div className="space-y-6">
@@ -60,32 +87,48 @@ function ReleasesAdmin() {
           <h1 className="font-display text-2xl font-semibold">Releases</h1>
           <p className="text-sm text-muted-foreground">Approve, deliver, and audit catalog status.</p>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={purge} title="Permanently remove releases archived more than 7 days ago">
+            <Trash2 className="h-4 w-4 mr-1" />Purge expired
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="approval">
+      <Tabs defaultValue="all">
         <TabsList>
+          <TabsTrigger value="all">All <Badge className="ml-2" variant="secondary">{active.length}</Badge></TabsTrigger>
           <TabsTrigger value="approval">Approval queue <Badge className="ml-2" variant="secondary">{pending.length}</Badge></TabsTrigger>
           <TabsTrigger value="delivery">Delivery <Badge className="ml-2" variant="secondary">{approved.length}</Badge></TabsTrigger>
           <TabsTrigger value="delivered">Delivered <Badge className="ml-2" variant="secondary">{delivered.length}</Badge></TabsTrigger>
           <TabsTrigger value="takedowns">Takedowns <Badge className="ml-2" variant="secondary">{takedowns.length}</Badge></TabsTrigger>
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="archived">Archived <Badge className="ml-2" variant="secondary">{archived.length}</Badge></TabsTrigger>
         </TabsList>
 
+        <TabsContent value="all">
+          <ReleaseTable rows={active} onChanged={load} emptyIcon={Disc3} emptyTitle="No releases" emptyDesc="" />
+        </TabsContent>
         <TabsContent value="approval">
           <ReleaseTable rows={pending} onChanged={load} emptyIcon={ShieldCheck} emptyTitle="No releases waiting" emptyDesc="Submitted releases will appear here for approval." />
         </TabsContent>
         <TabsContent value="delivery">
-          <Card className="p-4 bg-card/60 border-border">
+          <Card className="p-4 bg-card/60 border-border space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">{selected.size} selected for bulk delivery</div>
+              <Button size="sm" onClick={bulkDownload} disabled={busy || selected.size === 0}>
+                <Package className="h-3.5 w-3.5 mr-1" />{busy ? "Bundling…" : "Download bulk ZIP"}
+              </Button>
+            </div>
             {approved.length === 0 ? (
               <EmptyState icon={Truck} title="No approved releases to deliver" description="Approved releases will queue here for distribution." />
             ) : (
               <table className="w-full text-sm">
                 <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                  <th className="py-2 px-2">Title</th><th>Catalog</th><th>UPC</th><th>Release date</th><th className="text-right pr-2">Action</th>
+                  <th className="py-2 px-2 w-8"></th><th>Title</th><th>Catalog</th><th>UPC</th><th>Release date</th><th className="text-right pr-2">Action</th>
                 </tr></thead>
                 <tbody>
                   {approved.map(r => (
                     <tr key={r.id} className="border-b border-border/50 hover:bg-muted/30">
+                      <td className="px-2"><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSel(r.id)} /></td>
                       <td className="py-3 px-2 font-medium">
                         <Link to="/releases/$id" params={{ id: r.id }} className="hover:text-primary">{r.title}</Link>
                       </td>
