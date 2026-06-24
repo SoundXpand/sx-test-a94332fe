@@ -379,35 +379,105 @@ function NewRelease() {
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         <Card className="p-6 bg-card/60 border-border">
           {step === 0 && (
-            <div className="grid md:grid-cols-2 gap-4">
-              <Field label="Release title *"><Input value={release.title} onChange={e => setRelease({ ...release, title: e.target.value })} /></Field>
-              <Field label="Release type *">
-                <Select value={release.release_type} onValueChange={v => setRelease({ ...release, release_type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="single">Single</SelectItem>
-                    <SelectItem value="ep">EP</SelectItem>
-                    <SelectItem value="album">Album</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Label name"><Input value={release.record_label} onChange={e => setRelease({ ...release, record_label: e.target.value })} /></Field>
-              <Field label="Genre *"><Input value={release.primary_genre} onChange={e => setRelease({ ...release, primary_genre: e.target.value })} /></Field>
-              <Field label="Sub genre"><Input value={release.secondary_genre} onChange={e => setRelease({ ...release, secondary_genre: e.target.value })} /></Field>
-              <Field label="Language *"><Input value={release.language} onChange={e => setRelease({ ...release, language: e.target.value })} /></Field>
-              
-              <Field label="Original release date"><Input type="date" value={release.original_release_date} onChange={e => setRelease({ ...release, original_release_date: e.target.value })} /></Field>
-              <Field label="UPC"><Input value={release.upc} onChange={e => setRelease({ ...release, upc: e.target.value })} /></Field>
-              <Field label="Catalog number"><Input value={release.catalog_number} onChange={e => setRelease({ ...release, catalog_number: e.target.value })} /></Field>
-              <Field label="Copyright info"><Input value={release.copyright_info} onChange={e => setRelease({ ...release, copyright_info: e.target.value })} placeholder="© 2026 …" /></Field>
-              <Field label="Producer info"><Input value={release.producer_info} onChange={e => setRelease({ ...release, producer_info: e.target.value })} /></Field>
-              <label className="flex items-center gap-2 col-span-full">
-                <Checkbox checked={release.parental_advisory} onCheckedChange={v => setRelease({ ...release, parental_advisory: !!v })} />
-                Parental advisory
-              </label>
-              <div className="col-span-full"><Label>Description</Label><Textarea value={release.description} onChange={e => setRelease({ ...release, description: e.target.value })} rows={3} /></div>
+            <div className="space-y-4">
+              {profileMeta.role_type && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">You are:</span>
+                  <Badge variant="secondary">{profileMeta.role_type}</Badge>
+                </div>
+              )}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Field label="Release title *"><Input value={release.title} onChange={e => setRelease({ ...release, title: e.target.value })} placeholder="e.g. Midnight Echoes" /></Field>
+                <Field label="Version"><Input value={release.version} onChange={e => setRelease({ ...release, version: e.target.value })} placeholder="e.g. Remix, Acoustic" /></Field>
+
+                <Field label="Release type *">
+                  <Select value={release.release_type} onValueChange={v => setRelease({ ...release, release_type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="single">Single</SelectItem>
+                      <SelectItem value="ep">EP</SelectItem>
+                      <SelectItem value="album">Album</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Catalog number * (auto-generated)">
+                  <Input value={release.catalog_number} onChange={e => setRelease({ ...release, catalog_number: e.target.value })} placeholder="SXM0001" />
+                </Field>
+
+                <Field label="Select artists *">
+                  <ArtistMultiSelect value={releaseArtistIds} onChange={setReleaseArtistIds} />
+                </Field>
+                <Field label="Label name *">
+                  <Input value={release.record_label} onChange={e => setRelease({ ...release, record_label: e.target.value })} placeholder={profileMeta.label_name || "Your label"} />
+                </Field>
+
+                <Field label="Sub label">
+                  <Select value={release.sub_label || "__none"} onValueChange={v => setRelease({ ...release, sub_label: v === "__none" ? "" : v })}>
+                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">None</SelectItem>
+                      {profileMeta.sub_labels.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Primary genre *">
+                  <Select value={release.primary_genre} onValueChange={v => setRelease({ ...release, primary_genre: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>{GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label="Sub genre">
+                  <Select value={release.secondary_genre || "__none"} onValueChange={v => setRelease({ ...release, secondary_genre: v === "__none" ? "" : v })}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">None</SelectItem>
+                      {GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Language *">
+                  <Select value={release.language} onValueChange={v => setRelease({ ...release, language: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label={`Original release date${release.upc ? " *" : ""}`}>
+                  <Input type="date" value={release.original_release_date} onChange={e => setRelease({ ...release, original_release_date: e.target.value })} />
+                </Field>
+                <Field label="UPC / Barcode">
+                  <Input value={release.upc} onChange={e => setRelease({ ...release, upc: e.target.value })} placeholder="8888888888" />
+                </Field>
+
+                <Field label="P Year *">
+                  <Select value={String(release.p_year)} onValueChange={v => setRelease({ ...release, p_year: Number(v) })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{P_YEARS.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+                <Field label="P Name *">
+                  <Input value={release.p_name} onChange={e => setRelease({ ...release, p_name: e.target.value })} placeholder="℗ Copyright holder of the sound recording" />
+                </Field>
+
+                <Field label="C Year *">
+                  <Select value={String(release.c_year)} onValueChange={v => setRelease({ ...release, c_year: Number(v) })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{P_YEARS.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+                <Field label="C Name *">
+                  <Input value={release.c_name} onChange={e => setRelease({ ...release, c_name: e.target.value })} placeholder="© Copyright holder of the work" />
+                </Field>
+
+                <label className="flex items-center gap-2 col-span-full">
+                  <Checkbox checked={release.parental_advisory} onCheckedChange={v => setRelease({ ...release, parental_advisory: !!v })} />
+                  Parental advisory
+                </label>
+              </div>
             </div>
           )}
+
 
           {step === 1 && (
             <div className="space-y-5">
