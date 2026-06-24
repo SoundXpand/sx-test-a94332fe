@@ -24,6 +24,8 @@ type Artist = {
 };
 
 function Settings() {
+  const { data: me } = useCurrentUser();
+  const staff = isStaff(me?.primaryRole);
   const [profile, setProfile] = useState({ full_name: "", artist_name: "", mobile: "", country: "", label_name: "" });
   const [subLabels, setSubLabels] = useState<string[]>([]);
   const [newSubLabel, setNewSubLabel] = useState("");
