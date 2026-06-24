@@ -543,53 +543,105 @@ function NewRelease() {
             </div>
           )}
 
-          {step === 2 && (
-            <div className="space-y-4">
-              {tracks.map((t, i) => (
-                <Card key={i} className="p-4 bg-muted/10">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium">Track {i + 1}</span>
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => {
-                        const ct = [...tracks]; ct.splice(i + 1, 0, { ...t });
-                        const ca = [...audioFiles]; ca.splice(i + 1, 0, null);
-                        const cm = [...audioMeta]; cm.splice(i + 1, 0, null);
-                        setTracks(ct); setAudioFiles(ca); setAudioMeta(cm);
-                      }}>Duplicate</Button>
-                      {tracks.length > 1 && (
-                        <Button size="sm" variant="ghost" onClick={() => {
-                          setTracks(tracks.filter((_, j) => j !== i));
-                          setAudioFiles(audioFiles.filter((_, j) => j !== i));
-                          setAudioMeta(audioMeta.filter((_, j) => j !== i));
-                        }}>Remove</Button>
-                      )}
-                    </div>
+          {step === 2 && (() => {
+            // Auto-prefill track 1 from release-level fields when single
+            const isSingle = singleMode || release.release_type === "single";
+            return (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap rounded-lg border border-border bg-muted/20 p-3">
+                  <div>
+                    <div className="text-sm font-medium">Single track release?</div>
+                    <div className="text-xs text-muted-foreground">When on, the release has exactly one track and inherits release-level details.</div>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    <Field label="Title *"><Input value={t.title} onChange={e => upd(tracks, setTracks, i, { title: e.target.value })} /></Field>
-                    <Field label="Version"><Input value={t.version} onChange={e => upd(tracks, setTracks, i, { version: e.target.value })} /></Field>
-                    <Field label="Language"><Input value={t.language} onChange={e => upd(tracks, setTracks, i, { language: e.target.value })} /></Field>
-                    <Field label="ISRC"><Input value={t.isrc} onChange={e => upd(tracks, setTracks, i, { isrc: e.target.value })} /></Field>
-                    <Field label="Composer"><Input value={t.composer} onChange={e => upd(tracks, setTracks, i, { composer: e.target.value })} /></Field>
-                    <Field label="Lyricist"><Input value={t.lyricist} onChange={e => upd(tracks, setTracks, i, { lyricist: e.target.value })} /></Field>
-                    <Field label="Producer"><Input value={t.producer} onChange={e => upd(tracks, setTracks, i, { producer: e.target.value })} /></Field>
-                    <Field label="Artists"><ArtistMultiSelect value={t.artist_ids} onChange={(ids) => upd(tracks, setTracks, i, { artist_ids: ids })} /></Field>
-                    <Field label="Copyright owner"><Input value={t.copyright_owner} onChange={e => upd(tracks, setTracks, i, { copyright_owner: e.target.value })} /></Field>
-                    <Field label="Publisher"><Input value={t.publishing_info} onChange={e => upd(tracks, setTracks, i, { publishing_info: e.target.value })} /></Field>
-                    <label className="flex items-center gap-2 col-span-full">
-                      <Checkbox checked={t.explicit} onCheckedChange={v => upd(tracks, setTracks, i, { explicit: !!v })} />
-                      Explicit content
-                    </label>
-                  </div>
-                </Card>
-              ))}
-              <Button variant="outline" onClick={() => {
-                setTracks([...tracks, blankTrack()]);
-                setAudioFiles([...audioFiles, null]);
-                setAudioMeta([...audioMeta, null]);
-              }}>+ Add track</Button>
-            </div>
-          )}
+                  <Switch
+                    checked={isSingle}
+                    onCheckedChange={(v) => {
+                      setSingleMode(v);
+                      if (v) {
+                        setRelease({ ...release, release_type: "single" });
+                        if (tracks.length > 1) {
+                          setTracks(tracks.slice(0, 1));
+                          setAudioFiles(audioFiles.slice(0, 1));
+                          setAudioMeta(audioMeta.slice(0, 1));
+                        }
+                      } else if (release.release_type === "single") {
+                        setRelease({ ...release, release_type: "ep" });
+                      }
+                    }}
+                  />
+                </div>
+
+                {tracks.map((t, i) => {
+                  const v = isSingle && i === 0 ? {
+                    title: t.title || release.title,
+                    version: t.version || release.version,
+                    language: t.language || release.language,
+                    primary_genre: t.primary_genre || release.primary_genre,
+                    artist_ids: t.artist_ids.length ? t.artist_ids : releaseArtistIds,
+                  } : t;
+                  return (
+                    <Card key={i} className="p-4 bg-muted/10">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium">Track {i + 1}</span>
+                        <div className="flex gap-1">
+                          {!isSingle && (
+                            <Button size="sm" variant="ghost" onClick={() => {
+                              const ct = [...tracks]; ct.splice(i + 1, 0, { ...t });
+                              const ca = [...audioFiles]; ca.splice(i + 1, 0, null);
+                              const cm = [...audioMeta]; cm.splice(i + 1, 0, null);
+                              setTracks(ct); setAudioFiles(ca); setAudioMeta(cm);
+                            }}>Duplicate</Button>
+                          )}
+                          {!isSingle && tracks.length > 1 && (
+                            <Button size="sm" variant="ghost" onClick={() => {
+                              setTracks(tracks.filter((_, j) => j !== i));
+                              setAudioFiles(audioFiles.filter((_, j) => j !== i));
+                              setAudioMeta(audioMeta.filter((_, j) => j !== i));
+                            }}>Remove</Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <Field label="Title *"><Input value={v.title} onChange={e => upd(tracks, setTracks, i, { title: e.target.value })} placeholder="Track title" /></Field>
+                        <Field label="Version"><Input value={v.version} onChange={e => upd(tracks, setTracks, i, { version: e.target.value })} placeholder="e.g. Remix, Acoustic" /></Field>
+                        <Field label="Primary genre">
+                          <Select value={v.primary_genre} onValueChange={val => upd(tracks, setTracks, i, { primary_genre: val })}>
+                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                            <SelectContent>{GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </Field>
+                        <Field label="Language">
+                          <Select value={v.language} onValueChange={val => upd(tracks, setTracks, i, { language: val })}>
+                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                            <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </Field>
+                        <Field label="ISRC"><Input value={t.isrc} onChange={e => upd(tracks, setTracks, i, { isrc: e.target.value })} placeholder="e.g. USRC17607839" /></Field>
+                        <Field label="Artists"><ArtistMultiSelect value={v.artist_ids} onChange={(ids) => upd(tracks, setTracks, i, { artist_ids: ids })} /></Field>
+                        <Field label="Composer"><Input value={t.composer} onChange={e => upd(tracks, setTracks, i, { composer: e.target.value })} /></Field>
+                        <Field label="Lyricist"><Input value={t.lyricist} onChange={e => upd(tracks, setTracks, i, { lyricist: e.target.value })} /></Field>
+                        <Field label="Producer"><Input value={t.producer} onChange={e => upd(tracks, setTracks, i, { producer: e.target.value })} /></Field>
+                        <Field label="Copyright owner"><Input value={t.copyright_owner} onChange={e => upd(tracks, setTracks, i, { copyright_owner: e.target.value })} /></Field>
+                        <Field label="Publisher"><Input value={t.publishing_info} onChange={e => upd(tracks, setTracks, i, { publishing_info: e.target.value })} /></Field>
+                        <label className="flex items-center gap-2 col-span-full">
+                          <Checkbox checked={t.explicit} onCheckedChange={v => upd(tracks, setTracks, i, { explicit: !!v })} />
+                          Explicit content
+                        </label>
+                      </div>
+                    </Card>
+                  );
+                })}
+                {!isSingle && (
+                  <Button variant="outline" onClick={() => {
+                    setTracks([...tracks, blankTrack()]);
+                    setAudioFiles([...audioFiles, null]);
+                    setAudioMeta([...audioMeta, null]);
+                  }}>+ Add track</Button>
+                )}
+              </div>
+            );
+          })()}
+
 
           {step === 3 && (
             <div className="space-y-3">
