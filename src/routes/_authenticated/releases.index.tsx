@@ -187,13 +187,50 @@ function ReleasesAdmin() {
         <TabsContent value="takedowns">
           <ReleaseTable rows={takedowns} onChanged={load} emptyIcon={ArrowDownToLine} emptyTitle="No takedowns" emptyDesc="Artist takedown requests will appear here." />
         </TabsContent>
-        <TabsContent value="all">
-          <ReleaseTable rows={rows} onChanged={load} emptyIcon={Disc3} emptyTitle="No releases" emptyDesc="" />
+        <TabsContent value="archived">
+          <ArchivedTable rows={archived} onChanged={load} />
         </TabsContent>
       </Tabs>
 
       <DeliveryDialog release={deliverFor} onClose={() => setDeliverFor(null)} onDelivered={() => { setDeliverFor(null); load(); }} />
     </div>
+  );
+}
+
+function ArchivedTable({ rows, onChanged }: { rows: any[]; onChanged: () => void }) {
+  const restoreFn = useServerFn(archiveReleaseFn);
+  if (rows.length === 0) return (
+    <Card className="p-4 bg-card/60 border-border"><EmptyState icon={Trash2} title="No archived releases" description="Archived releases auto-purge after 7 days." /></Card>
+  );
+  return (
+    <Card className="p-4 bg-card/60 border-border">
+      <table className="w-full text-sm">
+        <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
+          <th className="py-2 px-2">Title</th><th>Archived</th><th>Purges in</th><th className="text-right pr-2">Actions</th>
+        </tr></thead>
+        <tbody>
+          {rows.map(r => {
+            const archived = new Date(r.archived_at).getTime();
+            const daysLeft = Math.max(0, 7 - Math.floor((Date.now() - archived) / 86400000));
+            return (
+              <tr key={r.id} className="border-b border-border/40">
+                <td className="py-2 px-2 font-medium">
+                  <Link to="/releases/$id" params={{ id: r.id }} className="hover:text-primary">{r.title}</Link>
+                </td>
+                <td className="text-xs text-muted-foreground">{new Date(r.archived_at).toLocaleString()}</td>
+                <td className="text-xs"><Badge variant={daysLeft < 2 ? "destructive" : "secondary"}>{daysLeft}d</Badge></td>
+                <td className="text-right pr-2">
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    try { await restoreFn({ data: { releaseId: r.id, restore: true } }); toast.success("Restored"); onChanged(); }
+                    catch (e: any) { toast.error(e.message); }
+                  }}><RotateCcw className="h-3.5 w-3.5 mr-1" />Restore</Button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Card>
   );
 }
 
