@@ -206,6 +206,7 @@ function NewRelease() {
   const saveDraft = async (loud = true) => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
+    const territory = { worldwide: territoryWorldwide, countries: territoryCountries };
     const payload = { release, tracks, stores, territory, pricing };
     if (draftId) {
       await supabase.from("release_drafts").update({ title: release.title || "Untitled release", payload, current_step: step }).eq("id", draftId);
