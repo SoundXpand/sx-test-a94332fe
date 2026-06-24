@@ -1,81 +1,90 @@
-# Dashboard UX & Release Workflow Overhaul
+# Catalog actions, analytics charts, smartlinks, DSP lookup
 
-Rebuild the SoundXpand dashboard shell and release wizard to match Vercel/Linear/Stripe quality, with role-aware navigation, a full topbar, a 6-step wizard with live preview + AI artwork + waveform, and polished empty states across every page.
+Builds out the release lifecycle (takedown, edit-and-resubmit, delete drafts), finishes the Catalog row actions, ships a public smartlink page, charts the analytics view, and adds a DSP search panel that queries Spotify, YouTube, and Deezer by UPC or artist+title.
 
-## 1. Dashboard shell (sidebar + topbar)
+## 1. Release lifecycle + schema
 
-Replace `src/components/dashboard/dashboard-shell.tsx` with a two-part shell.
+Migration:
+- `releases.status` enum widened to: `draft, pending, approved, live, rejected, takedown_requested, taken_down`.
+- New columns on `releases`: `slug text unique`, `rejection_reason text`, `taken_down_at timestamptz`, `published_url text`.
+- New table `release_links (release_id, platform, url, external_id)` — stores Spotify/YouTube/Deezer links discovered via DSP lookup or pasted by admin. GRANTs + RLS (owner read/write, admin all, anon select by `release_id` joined to `live` releases through the smartlink RPC).
+- `release_drafts`: add `source_release_id uuid null` so editing an existing release creates an edit-draft tied back to the original; on submit the original gets overwritten and re-set to `pending`.
+- Trigger: when `releases.status` becomes `live` and `slug is null`, generate a 6-char base36 slug.
 
-**Sidebar** (`src/components/dashboard/app-sidebar.tsx`)
-- Collapsible: expanded (240px) ↔ icon-only (64px), persisted to `localStorage`, smooth width transition.
-- Mobile: slide-in drawer (already partly there) with backdrop.
-- Role-aware nav, computed from `user_roles` fetched once into a `useCurrentUser()` hook:
-  - **artist**: Dashboard, My Releases, Create Release, Analytics, Royalties, Tools, Support, Settings
-  - **manager**: Dashboard, Artists, Catalog, Create Release, Analytics, Royalties, Reports, Tools, Support, Settings
-  - **viewer**: Dashboard, Catalog, Analytics, Reports, Tools, Support, Settings
-  - **administrator**: Dashboard, Releases, Catalog, Users, Analytics, Royalties, Reports, Approval Queue, Tools, Platform Settings, Support, Settings
-- Active highlight via pathname match; notification badge slot (count from `support_tickets` open / approval queue).
-- Footer block: `© 2026 SoundXpand`, `v2.0.0`, `Production` chip. **No Logout in sidebar.**
+## 2. Catalog row actions
 
-**Topbar** (`src/components/dashboard/topbar.tsx`) — sticky, on every authenticated page
-- Left: sidebar toggle, auto-generated breadcrumbs from the current route (`Dashboard / Releases / New release`).
-- Center: global search (Cmd+K `<CommandDialog>`) over releases / tracks / artists (profiles) / users / reports — Supabase ilike queries, grouped results, keyboard navigation.
-- Right: theme toggle, notifications bell (popover listing recent `activity_logs` + open tickets), quick-actions menu (New release, Invite user [admin], Upload analytics [admin]), user profile badge.
-- **Profile badge**: avatar (initials fallback), name, role, `SX###` username; dropdown → Profile, Account settings, Notifications, Help center, **Logout**.
+`/catalog` and `/_authenticated/releases` (admin) — replace plain rows with an actions dropdown per row:
+- **Draft** → Resume edit, Delete draft (hard delete), Duplicate.
+- **Pending** → View, Withdraw (back to draft).
+- **Live** → View, Copy smartlink, Open smartlink (new tab), Request takedown.
+- **Rejected** → View reason, Edit & resubmit (opens wizard with prefilled data).
+- **Takedown requested** → View (admin sees approve/reject in approval queue).
+- **Taken down** → View, Restore request (re-submits as pending).
 
-New routes to back the dropdown: `/profile`, `/help` (settings + notifications already exist).
+Smartlink button: copies `https://<host>/l/<slug>` and shows a toast. Disabled until status=live.
 
-## 2. New role-aware pages
+## 3. Approval queue (admin)
 
-Add routes so sidebar links resolve for every role:
-- `/_authenticated/releases.tsx` (admin "Releases" — all releases table)
-- `/_authenticated/artists.tsx` (manager — artists list from profiles)
-- `/_authenticated/approval-queue.tsx` (admin — pending releases approve/reject)
-- `/_authenticated/platform-settings.tsx` (admin — brand, logo, favicon, SMTP, email templates, storage, approval rules, DSP config, announcements, maintenance mode, audit logs from `activity_logs`, system health pings)
-- `/_authenticated/profile.tsx`, `/_authenticated/help.tsx`
+`/approval-queue` already exists — extend it with two tabs: **New submissions** (status=pending) and **Takedown requests** (status=takedown_requested). Approve/Reject on each, with a reason textarea on reject. Approve on a takedown sets status=taken_down + `taken_down_at=now()`.
 
-Gate admin-only routes with a `requireRole(['administrator'])` check in `beforeLoad` reading `user_roles`.
+## 4. Edit & resubmit flow
 
-## 3. Release submission wizard
+`/releases/new` accepts `?edit=<releaseId>`:
+- Loads the release + tracks, copies them into a new `release_drafts` row with `source_release_id` set, and runs the wizard.
+- Step 6 Submit: when `source_release_id` is set, updates the original release + tracks (replacing all tracks) and sets status back to `pending`, clears `rejection_reason`. Otherwise inserts new.
 
-Rebuild `/_authenticated/releases/new` as a polished 6-step wizard with a 2-column layout: **wizard on the left, live preview card on the right** (sticky, updates as fields change — artwork thumb, title, artist, type, store count, status: Draft).
+## 5. Public smartlink page
 
-Top progress strip shows `Step N of 6` + step titles, clickable to jump back to completed steps. **Save draft** button persists to a new `release_drafts` table (jsonb wizard state, autosave every 10s + on step change) and a **Resume later** banner on `/catalog` lists drafts.
+New public route `src/routes/l.$slug.tsx` (SSR on, no auth gate):
+- Loader calls a public server fn that uses the publishable Supabase client + a `TO anon` SELECT policy on a `public_releases` view (slug, title, artist, artwork_path, release_date) joined with `release_links` filtered to `live` releases only.
+- Renders artwork hero, title, artist, release date, and a stacked list of DSP buttons (Spotify, Apple, YouTube, Deezer, etc.) from `release_links`. Each button is `target=_blank rel=noopener`.
+- `head()` sets title/description/og:image from artwork; this is the shareable card.
+- Bottom: subtle "Powered by SoundXpand" with link to `/`.
+- Settings slot in `/platform-settings` for future provider swap (Feature.fm/Linkfire) — store provider + token in `platform_settings.smartlink` jsonb.
 
-**Step 1 — Release details:** title, artist name, primary artist, release type (Single/EP/Album), label, genre + sub-genre, language, release date, original release date, UPC, catalog number, parental advisory toggle, copyright info, producer info, description.
+Wizard step 6: after successful submit, shows the smartlink + "Copy" + QR (use `qrcode` npm) once the admin approves to live.
 
-**Step 2 — Artwork:** drag-drop uploader, client validation (decode image → assert 3000×3000, RGB via canvas pixel sample, JPG/PNG, ≤10MB). Show resolution, file size, color mode, pass/fail. Zoom-on-hover preview, Replace / Remove buttons.
-- **AI Artwork Studio** panel: inputs (artist, album, genre, mood, color theme, style) → call new server route `/api/generate-image` (stream from `openai/gpt-image-2`), generate 4 concepts into a preview grid, click to attach.
+## 6. Analytics charts
 
-**Step 3 — Tracks:** per-track card with title, version, language, explicit, ISRC, duration (auto from audio decode), composer, lyricist, producer, featured artist, copyright owner, publisher. Add / remove / duplicate, drag-and-drop reorder (`@dnd-kit/sortable`).
+`/analytics` — replace the single bar list with a real dashboard using `recharts` (already common in shadcn). Sections:
+- KPI strip: total streams, total revenue, active releases, top platform.
+- Line chart: streams over time (group analytics_rows by `period` month).
+- Stacked bar: streams by platform per month.
+- Donut: revenue share by platform.
+- Table: top tracks (release_tracks joined to analytics_rows, sortable, top 10).
+- Filters: date range (last 30d / 90d / 12m / all), release dropdown, platform multi-select.
+Skeletons during load; reuse `<EmptyState />` when no data.
 
-**Step 4 — Audio validation:** per-track audio upload. Use Web Audio API + `music-metadata-browser` to extract filename, duration, bitrate, channels, sample rate, file size. Pass = MP3 / 320kbps / 44.1kHz / stereo; else show ✕ with reason. `wavesurfer.js` waveform + play/pause preview.
+## 7. DSP lookup (Spotify, YouTube, Deezer)
 
-**Step 5 — Distribution:** searchable store grid (Spotify, Apple Music, Amazon, YouTube Music, TikTok, Instagram, Facebook, Deezer, Tidal, Boomplay, JioSaavn, Wynk, Gaana) with Select all / Deselect all; territory selector (Worldwide vs custom country multi-select); pricing tier (Budget / Mid / Premium); rights ownership confirmation checkbox.
+New page `/_authenticated/tools/dsp-lookup` (also embedded as a panel in release detail):
+- Inputs: UPC (preferred), or artist + title.
+- "Search" calls a server fn that fans out to:
+  - **Spotify**: `client_credentials` token, then `/v1/search?q=upc:<UPC>&type=album` or `q=artist:.. track:..&type=track`. Needs `SPOTIFY_CLIENT_ID` + `SPOTIFY_CLIENT_SECRET` — request via `add_secret`.
+  - **YouTube Data API v3**: `/youtube/v3/search?q=<title artist>&type=video`. Needs `YOUTUBE_API_KEY` — request via `add_secret`. No UPC support — fall back to artist+title.
+  - **Deezer**: keyless `https://api.deezer.com/album/upc:<UPC>` or `/search?q=...`. No secret.
+- Returns normalized `{ platform, title, artist, url, externalId, artwork }`. UI shows a card grid; admin can click "Attach to release" → writes into `release_links`.
+- Cache hits in a `dsp_lookup_cache (query_hash, platform, payload, fetched_at)` table for 24h to avoid quota burn.
 
-**Step 6 — Review & submit:** full summary (artwork, details, tracks, stores, validation), checklist (Metadata / Artwork / Audio / Rights), Submit (insert release + tracks, status `pending`, clears draft), Save draft, Return to edit.
+## 8. Sample data
 
-## 4. Sample data & empty states
-
-- Seed migration: insert demo release "Lost Trails" (Sahil Hansda, Album, 10 tracks, status `live`, release_date 2026-06-01) owned by the existing admin, plus `analytics_rows` for Spotify 68k / Apple 31k / YouTube Music 42k / JioSaavn 11k streams summing to 152,430, revenue ₹12,840.
-- Dashboard widgets read real aggregates from `releases` + `analytics_rows` for the current user (or all releases for admin).
-- Every list page (`catalog`, `releases`, `analytics`, `royalties`, `reports`, `users`, `support`, `approval-queue`) gets an `<EmptyState>` component: lucide icon illustration, headline, subcopy, primary CTA.
-
-## 5. Polish
-
-- Dark + light mode QA on every new component (use semantic tokens only).
-- Mobile responsive: sidebar drawer, topbar collapses search into icon, wizard stacks preview below on `<lg`.
-- Skeleton loaders on data tables.
-- Framer Motion fade/slide for sidebar collapse + wizard step transitions.
-
-## Technical notes
-
-- New deps: `@dnd-kit/core`, `@dnd-kit/sortable`, `wavesurfer.js`, `music-metadata-browser`, `cmdk` (already via shadcn command), `framer-motion` (likely already).
-- New table `release_drafts (id, owner_id, payload jsonb, updated_at)` with RLS owner-only; new server route `src/routes/api/generate-image.ts` streaming from Lovable AI Gateway.
-- New helper hook `src/hooks/use-current-user.ts` returns `{ user, profile, roles, hasRole }` cached via TanStack Query.
-- Topbar breadcrumbs derived from `useRouterState` + a route→label map.
-- Global search uses one `Promise.all` of 5 small Supabase `ilike` queries with debounced input.
+Seed `release_links` for the demo "Lost Trails" release so the public smartlink page has buttons immediately. Seed analytics across 6 months so charts have shape.
 
 ## Out of scope this turn
 
-Real SMTP send, real DSP API integrations, real payout processing — Platform Settings exposes the UI + persists config to a `platform_settings` jsonb table; wiring to live providers is a later phase.
+Feature.fm/Linkfire API integration (UI slot only), Apple Music API (iTunes Search keyless is fine as a stretch but not promised), DSP delivery automation, real payout processing.
+
+## Secrets to request after plan approval
+
+- `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` (Spotify Developer Dashboard → Create app → Client credentials).
+- `YOUTUBE_API_KEY` (Google Cloud Console → APIs & Services → Credentials → API key with YouTube Data API v3 enabled).
+
+Deezer needs no key.
+
+## Technical notes
+
+- New deps: `recharts`, `qrcode`.
+- New tables: `release_links`, `dsp_lookup_cache`. View: `public_releases`. Trigger: slug generator.
+- New routes: `src/routes/l.$slug.tsx` (public), `src/routes/_authenticated/tools/dsp-lookup.tsx`.
+- New server fns: `lookup-dsp.functions.ts` (auth-required, fans out + caches), `public-smartlink.functions.ts` (public, publishable key), release lifecycle fns (`takedown-request`, `withdraw`, `delete-draft`, `start-edit`, `approve`, `reject`, `approve-takedown`).
+- Wizard reads `?edit=` and `?draft=` search params; submit branches on `source_release_id`.
