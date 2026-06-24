@@ -133,6 +133,36 @@ function UserDetail() {
       </Card>
 
       <Card className="p-6 bg-card/60 space-y-3">
+        <h2 className="font-semibold">Catalog ({releases.length})</h2>
+        {releases.length === 0 ? (
+          <div className="text-sm text-muted-foreground">No releases yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
+                <th className="py-2">Title</th><th>Type</th><th>UPC</th><th>Catalog</th><th>Status</th><th>Release date</th>
+              </tr></thead>
+              <tbody>
+                {releases.map(r => (
+                  <tr key={r.id} className="border-b border-border/40 hover:bg-muted/30">
+                    <td className="py-2 font-medium">
+                      <Link to="/releases/$id" params={{ id: r.id }} className="hover:text-primary">{r.title}</Link>
+                    </td>
+                    <td className="capitalize text-muted-foreground">{r.release_type}</td>
+                    <td className="text-muted-foreground">{r.upc || "—"}</td>
+                    <td className="text-muted-foreground">{r.catalog_number || "—"}</td>
+                    <td><Badge variant="secondary" className="text-[10px] capitalize">{r.status}</Badge></td>
+                    <td className="text-muted-foreground">{r.release_date || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+
+      <Card className="p-6 bg-card/60 space-y-3">
         <h2 className="font-semibold">Review</h2>
         {profile.rejection_reason && <div className="text-xs text-destructive">Previous reason: {profile.rejection_reason}</div>}
         <Textarea placeholder="Reason (required for rejection)" value={reason} onChange={e => setReason(e.target.value)} rows={2} />
