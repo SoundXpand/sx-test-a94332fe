@@ -31,7 +31,7 @@ function Users() {
 
   useEffect(() => { load(); }, []);
 
-  const setStatus = async (user_id: string, status: string) => {
+  const setStatus = async (user_id: string, status: "approved" | "rejected" | "suspended" | "pending_approval") => {
     const { error } = await supabase.from("profiles").update({ status, approved_at: status === "approved" ? new Date().toISOString() : null }).eq("user_id", user_id);
     if (error) return toast.error(error.message);
     toast.success(`User ${status}`);
