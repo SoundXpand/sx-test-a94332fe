@@ -80,6 +80,13 @@ export type Database = {
             foreignKeyName: "analytics_rows_release_id_fkey"
             columns: ["release_id"]
             isOneToOne: false
+            referencedRelation: "public_releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_rows_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
             referencedRelation: "releases"
             referencedColumns: ["id"]
           },
@@ -91,6 +98,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dsp_lookup_cache: {
+        Row: {
+          fetched_at: string
+          id: string
+          payload: Json
+          platform: string
+          query_hash: string
+        }
+        Insert: {
+          fetched_at?: string
+          id?: string
+          payload: Json
+          platform: string
+          query_hash: string
+        }
+        Update: {
+          fetched_at?: string
+          id?: string
+          payload?: Json
+          platform?: string
+          query_hash?: string
+        }
+        Relationships: []
       }
       notify_waitlist: {
         Row: {
@@ -195,6 +226,7 @@ export type Database = {
           id: string
           owner_id: string
           payload: Json
+          source_release_id: string | null
           title: string
           updated_at: string
         }
@@ -204,6 +236,7 @@ export type Database = {
           id?: string
           owner_id: string
           payload?: Json
+          source_release_id?: string | null
           title?: string
           updated_at?: string
         }
@@ -213,10 +246,71 @@ export type Database = {
           id?: string
           owner_id?: string
           payload?: Json
+          source_release_id?: string | null
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "release_drafts_source_release_id_fkey"
+            columns: ["source_release_id"]
+            isOneToOne: false
+            referencedRelation: "public_releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "release_drafts_source_release_id_fkey"
+            columns: ["source_release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      release_links: {
+        Row: {
+          artwork_url: string | null
+          created_at: string
+          external_id: string | null
+          id: string
+          platform: string
+          release_id: string
+          url: string
+        }
+        Insert: {
+          artwork_url?: string | null
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          platform: string
+          release_id: string
+          url: string
+        }
+        Update: {
+          artwork_url?: string | null
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          platform?: string
+          release_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_links_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "public_releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "release_links_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       release_tracks: {
         Row: {
@@ -287,6 +381,13 @@ export type Database = {
             foreignKeyName: "release_tracks_release_id_fkey"
             columns: ["release_id"]
             isOneToOne: false
+            referencedRelation: "public_releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "release_tracks_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
             referencedRelation: "releases"
             referencedColumns: ["id"]
           },
@@ -304,13 +405,16 @@ export type Database = {
           owner_id: string
           parental_advisory: boolean
           primary_genre: string | null
+          published_url: string | null
           record_label: string | null
           rejection_reason: string | null
           release_date: string | null
           release_type: string
           secondary_genre: string | null
+          slug: string | null
           status: string
           store_selection: Json
+          taken_down_at: string | null
           title: string
           upc: string | null
           updated_at: string
@@ -327,13 +431,16 @@ export type Database = {
           owner_id: string
           parental_advisory?: boolean
           primary_genre?: string | null
+          published_url?: string | null
           record_label?: string | null
           rejection_reason?: string | null
           release_date?: string | null
           release_type?: string
           secondary_genre?: string | null
+          slug?: string | null
           status?: string
           store_selection?: Json
+          taken_down_at?: string | null
           title: string
           upc?: string | null
           updated_at?: string
@@ -350,13 +457,16 @@ export type Database = {
           owner_id?: string
           parental_advisory?: boolean
           primary_genre?: string | null
+          published_url?: string | null
           record_label?: string | null
           rejection_reason?: string | null
           release_date?: string | null
           release_type?: string
           secondary_genre?: string | null
+          slug?: string | null
           status?: string
           store_selection?: Json
+          taken_down_at?: string | null
           title?: string
           upc?: string | null
           updated_at?: string
@@ -479,7 +589,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_releases: {
+        Row: {
+          artwork_path: string | null
+          id: string | null
+          primary_genre: string | null
+          release_date: string | null
+          release_type: string | null
+          slug: string | null
+          title: string | null
+          version: string | null
+        }
+        Insert: {
+          artwork_path?: string | null
+          id?: string | null
+          primary_genre?: string | null
+          release_date?: string | null
+          release_type?: string | null
+          slug?: string | null
+          title?: string | null
+          version?: string | null
+        }
+        Update: {
+          artwork_path?: string | null
+          id?: string | null
+          primary_genre?: string | null
+          release_date?: string | null
+          release_type?: string | null
+          slug?: string | null
+          title?: string | null
+          version?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
