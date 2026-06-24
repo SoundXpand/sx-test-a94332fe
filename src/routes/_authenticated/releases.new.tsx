@@ -11,6 +11,9 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Check, ChevronRight, ChevronLeft, Save, Sparkles, ImageIcon, Disc3, Music as MusicIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ArtistMultiSelect, useMyArtists } from "@/components/artist-multi-select";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { LANGUAGES, GENRES, P_YEARS } from "@/lib/release-options";
 
 export const Route = createFileRoute("/_authenticated/releases/new")({
   component: NewRelease,
