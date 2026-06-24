@@ -174,10 +174,10 @@ function Settings() {
             }}>Add</Button>
           </div>
         </div>
-      </Card>
+      </Card>}
 
 
-      <Card className="p-6 space-y-4 bg-card/60">
+      {!staff && <Card className="p-6 space-y-4 bg-card/60">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-semibold">Artists management</h2>
@@ -235,9 +235,9 @@ function Settings() {
             ))}
           </div>
         )}
-      </Card>
+      </Card>}
 
-      <Card className="p-6 space-y-4 bg-card/60">
+      {!staff && <Card className="p-6 space-y-4 bg-card/60">
         <div className="flex items-center gap-2">
           <Wallet className="h-4 w-4 text-primary" />
           <h2 className="font-semibold">Payment & withdrawal preference</h2>
