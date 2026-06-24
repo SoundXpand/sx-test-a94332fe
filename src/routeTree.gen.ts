@@ -35,6 +35,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authenticated/tools.dsp-lookup'
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 import { Route as AuthenticatedReleasesIdRouteImport } from './routes/_authenticated/releases.$id'
+import { Route as ApiPublicDspWebhookPlatformRouteImport } from './routes/api/public/dsp-webhook/$platform'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -169,6 +170,12 @@ const AuthenticatedReleasesIdRoute = AuthenticatedReleasesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedReleasesRoute,
 } as any)
+const ApiPublicDspWebhookPlatformRoute =
+  ApiPublicDspWebhookPlatformRouteImport.update({
+    id: '/api/public/dsp-webhook/$platform',
+    path: '/api/public/dsp-webhook/$platform',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -223,6 +231,7 @@ export interface FileRoutesByTo {
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -252,6 +261,7 @@ export interface FileRoutesById {
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
   '/_authenticated/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
+    | '/api/public/dsp-webhook/$platform'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -308,6 +319,7 @@ export interface FileRouteTypes {
     | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
+    | '/api/public/dsp-webhook/$platform'
   id:
     | '__root__'
     | '/'
@@ -336,6 +348,7 @@ export interface FileRouteTypes {
     | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
     | '/_authenticated/tools/dsp-lookup'
+    | '/api/public/dsp-webhook/$platform'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -347,6 +360,7 @@ export interface RootRouteChildren {
   ApiDspLookupRoute: typeof ApiDspLookupRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   LSlugRoute: typeof LSlugRoute
+  ApiPublicDspWebhookPlatformRoute: typeof ApiPublicDspWebhookPlatformRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -533,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReleasesIdRouteImport
       parentRoute: typeof AuthenticatedReleasesRoute
     }
+    '/api/public/dsp-webhook/$platform': {
+      id: '/api/public/dsp-webhook/$platform'
+      path: '/api/public/dsp-webhook/$platform'
+      fullPath: '/api/public/dsp-webhook/$platform'
+      preLoaderRoute: typeof ApiPublicDspWebhookPlatformRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -610,6 +631,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDspLookupRoute: ApiDspLookupRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   LSlugRoute: LSlugRoute,
+  ApiPublicDspWebhookPlatformRoute: ApiPublicDspWebhookPlatformRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
