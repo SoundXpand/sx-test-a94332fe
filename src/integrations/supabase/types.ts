@@ -116,6 +116,27 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approved_at: string | null
@@ -164,6 +185,36 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      release_drafts: {
+        Row: {
+          created_at: string
+          current_step: number
+          id: string
+          owner_id: string
+          payload: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_step?: number
+          id?: string
+          owner_id: string
+          payload?: Json
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_step?: number
+          id?: string
+          owner_id?: string
+          payload?: Json
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
