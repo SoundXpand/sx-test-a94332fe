@@ -592,7 +592,7 @@ function NewRelease() {
             </div>
             <div className="mt-3 space-y-1">
               <div className="font-display font-semibold truncate">{release.title || "Untitled release"}</div>
-              <div className="text-xs text-muted-foreground truncate">{release.artist_name || "Unknown artist"}</div>
+              <div className="text-xs text-muted-foreground truncate">{myArtists.filter(a => releaseArtistIds.includes(a.id)).map(a => a.name).join(", ") || "Unknown artist"}</div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground capitalize">
                 <Disc3 className="h-3 w-3" />{release.release_type} · <MusicIcon className="h-3 w-3" />{tracks.length} track{tracks.length !== 1 ? "s" : ""}
               </div>
