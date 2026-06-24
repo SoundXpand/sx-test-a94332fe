@@ -220,7 +220,7 @@ function NewRelease() {
   };
 
   const submit = async () => {
-    if (!artwork.valid) return toast.error("Artwork is required");
+    if (!sourceReleaseId && !artwork.valid) return toast.error("Artwork is required");
     if (!rightsConfirmed) return toast.error("Confirm rights ownership");
     setBusy(true);
     try {
@@ -232,28 +232,43 @@ function NewRelease() {
         const { error } = await supabase.storage.from("artwork").upload(path, artwork.file);
         if (!error) artwork_path = path;
       }
-      const { data: rel, error: relErr } = await supabase.from("releases").insert({
-        owner_id: u.user.id,
+
+      const releasePayload: any = {
         title: release.title, version: release.version, release_type: release.release_type,
         primary_genre: release.primary_genre, secondary_genre: release.secondary_genre, language: release.language,
         release_date: release.release_date || null, original_release_date: release.original_release_date || null,
         copyright_year: release.copyright_year, record_label: release.record_label,
         upc: release.upc, catalog_number: release.catalog_number, parental_advisory: release.parental_advisory,
-        artwork_path, store_selection: stores, status: "pending",
-      }).select().single();
-      if (relErr) throw relErr;
+        store_selection: stores, status: "pending", rejection_reason: null,
+      };
+      if (artwork_path) releasePayload.artwork_path = artwork_path;
+
+      let releaseId: string;
+      if (sourceReleaseId) {
+        const { error: upErr } = await supabase.from("releases").update(releasePayload).eq("id", sourceReleaseId);
+        if (upErr) throw upErr;
+        releaseId = sourceReleaseId;
+        // Replace tracks: delete then re-insert
+        await supabase.from("release_tracks").delete().eq("release_id", releaseId);
+      } else {
+        const { data: rel, error: relErr } = await supabase.from("releases").insert({
+          ...releasePayload, owner_id: u.user.id,
+        }).select().single();
+        if (relErr) throw relErr;
+        releaseId = rel.id;
+      }
 
       for (let i = 0; i < tracks.length; i++) {
         const t = tracks[i];
         let audio_path: string | null = null;
         const af = audioFiles[i];
         if (af) {
-          const p = `${u.user.id}/${rel.id}/${i}-${af.name}`;
-          const { error } = await supabase.storage.from("audio").upload(p, af);
+          const p = `${u.user.id}/${releaseId}/${i}-${af.name}`;
+          const { error } = await supabase.storage.from("audio").upload(p, af, { upsert: true });
           if (!error) audio_path = p;
         }
         await supabase.from("release_tracks").insert({
-          release_id: rel.id, track_number: i + 1,
+          release_id: releaseId, track_number: i + 1,
           title: t.title, version: t.version, language: t.language, isrc: t.isrc || null,
           explicit: t.explicit, composer: t.composer || null, lyricist: t.lyricist || null,
           producer: t.producer || null, featured_artist: t.featured_artist || null,
@@ -263,7 +278,7 @@ function NewRelease() {
         });
       }
       if (draftId) await supabase.from("release_drafts").delete().eq("id", draftId);
-      toast.success("Release submitted for review");
+      toast.success(sourceReleaseId ? "Release resubmitted for review" : "Release submitted for review");
       navigate({ to: "/catalog" });
     } catch (e) {
       toast.error((e as Error).message);
