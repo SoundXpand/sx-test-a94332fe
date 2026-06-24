@@ -654,13 +654,23 @@ function NewRelease() {
                             <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
                           </Select>
                         </Field>
-                        <Field label="ISRC"><Input value={t.isrc} onChange={e => upd(tracks, setTracks, i, { isrc: e.target.value })} placeholder="e.g. USRC17607839" /></Field>
+                        <Field label="ISRC"><Input value={t.isrc} onChange={e => upd(tracks, setTracks, i, { isrc: e.target.value })} placeholder="Auto-generated if blank" /></Field>
                         <Field label="Artists"><ArtistMultiSelect value={v.artist_ids} onChange={(ids) => upd(tracks, setTracks, i, { artist_ids: ids })} /></Field>
-                        <Field label="Composer"><Input value={t.composer} onChange={e => upd(tracks, setTracks, i, { composer: e.target.value })} /></Field>
-                        <Field label="Lyricist"><Input value={t.lyricist} onChange={e => upd(tracks, setTracks, i, { lyricist: e.target.value })} /></Field>
-                        <Field label="Producer"><Input value={t.producer} onChange={e => upd(tracks, setTracks, i, { producer: e.target.value })} /></Field>
-                        <Field label="Copyright owner"><Input value={t.copyright_owner} onChange={e => upd(tracks, setTracks, i, { copyright_owner: e.target.value })} /></Field>
-                        <Field label="Publisher"><Input value={t.publishing_info} onChange={e => upd(tracks, setTracks, i, { publishing_info: e.target.value })} /></Field>
+                        <Field label="Composer *"><Input required value={t.composer} onChange={e => upd(tracks, setTracks, i, { composer: e.target.value })} placeholder="Comma separated" /></Field>
+                        {!["No human vocals","No linguistic content"].includes(v.language) && (
+                          <Field label="Lyricist *"><Input required value={t.lyricist} onChange={e => upd(tracks, setTracks, i, { lyricist: e.target.value })} placeholder="Comma separated" /></Field>
+                        )}
+                        <Field label="Producer *"><Input required value={t.producer} onChange={e => upd(tracks, setTracks, i, { producer: e.target.value })} placeholder="Comma separated" /></Field>
+                        <Field label="Publisher">
+                          <Select value={t.publishing_info || "SoundXpand"} onValueChange={val => upd(tracks, setTracks, i, { publishing_info: val })}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="SoundXpand">SoundXpand</SelectItem>
+                              <SelectItem value="SoundXpand PRO">SoundXpand PRO</SelectItem>
+                              <SelectItem value="SoundXpand Publishing">SoundXpand Publishing</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </Field>
                         <label className="flex items-center gap-2 col-span-full">
                           <Checkbox checked={t.explicit} onCheckedChange={v => upd(tracks, setTracks, i, { explicit: !!v })} />
                           Explicit content
