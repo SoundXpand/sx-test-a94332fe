@@ -239,6 +239,7 @@ function NewRelease() {
         if (!error) artwork_path = path;
       }
 
+      const primaryName = myArtists.find(a => releaseArtistIds.includes(a.id))?.name ?? "";
       const releasePayload: any = {
         title: release.title, version: release.version, release_type: release.release_type,
         primary_genre: release.primary_genre, secondary_genre: release.secondary_genre, language: release.language,
@@ -246,7 +247,9 @@ function NewRelease() {
         copyright_year: release.copyright_year, record_label: release.record_label,
         upc: release.upc, catalog_number: release.catalog_number, parental_advisory: release.parental_advisory,
         store_selection: stores, status: "pending", rejection_reason: null,
+        artist_ids: releaseArtistIds,
       };
+      if (primaryName && !release.artist_name) release.artist_name = primaryName;
       if (artwork_path) releasePayload.artwork_path = artwork_path;
 
       let releaseId: string;
