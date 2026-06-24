@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -71,14 +71,7 @@ function AuthPage() {
         </div>
 
         <div className="rounded-3xl border border-border bg-card/60 p-8 backdrop-blur-xl shadow-2xl">
-          <Tabs defaultValue="login">
-            <TabsList className="grid grid-cols-2 w-full mb-6">
-              <TabsTrigger value="login">Sign in</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login"><LoginForm /></TabsContent>
-            <TabsContent value="register"><RegisterForm /></TabsContent>
-          </Tabs>
+          <AuthTabs />
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
