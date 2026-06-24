@@ -32,6 +32,7 @@ function UserDetail() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [artists, setArtists] = useState<Artist[]>([]);
+  const [releases, setReleases] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
@@ -44,8 +45,12 @@ function UserDetail() {
     const { data: p } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
     setProfile((p as unknown) as Profile);
     if (p) {
-      const { data: a } = await supabase.from("artists" as any).select("*").eq("owner_id", (p as any).user_id);
+      const [{ data: a }, { data: rels }] = await Promise.all([
+        supabase.from("artists" as any).select("*").eq("owner_id", (p as any).user_id),
+        supabase.from("releases").select("id,title,release_type,status,release_date,upc,catalog_number,slug,created_at").eq("owner_id", (p as any).user_id).order("created_at", { ascending: false }),
+      ]);
       setArtists(((a as unknown) as Artist[]) ?? []);
+      setReleases(rels ?? []);
     }
     setLoading(false);
   };
