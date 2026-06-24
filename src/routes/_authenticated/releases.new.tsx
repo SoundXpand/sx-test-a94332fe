@@ -596,8 +596,10 @@ function NewRelease() {
                           setAudioFiles(audioFiles.slice(0, 1));
                           setAudioMeta(audioMeta.slice(0, 1));
                         }
-                      } else if (release.release_type === "single") {
-                        setRelease({ ...release, release_type: "ep" });
+                      } else {
+                        const n = tracks.length;
+                        const t = n >= 7 ? "album" : n >= 2 ? "ep" : "ep";
+                        setRelease({ ...release, release_type: t });
                       }
                     }}
                   />
