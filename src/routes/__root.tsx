@@ -2,6 +2,8 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import appCss from "../styles.css?url";
 
 const queryClient = new QueryClient();
