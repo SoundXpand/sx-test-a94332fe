@@ -69,12 +69,11 @@ function ReleasesAdmin() {
     catch (e: any) { toast.error(e.message ?? "Bundle failed"); }
     finally { setBusy(false); }
   };
+  const purgeFn = useServerFn(purgeArchivedFn);
   const purge = async () => {
     if (!confirm("Permanently delete releases archived >7 days?")) return;
-    const fn = (await import("@tanstack/react-start")).useServerFn;
-    void fn; // placeholder, use direct call below
     try {
-      const res = await (await import("@/lib/admin-actions.functions")).purgeArchivedFn();
+      const res = await purgeFn();
       toast.success(`Purged ${(res as any).purged ?? 0} releases`);
       load();
     } catch (e: any) { toast.error(e.message ?? "Purge failed"); }
