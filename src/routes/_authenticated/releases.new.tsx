@@ -333,8 +333,6 @@ function NewRelease() {
           {step === 0 && (
             <div className="grid md:grid-cols-2 gap-4">
               <Field label="Release title *"><Input value={release.title} onChange={e => setRelease({ ...release, title: e.target.value })} /></Field>
-              <Field label="Artist name *"><Input value={release.artist_name} onChange={e => setRelease({ ...release, artist_name: e.target.value })} /></Field>
-              <Field label="Primary artist *"><Input value={release.primary_artist} onChange={e => setRelease({ ...release, primary_artist: e.target.value })} /></Field>
               <Field label="Release type *">
                 <Select value={release.release_type} onValueChange={v => setRelease({ ...release, release_type: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
