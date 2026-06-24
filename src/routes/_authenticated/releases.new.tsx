@@ -347,7 +347,7 @@ function NewRelease() {
               <Field label="Genre *"><Input value={release.primary_genre} onChange={e => setRelease({ ...release, primary_genre: e.target.value })} /></Field>
               <Field label="Sub genre"><Input value={release.secondary_genre} onChange={e => setRelease({ ...release, secondary_genre: e.target.value })} /></Field>
               <Field label="Language *"><Input value={release.language} onChange={e => setRelease({ ...release, language: e.target.value })} /></Field>
-              <Field label="Release date *"><Input type="date" value={release.release_date} onChange={e => setRelease({ ...release, release_date: e.target.value })} /></Field>
+              
               <Field label="Original release date"><Input type="date" value={release.original_release_date} onChange={e => setRelease({ ...release, original_release_date: e.target.value })} /></Field>
               <Field label="UPC"><Input value={release.upc} onChange={e => setRelease({ ...release, upc: e.target.value })} /></Field>
               <Field label="Catalog number"><Input value={release.catalog_number} onChange={e => setRelease({ ...release, catalog_number: e.target.value })} /></Field>
