@@ -22,6 +22,7 @@ function UserDetail() {
   const [artists, setArtists] = useState<any[]>([]);
   const [releases, setReleases] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
+  const [activity, setActivity] = useState<any[]>([]);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
 
