@@ -72,7 +72,8 @@ function NewRelease() {
   const [audioMeta, setAudioMeta] = useState<Array<{ duration?: number; valid: boolean; reason?: string } | null>>([null]);
   const [stores, setStores] = useState<string[]>([...STORES]);
   const [storeQuery, setStoreQuery] = useState("");
-  const [territory, setTerritory] = useState<"worldwide" | "custom">("worldwide");
+  const [territoryWorldwide, setTerritoryWorldwide] = useState(true);
+  const [territoryCountries, setTerritoryCountries] = useState<string[]>(ALL_COUNTRY_CODES);
   const [pricing, setPricing] = useState("mid");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [releaseArtistIds, setReleaseArtistIds] = useState<string[]>([]);
