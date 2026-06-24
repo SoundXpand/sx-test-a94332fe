@@ -56,8 +56,12 @@ function NewRelease() {
     title: "", artist_name: "", primary_artist: "", version: "", release_type: "single",
     primary_genre: "", secondary_genre: "", language: "English",
     release_date: "", original_release_date: "", copyright_year: new Date().getFullYear(),
-    record_label: "", upc: "", catalog_number: "", parental_advisory: false,
-    description: "", producer_info: "", copyright_info: "",
+    record_label: "", sub_label: "", upc: "", catalog_number: "", parental_advisory: false,
+    p_year: new Date().getFullYear(), p_name: "", c_year: new Date().getFullYear(), c_name: "",
+  });
+  const [singleMode, setSingleMode] = useState(true);
+  const [profileMeta, setProfileMeta] = useState<{ label_name: string; sub_labels: string[]; role_type: string | null }>({
+    label_name: "", sub_labels: [], role_type: null,
   });
   const [artwork, setArtwork] = useState<{ file: File | null; preview: string | null; width?: number; height?: number; size?: number; valid: boolean }>({
     file: null, preview: null, valid: false,
@@ -72,6 +76,43 @@ function NewRelease() {
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [releaseArtistIds, setReleaseArtistIds] = useState<string[]>([]);
   const { artists: myArtists } = useMyArtists();
+
+  // Load profile defaults (label, sub-labels, role) + auto-gen catalog
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      const { data: p } = await supabase.from("profiles").select("label_name,sub_labels,role_type").eq("user_id", u.user.id).maybeSingle();
+      if (p) {
+        setProfileMeta({
+          label_name: (p as any).label_name ?? "",
+          sub_labels: ((p as any).sub_labels as string[]) ?? [],
+          role_type: (p as any).role_type ?? null,
+        });
+        setRelease(r => ({ ...r, record_label: r.record_label || ((p as any).label_name ?? ""), p_name: r.p_name || ((p as any).label_name ?? ""), c_name: r.c_name || ((p as any).label_name ?? "") }));
+      }
+      // Generate unique catalog number
+      for (let i = 0; i < 6; i++) {
+        const cand = genCatalog();
+        const { data: hit } = await supabase.from("releases").select("id").eq("catalog_number", cand).maybeSingle();
+        if (!hit) { setRelease(r => r.catalog_number ? r : { ...r, catalog_number: cand }); break; }
+      }
+    })();
+  }, []);
+
+  // Keep single-track mode in sync with release_type
+  useEffect(() => {
+    if (release.release_type === "single") {
+      setSingleMode(true);
+      if (tracks.length > 1) {
+        setTracks(tracks.slice(0, 1));
+        setAudioFiles(audioFiles.slice(0, 1));
+        setAudioMeta(audioMeta.slice(0, 1));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [release.release_type]);
+
 
   // AI artwork
   const [aiOpen, setAiOpen] = useState(false);
