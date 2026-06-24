@@ -54,7 +54,7 @@ export type Database = {
           licensor_currency: string | null
           licensor_revenue: number | null
           outlet: string | null
-          owner_id: string
+          owner_id: string | null
           period_begins: string | null
           period_ends: string | null
           platform: string
@@ -90,7 +90,7 @@ export type Database = {
           licensor_currency?: string | null
           licensor_revenue?: number | null
           outlet?: string | null
-          owner_id: string
+          owner_id?: string | null
           period_begins?: string | null
           period_ends?: string | null
           platform: string
@@ -126,7 +126,7 @@ export type Database = {
           licensor_currency?: string | null
           licensor_revenue?: number | null
           outlet?: string | null
-          owner_id?: string
+          owner_id?: string | null
           period_begins?: string | null
           period_ends?: string | null
           platform?: string
@@ -328,6 +328,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notify_waitlist: {
         Row: {
           created_at: string
@@ -378,13 +411,17 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           artist_name: string
+          avatar_url: string | null
+          bio: string | null
           city: string | null
           country: string | null
           created_at: string
           current_distributor: string | null
+          display_name: string | null
           email: string
           first_name: string | null
           full_name: string
+          is_public: boolean
           label_name: string | null
           last_name: string | null
           main_genre: string | null
@@ -396,10 +433,14 @@ export type Database = {
           private_link: string | null
           rejection_reason: string | null
           role_type: string | null
+          social_apple: string | null
           social_facebook: string | null
           social_instagram: string | null
+          social_soundcloud: string | null
+          social_spotify: string | null
           social_tiktok: string | null
           social_vk: string | null
+          social_website: string | null
           social_youtube: string | null
           spotify_monthly_listeners_bucket: string | null
           status: Database["public"]["Enums"]["account_status"]
@@ -413,13 +454,17 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           artist_name?: string
+          avatar_url?: string | null
+          bio?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
           current_distributor?: string | null
+          display_name?: string | null
           email: string
           first_name?: string | null
           full_name?: string
+          is_public?: boolean
           label_name?: string | null
           last_name?: string | null
           main_genre?: string | null
@@ -431,10 +476,14 @@ export type Database = {
           private_link?: string | null
           rejection_reason?: string | null
           role_type?: string | null
+          social_apple?: string | null
           social_facebook?: string | null
           social_instagram?: string | null
+          social_soundcloud?: string | null
+          social_spotify?: string | null
           social_tiktok?: string | null
           social_vk?: string | null
+          social_website?: string | null
           social_youtube?: string | null
           spotify_monthly_listeners_bucket?: string | null
           status?: Database["public"]["Enums"]["account_status"]
@@ -448,13 +497,17 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           artist_name?: string
+          avatar_url?: string | null
+          bio?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
           current_distributor?: string | null
+          display_name?: string | null
           email?: string
           first_name?: string | null
           full_name?: string
+          is_public?: boolean
           label_name?: string | null
           last_name?: string | null
           main_genre?: string | null
@@ -466,10 +519,14 @@ export type Database = {
           private_link?: string | null
           rejection_reason?: string | null
           role_type?: string | null
+          social_apple?: string | null
           social_facebook?: string | null
           social_instagram?: string | null
+          social_soundcloud?: string | null
+          social_spotify?: string | null
           social_tiktok?: string | null
           social_vk?: string | null
+          social_website?: string | null
           social_youtube?: string | null
           spotify_monthly_listeners_bucket?: string | null
           status?: Database["public"]["Enums"]["account_status"]
@@ -856,6 +913,45 @@ export type Database = {
         }
         Relationships: []
       }
+      royalty_statement_files: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          owner_id: string | null
+          pdf_path: string | null
+          period_label: string
+          summary: string | null
+          uploaded_by: string | null
+          username: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          owner_id?: string | null
+          pdf_path?: string | null
+          period_label: string
+          summary?: string | null
+          uploaded_by?: string | null
+          username: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          owner_id?: string | null
+          pdf_path?: string | null
+          period_label?: string
+          summary?: string | null
+          uploaded_by?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
       royalty_statements: {
         Row: {
           breakdown: Json
@@ -948,6 +1044,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity_log: {
+        Row: {
+          created_at: string
+          id: string
+          ip: string | null
+          kind: string
+          meta: Json
+          summary: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip?: string | null
+          kind: string
+          meta?: Json
+          summary?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip?: string | null
+          kind?: string
+          meta?: Json
+          summary?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1014,6 +1143,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      next_sx_username: { Args: never; Returns: string }
     }
     Enums: {
       account_status: "pending_approval" | "approved" | "rejected" | "suspended"

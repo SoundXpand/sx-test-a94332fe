@@ -22,6 +22,30 @@ const LABELS: Record<string, string> = {
   profile: "Profile", help: "Help center",
 };
 
+type NavItem = { label: string; to: string; group: string; keywords?: string };
+const NAV_INDEX: NavItem[] = [
+  { label: "Dashboard", to: "/dashboard", group: "Pages" },
+  { label: "Catalog", to: "/catalog", group: "Pages" },
+  { label: "Releases", to: "/releases", group: "Pages" },
+  { label: "New release", to: "/releases/new", group: "Pages" },
+  { label: "Analytics", to: "/analytics", group: "Pages" },
+  { label: "Accounting", to: "/accounting", group: "Pages" },
+  { label: "Royalties", to: "/royalties", group: "Pages" },
+  { label: "Users", to: "/users", group: "Pages" },
+  { label: "Reports", to: "/reports", group: "Pages" },
+  { label: "Tools", to: "/tools", group: "Pages" },
+  { label: "Artists", to: "/artists", group: "Pages" },
+  { label: "Tickets (admin)", to: "/admin/tickets", group: "Pages" },
+  { label: "Broadcast (admin)", to: "/admin/broadcast", group: "Pages" },
+  { label: "Profile", to: "/profile", group: "Settings" },
+  { label: "Account settings", to: "/settings", group: "Settings", keywords: "preferences theme password payout" },
+  { label: "Platform settings", to: "/platform-settings", group: "Settings" },
+  { label: "Help center", to: "/help", group: "Support" },
+  { label: "Support tickets", to: "/support", group: "Support" },
+  { label: "Terms", to: "/legal/terms", group: "Legal" },
+  { label: "Privacy", to: "/legal/privacy", group: "Legal" },
+];
+
 function useBreadcrumbs() {
   const path = useRouterState({ select: s => s.location.pathname });
   return useMemo(() => {
@@ -39,7 +63,7 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<{ releases: any[]; tracks: any[]; profiles: any[] }>({ releases: [], tracks: [], profiles: [] });
+  const [results, setResults] = useState<{ nav: NavItem[]; tickets: any[] }>({ nav: NAV_INDEX, tickets: [] });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -53,14 +77,17 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
   }, []);
 
   useEffect(() => {
-    if (!q.trim()) { setResults({ releases: [], tracks: [], profiles: [] }); return; }
+    const query = q.trim().toLowerCase();
+    if (!query) { setResults({ nav: NAV_INDEX, tickets: [] }); return; }
+    const nav = NAV_INDEX.filter(n =>
+      n.label.toLowerCase().includes(query) ||
+      n.to.toLowerCase().includes(query) ||
+      (n.keywords ?? "").toLowerCase().includes(query)
+    );
+    if (query.length < 15) { setResults({ nav, tickets: [] }); return; }
     const t = setTimeout(async () => {
-      const [r, t2, p] = await Promise.all([
-        supabase.from("releases").select("id,title,release_type").ilike("title", `%${q}%`).limit(5),
-        supabase.from("release_tracks").select("id,title,release_id").ilike("title", `%${q}%`).limit(5),
-        supabase.from("profiles").select("user_id,full_name,artist_name,username").or(`full_name.ilike.%${q}%,artist_name.ilike.%${q}%,username.ilike.%${q}%`).limit(5),
-      ]);
-      setResults({ releases: r.data ?? [], tracks: t2.data ?? [], profiles: p.data ?? [] });
+      const { data: tk } = await supabase.from("support_tickets").select("id,subject,status").ilike("subject", `%${q}%`).limit(5);
+      setResults({ nav, tickets: tk ?? [] });
     }, 200);
     return () => clearTimeout(t);
   }, [q]);
@@ -111,7 +138,7 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
               <Button variant="ghost" size="icon" title="Quick actions"><Plus className="h-4 w-4" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate({ to: "/releases/new" })}>New release</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: data?.primaryRole === "administrator" || data?.primaryRole === "sx_manager" ? "/releases" : "/releases/new" })}>{data?.primaryRole === "administrator" || data?.primaryRole === "sx_manager" ? "Manage releases" : "New release"}</DropdownMenuItem>
               {data?.primaryRole === "administrator" && (
                 <DropdownMenuItem onClick={() => navigate({ to: "/users" })}>Manage users</DropdownMenuItem>
               )}
@@ -153,32 +180,28 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
       </header>
 
       <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Search releases, artists, tracks…" value={q} onValueChange={setQ} />
+        <CommandInput placeholder="Search tabs, pages, settings, support…" value={q} onValueChange={setQ} />
         <CommandList>
-          <CommandEmpty>No results.</CommandEmpty>
-          {results.releases.length > 0 && (
-            <CommandGroup heading="Releases">
-              {results.releases.map(r => (
-                <CommandItem key={r.id} onSelect={() => { setSearchOpen(false); navigate({ to: "/catalog" }); }}>
-                  <Disc3Icon /> {r.title} <span className="ml-auto text-xs text-muted-foreground">{r.release_type}</span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {results.tracks.length > 0 && (
-            <CommandGroup heading="Tracks">
-              {results.tracks.map(t => (
-                <CommandItem key={t.id} onSelect={() => { setSearchOpen(false); navigate({ to: "/catalog" }); }}>
-                  {t.title}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {results.profiles.length > 0 && (
-            <CommandGroup heading="Artists & users">
-              {results.profiles.map(p => (
-                <CommandItem key={p.user_id} onSelect={() => { setSearchOpen(false); navigate({ to: "/users" }); }}>
-                  {p.full_name || p.artist_name} <span className="ml-auto text-xs text-muted-foreground">{p.username}</span>
+          <CommandEmpty>No matches.</CommandEmpty>
+          {(["Pages", "Settings", "Support", "Legal"] as const).map(group => {
+            const items = results.nav.filter(n => n.group === group);
+            if (items.length === 0) return null;
+            return (
+              <CommandGroup key={group} heading={group}>
+                {items.map(n => (
+                  <CommandItem key={n.to} onSelect={() => { setSearchOpen(false); navigate({ to: n.to as any }); }}>
+                    <span>{n.label}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">{n.to}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            );
+          })}
+          {results.tickets.length > 0 && (
+            <CommandGroup heading="Support tickets">
+              {results.tickets.map(t => (
+                <CommandItem key={t.id} onSelect={() => { setSearchOpen(false); navigate({ to: "/support" }); }}>
+                  {t.subject} <span className="ml-auto text-xs text-muted-foreground">{t.status}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

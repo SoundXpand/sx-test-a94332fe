@@ -16,7 +16,8 @@ const STAFF_NAV: Item[] = [
   { to: "/releases", label: "Releases", icon: Disc3 },
   { to: "/users", label: "Users", icon: Users },
   { to: "/accounting", label: "Accounting", icon: Receipt },
-  { to: "/approval-queue", label: "Approval queue", icon: ShieldCheck },
+  { to: "/royalties", label: "Royalties", icon: DollarSign },
+  { to: "/admin/broadcast", label: "Broadcast", icon: ShieldCheck },
   { to: "/admin/tickets", label: "Tickets", icon: LifeBuoy },
 ];
 

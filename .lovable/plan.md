@@ -1,100 +1,72 @@
-# Admin overhaul & artist dashboard upgrade
+This is a large batch of changes spanning DB, wizard, public pages, admin tools, and notifications. Grouping into clear workstreams. Please confirm before I execute.
 
-## 1. Database migration
+## 1. Accounting / analytics_rows
 
-New enum value + tables (single migration):
+- Migration: rename/align `analytics_rows` columns to match the Accounting Excel template exactly (the 121-col template you uploaded earlier — same headers as `ACCOUNTING_HEADERS`). Add any missing columns; keep existing ones if already present.
+- Date parsing in `parseAccountingFile`: accept `YYYY-MM-DD`, `DD/MM/YYYY`, Excel serial numbers, and ISO; normalize to `YYYY-MM-DD` text — no SQL cast errors.
+- Owner match: after parse, look up `profiles` by `username` (case-insensitive) and stamp `owner_id`. Rows with no match still ingest but flagged `owner_id = null` with a `unmatched_username` count surfaced in toast.
+- Upload history: add row-level **Delete** action that deletes the upload row AND cascades `analytics_rows WHERE upload_id = X` (add FK `ON DELETE CASCADE` in migration). Admin-only.
 
-- `ALTER TYPE app_role ADD VALUE 'sx_manager'`.
-- `analytics_uploads` — id, uploaded_by, filename, period_label, row_count, status, created_at. RLS: admin/sx_manager full; artists/labels SELECT rows scoped through analytics_rows.
-- Extend `analytics_rows` with columns from the user's header list (username, sale_type, censor_catalogue_number, recording_title, artists, isrc, licensee_catalogue_number, source, period_begins, period_ends, country, right_type_group, use_type, outlet, collection_share, quantity, licensor_revenue, source_currency, licensor_currency, conversion_rate, release_title, release_ean, commercial_model, product, upload_id FK). Keep existing streams/revenue for back-compat.
-- `release_deliveries` — id, release_id, delivered_at, authorized_by (uuid → profiles), dsp_status jsonb (per-DSP `sent|rejected` + note), notes, excel_path. RLS: admin/sx_manager write; release owner read.
-- `releases`: add `delivered_at timestamptz`, `delivery_note text`. Status enum already supports `delivered`/`takedown_requested`/`taken_down` — confirm and extend if missing.
-- `profiles`: nothing new (payout fields already exist).
-- Update `has_role` use sites; add helper `is_staff(uuid)` returning `has_role(_, 'administrator') OR has_role(_, 'sx_manager')`.
-- RLS additions:
-  - `profiles`: admin can UPDATE role/delete; sx_manager can UPDATE status (approve/reject) but NOT delete.
-  - `releases`: staff can UPDATE status; only admin can DELETE.
-  - `support_tickets/messages`: sx_manager same as admin (respond/resolve).
-  - `user_roles`: admin manages all; sx_manager read-only.
-- GRANTs for all new tables to authenticated + service_role.
+## 2. Username generation overflow
 
-## 2. Roles & access plumbing
+- Migration: replace `sx_username_seq` logic in `handle_new_user_soundxpand` — after `SX999`, switch to `SX00001`, `SX00002`, … using `LPAD(nextval, 5, '0')` when value > 999. Add unique constraint check.
 
-- `src/hooks/use-current-user.ts`: add `sx_manager` to `AppRole` union and primaryRole resolution (admin > sx_manager > manager > viewer > artist).
-- `src/components/dashboard/app-sidebar.tsx`:
-  - **Administrator nav** trimmed to: Dashboard, Releases (Approval/Delivery), Users, Accounting, Approval queue (kept as alias inside Releases tabs), Tickets, Platform settings, Settings. Remove: New release, Catalog, Analytics, Royalties, Reports, Tools, Support.
-  - **SX Manager nav** = admin nav minus Platform settings, minus user-delete UI.
-  - Footer: add `Terms` + `Privacy` links (new routes `/legal/terms`, `/legal/privacy` — simple static pages).
+## 3. User Logbook on `/users/SX003`
 
-## 3. Admin Releases page (`/releases`)
+- New table `user_activity_log` (id, user_id, kind: 'login'|'action'|..., summary, meta jsonb, created_at). RLS: user reads own; staff reads all.
+- Hook into auth state change in `src/integrations/supabase/client.ts` consumer (`use-current-user` or a top-level effect) to record `login` events.
+- Add Logbook card to `users.$username.tsx` showing latest 50 entries.
 
-Replace current admin releases.index.tsx with a tabbed page:
+## 4. Topbar search → tabs/pages/settings/support
 
-- **Tab "Approval queue"** — pending submissions table (title links to `/releases/$id`), Approve / Reject / Mark draft / Takedown buttons. Same data as existing approval-queue.tsx, reused via shared component.
-- **Tab "Delivery"** — table of `status='live'` (approved) releases not yet delivered. Each row: per-DSP send checklist (Spotify, Apple Music, YouTube Music, Amazon, Deezer, JioSaavn, etc. — list from `src/lib/release-options.ts`), per-DSP status select (sent/rejected) + note field, "Download Excel" button generating the metadata template in attached format (121 cols from Sheet1), and "Mark delivered" button → writes `release_deliveries` row, stamps `releases.delivered_at`, sets `status='delivered'`, records authorized_by = current user.
-- **Tab "Delivered"** — history with timeline (delivered_at, authorized_by username, DSP statuses, notes).
-- **Tab "Takedowns"** — current takedown_requested queue.
-- Excel generation client-side via `xlsx` (already used pattern: openpyxl-style) — add `bun add xlsx` and a helper `src/lib/release-metadata-export.ts` that maps release+tracks to the 121-column header row.
+- Replace the current releases/tracks/profiles search with a static index of routes (Dashboard, Catalog, Releases, Analytics, Royalties, Users, Accounting, Settings sections, Support, Legal). Long queries (>15 chars) also search `support_tickets` subjects.
 
-## 4. Accounting (admin/sx_manager)
+## 5. Profile + Public artist page
 
-New route `/_authenticated/accounting.tsx`:
+- Update `/profile`: add fields — bio (long text), `is_public` toggle, social links (instagram, youtube, spotify, apple, tiktok, soundcloud, website), display name, role-derived path prefix.
+- Add "Copy link" + "Visit" buttons.
+- New public route `src/routes/$roleType.$username.tsx` (paths like `/artist/sx003`, `/label/sx003`, `/publisher/sx003`) → cover, bio, socials, discography (live releases), smartlinks.
+- Migration: add `is_public boolean`, `bio text`, `social_*` columns (extend existing socials), `display_name` to `profiles`.
+- Landing footer: add Cookie, Privacy, Terms, More links (route exists or stub).
 
-- Upload card: file input (.xlsx/.csv), period label input, "Download template" button (writes header row from the user's spec).
-- Parser reads file in browser with `xlsx`, validates headers, batch-inserts into `analytics_rows` with `upload_id` + maps `username` → `owner_id` via profiles lookup.
-- Realtime table below: lists `analytics_uploads` rows (uploader, period, row count, status, created_at) via supabase realtime channel.
-- Artists/labels see corresponding data on their existing `/analytics` page (already reads analytics_rows) — no UI change required there besides surfacing new columns optionally.
+## 6. Release wizard `/releases/new`
 
-## 5. Admin Dashboard (`/dashboard`)
+- **Catalog number**: dynamic mask `SX[A-Z]{1,4}\d{4,10}`; auto-generate next free.
+- **ISRC autogen** when UPC empty: pattern `INV2I{YY}{NNNNN}` starting at `00001` for current year, increment from max existing for that year. Show generated value read-only with regenerate button.
+- **AI Artwork Studio**: change generation size to 3000×3000 (gen at max 1920 and upscale OR use premium with 1920 then bicubic to 3000 client-side via canvas — note: true 3000 requires upscale; will document limit).
+- **Tracks language gating**: if `language ∈ {No human vocals, No linguistic content}` → hide Lyricist + lyrics textarea; else require Composer, Lyricist, Producer. Convert these to tag-style multi-author inputs (chips).
+- **Publisher**: dropdown checklist of SoundXpand / SoundXpand PRO / SoundXpand Publishing — all checked by default.
+- Remove "Copyright owner" input.
+- **Territory**: multi-level checklist tree (Worldwide top, then India, then continents → countries). Use a new `<TerritoryPicker />` component fed by a static dataset.
 
-Branch by role:
+## 7. Distribution DSP list (step 5)
 
-- If `administrator|sx_manager`: render `<AdminOverview />` — KPI cards (total users, pending approvals, releases pending review, releases delivered last 30d, revenue uploaded last period, open tickets), charts (uploads per month, deliveries per month), recent activity list (uses `activity_logs`).
-- Else: existing artist dashboard.
+Replace `DSPS` list with the full ordered list you provided, each with a medium logo (use `lucide` placeholder + `src/assets/dsp/<slug>.png` slots; I'll add transparent placeholder logos generated via `imagegen` only if you want — otherwise text-only with monogram squares for now to keep this change small).
 
-## 6. Artist/Label dashboard upgrade
+## 8. Sidebar / topbar tweaks
 
-Extend artist branch with extra cards:
+- Remove "Approval queue" from sidebar.
+- Admin topbar "+ New release" → `/releases`.
+- Dashboard "Review queue" button → `/releases`.
 
-- **Music distribution** (primary CTA).
-- **Video distribution — coming soon** (disabled card).
-- **Charts (last 30 days delivered)** — animated card listing public delivered releases (title, artist, release date, smartlink button → `/l/$slug`). Server fn using publishable client + narrow SELECT policy on releases where `status='delivered' AND delivered_at > now()-30d`.
-- **Social promotion** card.
-- **Collaboration card** with mailto `mca@soundxpand.com`.
-- **Inspiration quote** cards (static rotation).
+## 9. Realtime notifications
 
-## 7. `/users` (admin) enhancements
+- New table `notifications` (id, user_id nullable for broadcast, kind, title, body, link, created_at, read_at). RLS: user reads own + broadcasts (user_id null).
+- Topbar bell: realtime subscription, shows last 6 + "View all" → `/notifications`.
+- New admin page `/admin/broadcast` to send promo notifications (insert with user_id null or specific user list).
+- Auto-create notifications on: release status change (trigger), ticket reply (trigger).
 
-- `/users/index.tsx`: add "Change role" dropdown (admin only), "Delete user" button (admin only — calls protected server fn invoking `supabase.auth.admin.deleteUser` via `supabaseAdmin`), "Add user" dialog (admin only — creates auth user via admin API).
-- `/users/$username.tsx`:
-  - Show payout method + details card (admin/sx_manager view-only).
-  - Show role + (admin) inline role editor.
-  - Already shows releases + artists; add support tickets list.
+## 10. Royalties module
 
-## 8. Settings cleanup for staff
+- New table `royalty_statements_files` (id, owner_username, owner_id, period, summary, amount, currency, pdf_path, uploaded_by, created_at). Storage bucket `statements` (private).
+- Admin `/royalties` upload form (username, period, amount, summary, PDF). Match username→owner_id.
+- User `/royalties` lists their own; admin sees all.
 
-In `settings.tsx`, hide for `administrator|sx_manager`: Label details, Artists management, Payment & withdrawal preference. Keep: profile basics, password, theme.
+## Open questions
 
-## 9. Support tickets
+1. **DSP logos** — generate real PNG logos for all ~35 platforms (slow + costly), use letter monograms, or leave placeholder slots for you to upload?
+2. **AI Artwork 3000×3000** — image models cap at 1920. OK to generate 1920 then upscale to 3000 in-browser (lossy)?
+3. **Public profile URL** — confirm `/artist/<username>` etc. is OK (vs `/u/<username>`). Multi-role users: pick primary role for path?
+4. Username overflow at SX999→SX00001 (5 digits). Should existing SX001–SX999 remain unchanged? (yes assumed.)
 
-`/admin/tickets`: grant sx_manager same access (RLS handles it). Already links to `/users/$username`.
-
-## 10. Server functions (new, under `src/lib/`)
-
-- `admin-users.functions.ts`: `deleteUserFn`, `createUserFn`, `setUserRoleFn` — all `requireSupabaseAuth` + role check (admin only for delete/role; sx_manager allowed for status only).
-- `delivery.functions.ts`: `markDeliveredFn`, `updateDspStatusFn`.
-- `accounting.functions.ts`: `recordUploadFn` (creates analytics_uploads row), `ingestAnalyticsRowsFn` (batch insert with username→owner_id resolution).
-
-## 11. Footer legal links
-
-Create `src/routes/legal.terms.tsx` and `src/routes/legal.privacy.tsx` with placeholder copy (public routes, own head() meta).
-
-## Out of scope
-
-- Real email sending for collaboration card (mailto only).
-- Actual DSP API integration; delivery status is manual entry per row.
-- Migration of existing analytics_rows data — new optional columns nullable.
-
-## Open question
-
-Excel parsing in the browser uses the `xlsx` (SheetJS) package (~400KB). Confirm OK to add, or prefer server-side parse via a server function?
+Reply with answers + "go" and I'll execute in roughly the order above.

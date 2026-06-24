@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.next_sx_username() FROM PUBLIC, anon, authenticated;
