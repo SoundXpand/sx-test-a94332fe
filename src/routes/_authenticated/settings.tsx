@@ -30,6 +30,9 @@ function Settings() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [editing, setEditing] = useState<Partial<Artist> | null>(null);
   const [open, setOpen] = useState(false);
+  const [payoutMethod, setPayoutMethod] = useState<string>("");
+  const [payoutDetails, setPayoutDetails] = useState<Record<string, string>>({});
+  const [payoutSaving, setPayoutSaving] = useState(false);
 
   const loadArtists = async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -41,7 +44,7 @@ function Settings() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
-      supabase.from("profiles").select("full_name,artist_name,mobile,country,label_name,sub_labels").eq("user_id", data.user.id).maybeSingle()
+      supabase.from("profiles").select("full_name,artist_name,mobile,country,label_name,sub_labels,payout_method,payout_details").eq("user_id", data.user.id).maybeSingle()
         .then(({ data: p }) => {
           if (!p) return;
           setProfile({
@@ -49,10 +52,26 @@ function Settings() {
             mobile: p.mobile ?? "", country: p.country ?? "", label_name: (p as any).label_name ?? "",
           });
           setSubLabels(((p as any).sub_labels as string[]) ?? []);
+          setPayoutMethod((p as any).payout_method ?? "");
+          setPayoutDetails(((p as any).payout_details as Record<string, string>) ?? {});
         });
     });
     loadArtists();
   }, []);
+
+  const savePayout = async () => {
+    if (!payoutMethod) return toast.error("Select a payout method");
+    setPayoutSaving(true);
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) { setPayoutSaving(false); return; }
+    const { error } = await supabase.from("profiles").update({
+      payout_method: payoutMethod, payout_details: payoutDetails,
+    } as any).eq("user_id", u.user.id);
+    setPayoutSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Payout preference saved");
+  };
+  const pdSet = (k: string) => (v: string) => setPayoutDetails(d => ({ ...d, [k]: v }));
 
   const saveSubLabels = async (next: string[]) => {
     const { data: u } = await supabase.auth.getUser();
