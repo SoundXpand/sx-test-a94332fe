@@ -214,3 +214,51 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
 function Disc3Icon() {
   return <span className="h-4 w-4 mr-2 rounded-full border border-current" />;
 }
+
+function NotificationsBell() {
+  const [items, setItems] = useState<any[]>([]);
+  const [unread, setUnread] = useState(0);
+  const load = async () => {
+    const { data } = await supabase.from("notifications" as any).select("*").order("created_at", { ascending: false }).limit(6);
+    const list = (data as any[]) ?? [];
+    setItems(list);
+    setUnread(list.filter(n => !n.read_at).length);
+  };
+  useEffect(() => {
+    load();
+    const ch = supabase.channel("notifications")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+  const markAllRead = async () => {
+    const ids = items.filter(n => !n.read_at && n.user_id).map(n => n.id);
+    if (ids.length) await supabase.from("notifications" as any).update({ read_at: new Date().toISOString() } as any).in("id", ids);
+    load();
+  };
+  return (
+    <DropdownMenu onOpenChange={(o) => { if (o) markAllRead(); }}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" title="Notifications" className="relative">
+          <Bell className="h-4 w-4" />
+          {unread > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80">
+        <DropdownMenuLabel>Recent activity</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {items.length === 0 ? (
+          <div className="p-4 text-xs text-muted-foreground text-center">Nothing yet.</div>
+        ) : items.map(n => (
+          <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-0.5 py-2">
+            <span className="font-medium text-sm">{n.title}</span>
+            {n.body && <span className="text-xs text-muted-foreground line-clamp-2">{n.body}</span>}
+            <span className="text-[10px] text-muted-foreground">{new Date(n.created_at).toLocaleString()}</span>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-xs text-muted-foreground justify-center">View all (coming soon)</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
