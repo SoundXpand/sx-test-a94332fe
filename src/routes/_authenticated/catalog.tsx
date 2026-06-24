@@ -4,104 +4,100 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Disc3 } from "lucide-react";
+import { Disc3, Plus, Search } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/catalog")({
   component: Catalog,
   head: () => ({ meta: [{ title: "Catalog — SoundXpand" }] }),
 });
 
-type Release = {
-  id: string; title: string; release_type: string; status: string;
-  primary_genre: string | null; release_date: string | null; created_at: string;
-};
-
-const statusColor: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  pending: "bg-warning/15 text-warning",
-  approved: "bg-success/15 text-success",
-  rejected: "bg-destructive/15 text-destructive",
-  live: "bg-primary/15 text-primary",
-  archived: "bg-muted text-muted-foreground",
-};
-
 function Catalog() {
-  const [items, setItems] = useState<Release[]>([]);
+  const [rows, setRows] = useState<any[]>([]);
+  const [drafts, setDrafts] = useState<any[]>([]);
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("all");
 
   useEffect(() => {
-    supabase.from("releases").select("*").order("created_at", { ascending: false })
-      .then(({ data }) => { setItems((data as Release[]) ?? []); setLoading(false); });
+    (async () => {
+      const [r, d] = await Promise.all([
+        supabase.from("releases").select("id,title,release_type,status,release_date,artwork_path").order("created_at", { ascending: false }),
+        supabase.from("release_drafts").select("id,title,current_step,updated_at").order("updated_at", { ascending: false }),
+      ]);
+      setRows(r.data ?? []);
+      setDrafts(d.data ?? []);
+    })();
   }, []);
 
-  const filtered = items.filter(r =>
-    (filter === "all" || r.status === filter) &&
-    (q === "" || r.title.toLowerCase().includes(q.toLowerCase()))
+  const filtered = rows.filter(r =>
+    (tab === "all" || r.status === tab) &&
+    (!q || r.title.toLowerCase().includes(q.toLowerCase()))
   );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold">Catalog</h1>
-          <p className="text-sm text-muted-foreground">Manage all your releases.</p>
+          <p className="text-sm text-muted-foreground">All your releases in one place.</p>
         </div>
-        <Button asChild>
-          <Link to="/releases/new"><Plus className="h-4 w-4 mr-2" /> New release</Link>
-        </Button>
+        <Button asChild><Link to="/releases/new"><Plus className="h-4 w-4 mr-1.5" />New release</Link></Button>
       </div>
 
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search releases…" value={q} onChange={e => setQ(e.target.value)} />
-        </div>
-        <div className="flex gap-1">
-          {["all", "draft", "pending", "approved", "live", "rejected", "archived"].map(s => (
-            <Button key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)} className="capitalize">
-              {s}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {loading ? (
-        <Card className="p-12 text-center text-muted-foreground bg-card/60">Loading…</Card>
-      ) : filtered.length === 0 ? (
-        <Card className="p-12 text-center bg-card/60 border-dashed">
-          <Disc3 className="mx-auto h-10 w-10 text-muted-foreground" />
-          <h3 className="mt-4 font-semibold">No releases yet</h3>
-          <p className="text-sm text-muted-foreground">Click "New release" to start your first submission.</p>
-        </Card>
-      ) : (
-        <Card className="overflow-hidden bg-card/60">
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-muted/20">
-              <tr className="text-left text-xs uppercase text-muted-foreground">
-                <th className="px-4 py-3 font-medium">Title</th>
-                <th className="px-4 py-3 font-medium">Type</th>
-                <th className="px-4 py-3 font-medium">Genre</th>
-                <th className="px-4 py-3 font-medium">Release date</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(r => (
-                <tr key={r.id} className="border-b border-border/50 hover:bg-muted/10">
-                  <td className="px-4 py-3 font-medium">{r.title}</td>
-                  <td className="px-4 py-3 capitalize text-muted-foreground">{r.release_type}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.primary_genre ?? "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.release_date ?? "—"}</td>
-                  <td className="px-4 py-3"><Badge className={statusColor[r.status] ?? ""}>{r.status}</Badge></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {drafts.length > 0 && (
+        <Card className="p-4 bg-primary/5 border-primary/20">
+          <div className="text-xs font-semibold text-primary mb-2">Continue where you left off</div>
+          <ul className="space-y-1.5">
+            {drafts.map(d => (
+              <li key={d.id} className="flex items-center justify-between text-sm">
+                <span className="truncate">{d.title} <span className="text-muted-foreground">· Step {d.current_step + 1}/6</span></span>
+                <Link to="/releases/new" search={{ draft: d.id } as any} className="text-primary hover:underline">Resume →</Link>
+              </li>
+            ))}
+          </ul>
         </Card>
       )}
+
+      <Card className="p-4 bg-card/60 border-border">
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="draft">Draft</TabsTrigger>
+              <TabsTrigger value="pending">Pending</TabsTrigger>
+              <TabsTrigger value="live">Live</TabsTrigger>
+              <TabsTrigger value="rejected">Rejected</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search releases…" value={q} onChange={e => setQ(e.target.value)} className="pl-8 w-64" />
+          </div>
+        </div>
+
+        {filtered.length === 0 ? (
+          <EmptyState icon={Disc3} title="No releases found" description="When you upload a release it appears here. Use the catalog to track status across all your distributions." actionLabel="Create release" actionTo="/releases/new" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
+                <th className="py-2 px-2">Title</th><th>Type</th><th>Release date</th><th>Status</th>
+              </tr></thead>
+              <tbody>
+                {filtered.map(r => (
+                  <tr key={r.id} className="border-b border-border/50 hover:bg-muted/30">
+                    <td className="py-3 px-2 font-medium">{r.title}</td>
+                    <td className="capitalize text-muted-foreground">{r.release_type}</td>
+                    <td className="text-muted-foreground">{r.release_date || "—"}</td>
+                    <td><span className="text-xs px-2 py-0.5 rounded-full bg-muted capitalize">{r.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
