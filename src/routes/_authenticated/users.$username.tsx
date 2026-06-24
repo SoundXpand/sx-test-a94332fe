@@ -30,14 +30,16 @@ function UserDetail() {
     const { data: p } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
     setProfile(p);
     if (p) {
-      const [{ data: a }, { data: rels }, { data: tks }] = await Promise.all([
+      const [{ data: a }, { data: rels }, { data: tks }, { data: acts }] = await Promise.all([
         supabase.from("artists" as any).select("*").eq("owner_id", (p as any).user_id),
         supabase.from("releases").select("id,title,release_type,status,release_date,upc,catalog_number,slug,delivered_at,created_at").eq("owner_id", (p as any).user_id).order("created_at", { ascending: false }),
         supabase.from("support_tickets").select("id,subject,status,priority,updated_at").eq("user_id", (p as any).user_id).order("updated_at", { ascending: false }),
+        supabase.from("user_activity_log" as any).select("*").eq("user_id", (p as any).user_id).order("created_at", { ascending: false }).limit(50),
       ]);
       setArtists((a as any[]) ?? []);
       setReleases(rels ?? []);
       setTickets(tks ?? []);
+      setActivity((acts as any[]) ?? []);
     }
     setLoading(false);
   };
