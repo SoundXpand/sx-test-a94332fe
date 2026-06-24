@@ -139,7 +139,7 @@ function Settings() {
         }}>Save profile</Button>
       </Card>
 
-      <Card className="p-6 space-y-4 bg-card/60">
+      {!staff && <Card className="p-6 space-y-4 bg-card/60">
         <h2 className="font-semibold">Label details</h2>
         <p className="text-xs text-muted-foreground">Your label or imprint name appears on release credits.</p>
         <div><Label>Label name</Label><Input value={profile.label_name} onChange={e => setProfile({ ...profile, label_name: e.target.value })} placeholder="e.g. Stardust Records" /></div>
