@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Check, ChevronRight, ChevronLeft, Save, Sparkles, ImageIcon, Disc3, Music as MusicIcon } from "lucide-react";
 import { toast } from "sonner";
+import { ArtistMultiSelect, useMyArtists } from "@/components/artist-multi-select";
 
 export const Route = createFileRoute("/_authenticated/releases/new")({
   component: NewRelease,
