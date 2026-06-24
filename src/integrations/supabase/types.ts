@@ -858,6 +858,7 @@ export type Database = {
         | "manager"
         | "viewer"
         | "administrator"
+        | "sx_manager"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "retired"
     }
     CompositeTypes: {
@@ -995,6 +996,7 @@ export const Constants = {
         "manager",
         "viewer",
         "administrator",
+        "sx_manager",
       ],
       asset_condition: ["excellent", "good", "fair", "poor", "retired"],
     },
