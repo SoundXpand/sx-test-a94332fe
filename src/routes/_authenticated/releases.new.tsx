@@ -118,6 +118,7 @@ function NewRelease() {
         composer: t.composer || "", lyricist: t.lyricist || "",
         producer: t.producer || "", featured_artist: t.featured_artist || "",
         copyright_owner: t.copyright_owner || "", publishing_info: t.publishing_info || "",
+        artist_ids: [],
       }));
       setRelease(releaseState);
       if (trackState.length) {
