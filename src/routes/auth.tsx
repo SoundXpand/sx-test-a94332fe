@@ -6,21 +6,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Home, Music } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { ROLE_TYPES, MAIN_GENRES, DISTRIBUTORS, TRACKS_RELEASED_BUCKETS, LISTENERS_BUCKETS } from "@/lib/onboarding-options";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
   head: () => ({ meta: [{ title: "Sign in — SoundXpand" }] }),
 });
 
-const signupSchema = z.object({
-  full_name: z.string().trim().min(2, "Full name required").max(80),
-  artist_name: z.string().trim().min(1, "Artist/Label name required").max(80),
+const step1Schema = z.object({
+  role_type: z.enum(ROLE_TYPES, { errorMap: () => ({ message: "Select what you are" }) }),
+  first_name: z.string().trim().min(1, "First name required").max(60),
+  last_name: z.string().trim().min(1, "Last name required").max(60),
   email: z.string().trim().email("Invalid email"),
-  mobile: z.string().trim().min(7, "Mobile required").max(20),
+  mobile: z.string().trim().min(7, "Phone required").max(20),
   country: z.string().trim().min(2, "Country required"),
+  city: z.string().trim().min(1, "City required").max(60),
+  artist_name: z.string().trim().min(1, "Your name required").max(80),
+  main_genre: z.string().min(1, "Main music genre required"),
+  current_distributor: z.string().min(1, "Current distributor required"),
+  tracks_released_bucket: z.string().min(1, "Required"),
+  spotify_monthly_listeners_bucket: z.string().min(1, "Required"),
+  private_link: z.string().optional(),
+  social_instagram: z.string().optional(),
+  social_facebook: z.string().optional(),
+  social_tiktok: z.string().optional(),
+  social_vk: z.string().optional(),
+  social_youtube: z.string().optional(),
+  privacy_accepted: z.literal(true, { errorMap: () => ({ message: "You must accept the privacy policy" }) }),
+});
+
+const step2Schema = z.object({
   password: z.string().min(8, "Min 8 characters").max(72),
   confirm: z.string(),
 }).refine(d => d.password === d.confirm, { message: "Passwords don't match", path: ["confirm"] });
@@ -42,7 +62,7 @@ function AuthPage() {
         </Link>
       </header>
 
-      <div className="mx-auto max-w-md px-6 pb-16">
+      <div className="mx-auto max-w-2xl px-6 pb-16">
         <div className="mb-8 flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
             <Music className="h-5 w-5" />
@@ -171,15 +191,21 @@ function LoginForm() {
   );
 }
 
+type RegisterForm = z.input<typeof step1Schema> & { password: string; confirm: string; full_name: string };
+
 function RegisterForm() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({
-    full_name: "", artist_name: "", email: "", mobile: "",
-    country: "", password: "", confirm: "",
+  const [step, setStep] = useState<1 | 2>(1);
+  const [form, setForm] = useState<Partial<RegisterForm>>({
+    role_type: undefined, first_name: "", last_name: "", email: "", mobile: "",
+    country: "", city: "", artist_name: "", main_genre: "", current_distributor: "",
+    tracks_released_bucket: "", spotify_monthly_listeners_bucket: "",
+    private_link: "", social_instagram: "", social_facebook: "", social_tiktok: "",
+    social_vk: "", social_youtube: "", privacy_accepted: false as any,
+    password: "", confirm: "",
   });
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm({ ...form, [k]: e.target.value });
+  const set = <K extends keyof RegisterForm>(k: K) => (v: RegisterForm[K]) => setForm(f => ({ ...f, [k]: v }));
 
   if (sent) {
     return (
@@ -193,46 +219,140 @@ function RegisterForm() {
     );
   }
 
-  return (
-    <form
-      className="space-y-3"
-      onSubmit={async (e) => {
+  if (step === 1) {
+    return (
+      <form className="space-y-3" onSubmit={(e) => {
         e.preventDefault();
-        const parsed = signupSchema.safeParse(form);
+        const parsed = step1Schema.safeParse(form);
         if (!parsed.success) return toast.error(parsed.error.issues[0].message);
-        setBusy(true);
-        const { error } = await supabase.auth.signUp({
-          email: form.email,
-          password: form.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: {
-              full_name: form.full_name,
-              artist_name: form.artist_name,
-              mobile: form.mobile,
-              country: form.country,
-            },
+        setStep(2);
+      }}>
+        <div className="space-y-1.5">
+          <Label>You are *</Label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {ROLE_TYPES.map(r => (
+              <button type="button" key={r}
+                onClick={() => set("role_type")(r)}
+                className={`px-3 py-2 rounded-lg border text-sm transition ${form.role_type === r ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-primary/50"}`}>
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1"><Label>First name *</Label><Input required value={form.first_name} onChange={e => set("first_name")(e.target.value)} /></div>
+          <div className="space-y-1"><Label>Last name *</Label><Input required value={form.last_name} onChange={e => set("last_name")(e.target.value)} /></div>
+        </div>
+        <div className="space-y-1"><Label>Email *</Label><Input type="email" required value={form.email} onChange={e => set("email")(e.target.value)} /></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1"><Label>Phone *</Label><Input required value={form.mobile} onChange={e => set("mobile")(e.target.value)} /></div>
+          <div className="space-y-1"><Label>Country *</Label><Input required value={form.country} onChange={e => set("country")(e.target.value)} /></div>
+        </div>
+        <div className="space-y-1"><Label>City *</Label><Input required value={form.city} onChange={e => set("city")(e.target.value)} /></div>
+        <div className="space-y-1"><Label>Your name (Artist, Band, Label) *</Label><Input required value={form.artist_name} onChange={e => set("artist_name")(e.target.value)} /></div>
+
+        <div className="space-y-1">
+          <Label>Main music genre *</Label>
+          <Select value={form.main_genre} onValueChange={set("main_genre")}>
+            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectContent className="max-h-72">{MAIN_GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label>Current distributor *</Label>
+          <Select value={form.current_distributor} onValueChange={set("current_distributor")}>
+            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectContent className="max-h-72">{DISTRIBUTORS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label>Number of tracks released (all albums, EP, singles) *</Label>
+          <Select value={form.tracks_released_bucket} onValueChange={set("tracks_released_bucket")}>
+            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectContent>{TRACKS_RELEASED_BUCKETS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1"><Label>Private link for your next release/project</Label><Input value={form.private_link} onChange={e => set("private_link")(e.target.value)} placeholder="Optional" /></div>
+
+        <div className="space-y-1">
+          <Label>Spotify monthly listeners on main stations *</Label>
+          <Select value={form.spotify_monthly_listeners_bucket} onValueChange={set("spotify_monthly_listeners_bucket")}>
+            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectContent>{LISTENERS_BUCKETS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Your social media presence (optional)</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Input placeholder="Instagram" value={form.social_instagram} onChange={e => set("social_instagram")(e.target.value)} />
+            <Input placeholder="Facebook" value={form.social_facebook} onChange={e => set("social_facebook")(e.target.value)} />
+            <Input placeholder="TikTok" value={form.social_tiktok} onChange={e => set("social_tiktok")(e.target.value)} />
+            <Input placeholder="VK" value={form.social_vk} onChange={e => set("social_vk")(e.target.value)} />
+            <Input placeholder="YouTube" value={form.social_youtube} onChange={e => set("social_youtube")(e.target.value)} className="col-span-2" />
+          </div>
+        </div>
+
+        <label className="flex items-start gap-2 text-xs text-muted-foreground pt-2">
+          <Checkbox checked={!!form.privacy_accepted} onCheckedChange={v => set("privacy_accepted")(!!v as any)} className="mt-0.5" />
+          <span>I declare that I have read SoundXpand's Privacy Protection Policy. *</span>
+        </label>
+
+        <Button type="submit" className="w-full">Continue</Button>
+      </form>
+    );
+  }
+
+  return (
+    <form className="space-y-3" onSubmit={async (e) => {
+      e.preventDefault();
+      const parsed = step2Schema.safeParse({ password: form.password, confirm: form.confirm });
+      if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+      setBusy(true);
+      const { error } = await supabase.auth.signUp({
+        email: form.email!,
+        password: form.password!,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            full_name: `${form.first_name} ${form.last_name}`.trim(),
+            artist_name: form.artist_name,
+            mobile: form.mobile,
+            country: form.country,
+            role_type: form.role_type,
+            first_name: form.first_name,
+            last_name: form.last_name,
+            city: form.city,
+            main_genre: form.main_genre,
+            current_distributor: form.current_distributor,
+            tracks_released_bucket: form.tracks_released_bucket,
+            private_link: form.private_link || null,
+            spotify_monthly_listeners_bucket: form.spotify_monthly_listeners_bucket,
+            social_instagram: form.social_instagram || null,
+            social_facebook: form.social_facebook || null,
+            social_tiktok: form.social_tiktok || null,
+            social_vk: form.social_vk || null,
+            social_youtube: form.social_youtube || null,
+            privacy_accepted: !!form.privacy_accepted,
           },
-        });
-        setBusy(false);
-        if (error) return toast.error(error.message);
-        setSent(true);
-      }}
-    >
+        },
+      });
+      setBusy(false);
+      if (error) return toast.error(error.message);
+      setSent(true);
+    }}>
+      <h3 className="font-semibold">Set a password</h3>
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1"><Label>Full name</Label><Input required value={form.full_name} onChange={set("full_name")} /></div>
-        <div className="space-y-1"><Label>Artist / Label</Label><Input required value={form.artist_name} onChange={set("artist_name")} /></div>
+        <div className="space-y-1"><Label>Password *</Label><Input type="password" required value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} /></div>
+        <div className="space-y-1"><Label>Confirm *</Label><Input type="password" required value={form.confirm} onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))} /></div>
       </div>
-      <div className="space-y-1"><Label>Email</Label><Input type="email" required value={form.email} onChange={set("email")} /></div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1"><Label>Mobile</Label><Input required value={form.mobile} onChange={set("mobile")} /></div>
-        <div className="space-y-1"><Label>Country</Label><Input required value={form.country} onChange={set("country")} /></div>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" className="flex-1" onClick={() => setStep(1)}>Back</Button>
+        <Button type="submit" className="flex-1" disabled={busy}>{busy ? "Creating…" : "Create account"}</Button>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1"><Label>Password</Label><Input type="password" required value={form.password} onChange={set("password")} /></div>
-        <div className="space-y-1"><Label>Confirm</Label><Input type="password" required value={form.confirm} onChange={set("confirm")} /></div>
-      </div>
-      <Button type="submit" className="w-full" disabled={busy}>{busy ? "Creating…" : "Create account"}</Button>
       <p className="text-xs text-muted-foreground text-center">A unique SX### username is assigned automatically.</p>
       <GoogleButton />
     </form>
