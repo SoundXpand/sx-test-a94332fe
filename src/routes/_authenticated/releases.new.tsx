@@ -14,16 +14,17 @@ import { ArtistMultiSelect, useMyArtists } from "@/components/artist-multi-selec
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { LANGUAGES, GENRES, P_YEARS } from "@/lib/release-options";
+import { DSPS_FULL } from "@/lib/dsp-list";
+import { TerritoryPicker } from "@/components/territory-picker";
+import { ALL_COUNTRY_CODES } from "@/lib/territories";
 
 export const Route = createFileRoute("/_authenticated/releases/new")({
   component: NewRelease,
   head: () => ({ meta: [{ title: "New release — SoundXpand" }] }),
 });
 
-const STORES = [
-  "Spotify", "Apple Music", "Amazon Music", "YouTube Music", "TikTok", "Instagram",
-  "Facebook", "Deezer", "Tidal", "Boomplay", "JioSaavn", "Wynk", "Gaana",
-];
+const STORES = DSPS_FULL.map(d => d.name);
+const STORE_LOGO: Record<string, string | undefined> = Object.fromEntries(DSPS_FULL.map(d => [d.name, d.logo]));
 const STEPS = ["Release details", "Artwork", "Tracks", "Audio", "Distribution", "Review"];
 
 type Track = {
@@ -71,7 +72,8 @@ function NewRelease() {
   const [audioMeta, setAudioMeta] = useState<Array<{ duration?: number; valid: boolean; reason?: string } | null>>([null]);
   const [stores, setStores] = useState<string[]>([...STORES]);
   const [storeQuery, setStoreQuery] = useState("");
-  const [territory, setTerritory] = useState<"worldwide" | "custom">("worldwide");
+  const [territoryWorldwide, setTerritoryWorldwide] = useState(true);
+  const [territoryCountries, setTerritoryCountries] = useState<string[]>(ALL_COUNTRY_CODES);
   const [pricing, setPricing] = useState("mid");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [releaseArtistIds, setReleaseArtistIds] = useState<string[]>([]);
@@ -133,7 +135,7 @@ function NewRelease() {
         if (p.release) setRelease(p.release);
         if (p.tracks) setTracks(p.tracks);
         if (p.stores) setStores(p.stores);
-        if (p.territory) setTerritory(p.territory);
+        if (p.territory) { setTerritoryWorldwide(p.territory === "worldwide" || p.territory?.worldwide); setTerritoryCountries(p.territory?.countries ?? ALL_COUNTRY_CODES); }
         if (p.pricing) setPricing(p.pricing);
         if (p.rightsConfirmed) setRightsConfirmed(true);
       }
@@ -204,6 +206,7 @@ function NewRelease() {
   const saveDraft = async (loud = true) => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
+    const territory = { worldwide: territoryWorldwide, countries: territoryCountries };
     const payload = { release, tracks, stores, territory, pricing };
     if (draftId) {
       await supabase.from("release_drafts").update({ title: release.title || "Untitled release", payload, current_step: step }).eq("id", draftId);
@@ -397,7 +400,7 @@ function NewRelease() {
       await supabase.from("release_events" as any).insert({
         release_id: releaseId, type: "submitted", actor_id: u.user.id,
         note: sourceReleaseId ? "Resubmitted for review" : "Submitted for review",
-        payload: { stores, territory, pricing },
+        payload: { stores, territory: { worldwide: territoryWorldwide, countries: territoryCountries }, pricing },
       });
       if (draftId) await supabase.from("release_drafts").delete().eq("id", draftId);
       toast.success(sourceReleaseId ? "Release resubmitted for review" : "Release submitted for review");
@@ -758,13 +761,22 @@ function NewRelease() {
                     <Button size="sm" variant="ghost" onClick={() => setStores([])}>Deselect all</Button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {STORES.filter(s => s.toLowerCase().includes(storeQuery.toLowerCase())).map(s => {
                     const on = stores.includes(s);
+                    const logo = STORE_LOGO[s];
                     return (
                       <button key={s} onClick={() => setStores(on ? stores.filter(x => x !== s) : [...stores, s])}
-                        className={`p-3 rounded-xl border text-sm transition flex items-center gap-2 ${on ? "border-primary bg-primary/10" : "border-border text-muted-foreground hover:border-primary/50"}`}>
-                        {on && <Check className="h-4 w-4 text-primary" />}{s}
+                        className={`p-2.5 rounded-xl border text-sm text-left transition flex items-center gap-2.5 ${on ? "border-primary bg-primary/10" : "border-border text-muted-foreground hover:border-primary/50"}`}>
+                        <span className="h-8 w-8 shrink-0 rounded-md bg-background border border-border grid place-items-center overflow-hidden">
+                          {logo ? (
+                            <img src={logo} alt="" className="h-5 w-5 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                          ) : (
+                            <span className="text-[10px] font-semibold">{s.slice(0, 2).toUpperCase()}</span>
+                          )}
+                        </span>
+                        <span className="flex-1 line-clamp-2 text-foreground">{s}</span>
+                        {on && <Check className="h-4 w-4 text-primary shrink-0" />}
                       </button>
                     );
                   })}
@@ -772,13 +784,13 @@ function NewRelease() {
               </div>
               <div>
                 <Label className="text-sm">Territory</Label>
-                <Select value={territory} onValueChange={v => setTerritory(v as any)}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="worldwide">Worldwide</SelectItem>
-                    <SelectItem value="custom">Custom countries</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="mt-1.5">
+                  <TerritoryPicker
+                    worldwide={territoryWorldwide}
+                    countries={territoryCountries}
+                    onChange={({ worldwide, countries }) => { setTerritoryWorldwide(worldwide); setTerritoryCountries(countries); }}
+                  />
+                </div>
               </div>
               <div>
                 <Label className="text-sm">Pricing tier</Label>
