@@ -277,9 +277,19 @@ function NewRelease() {
           duration_seconds: audioMeta[i]?.duration ?? null,
         });
       }
+      // Seed per-DSP delivery rows + submission event
+      const deliveryRows = stores.map(p => ({ release_id: releaseId, platform: p, status: "queued" }));
+      if (deliveryRows.length) {
+        await supabase.from("dsp_deliveries" as any).upsert(deliveryRows, { onConflict: "release_id,platform" });
+      }
+      await supabase.from("release_events" as any).insert({
+        release_id: releaseId, type: "submitted", actor_id: u.user.id,
+        note: sourceReleaseId ? "Resubmitted for review" : "Submitted for review",
+        payload: { stores, territory, pricing },
+      });
       if (draftId) await supabase.from("release_drafts").delete().eq("id", draftId);
       toast.success(sourceReleaseId ? "Release resubmitted for review" : "Release submitted for review");
-      navigate({ to: "/catalog" });
+      navigate({ to: "/releases/$id", params: { id: releaseId } });
     } catch (e) {
       toast.error((e as Error).message);
     } finally { setBusy(false); }
