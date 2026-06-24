@@ -32,6 +32,7 @@ import { Route as AuthenticatedCatalogRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedArtistsRouteImport } from './routes/_authenticated/artists'
 import { Route as AuthenticatedApprovalQueueRouteImport } from './routes/_authenticated/approval-queue'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedReleasesIndexRouteImport } from './routes/_authenticated/releases.index'
 import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authenticated/tools.dsp-lookup'
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 import { Route as AuthenticatedReleasesIdRouteImport } from './routes/_authenticated/releases.$id'
@@ -154,6 +155,12 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReleasesIndexRoute =
+  AuthenticatedReleasesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedReleasesRoute,
+  } as any)
 const AuthenticatedToolsDspLookupRoute =
   AuthenticatedToolsDspLookupRouteImport.update({
     id: '/dsp-lookup',
@@ -211,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/releases/': typeof AuthenticatedReleasesIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesByTo {
@@ -226,7 +234,6 @@ export interface FileRoutesByTo {
   '/help': typeof AuthenticatedHelpRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/releases': typeof AuthenticatedReleasesRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/royalties': typeof AuthenticatedRoyaltiesRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
   '/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/releases': typeof AuthenticatedReleasesIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesById {
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
   '/_authenticated/tools/dsp-lookup': typeof AuthenticatedToolsDspLookupRoute
+  '/_authenticated/releases/': typeof AuthenticatedReleasesIndexRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRouteTypes {
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
+    | '/releases/'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -317,7 +327,6 @@ export interface FileRouteTypes {
     | '/help'
     | '/platform-settings'
     | '/profile'
-    | '/releases'
     | '/reports'
     | '/royalties'
     | '/settings'
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/releases/$id'
     | '/releases/new'
     | '/tools/dsp-lookup'
+    | '/releases'
     | '/api/public/dsp-webhook/$platform'
   id:
     | '__root__'
@@ -361,6 +371,7 @@ export interface FileRouteTypes {
     | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
     | '/_authenticated/tools/dsp-lookup'
+    | '/_authenticated/releases/'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesById: FileRoutesById
 }
@@ -539,6 +550,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/releases/': {
+      id: '/_authenticated/releases/'
+      path: '/'
+      fullPath: '/releases/'
+      preLoaderRoute: typeof AuthenticatedReleasesIndexRouteImport
+      parentRoute: typeof AuthenticatedReleasesRoute
+    }
     '/_authenticated/tools/dsp-lookup': {
       id: '/_authenticated/tools/dsp-lookup'
       path: '/dsp-lookup'
@@ -580,11 +598,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedReleasesRouteChildren {
   AuthenticatedReleasesIdRoute: typeof AuthenticatedReleasesIdRoute
   AuthenticatedReleasesNewRoute: typeof AuthenticatedReleasesNewRoute
+  AuthenticatedReleasesIndexRoute: typeof AuthenticatedReleasesIndexRoute
 }
 
 const AuthenticatedReleasesRouteChildren: AuthenticatedReleasesRouteChildren = {
   AuthenticatedReleasesIdRoute: AuthenticatedReleasesIdRoute,
   AuthenticatedReleasesNewRoute: AuthenticatedReleasesNewRoute,
+  AuthenticatedReleasesIndexRoute: AuthenticatedReleasesIndexRoute,
 }
 
 const AuthenticatedReleasesRouteWithChildren =
