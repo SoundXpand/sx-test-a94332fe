@@ -400,7 +400,7 @@ function NewRelease() {
       await supabase.from("release_events" as any).insert({
         release_id: releaseId, type: "submitted", actor_id: u.user.id,
         note: sourceReleaseId ? "Resubmitted for review" : "Submitted for review",
-        payload: { stores, territory, pricing },
+        payload: { stores, territory: { worldwide: territoryWorldwide, countries: territoryCountries }, pricing },
       });
       if (draftId) await supabase.from("release_drafts").delete().eq("id", draftId);
       toast.success(sourceReleaseId ? "Release resubmitted for review" : "Release submitted for review");
