@@ -94,7 +94,9 @@ function Catalog() {
               <tbody>
                 {filtered.map(r => (
                   <tr key={r.id} className="border-b border-border/50 hover:bg-muted/30">
-                    <td className="py-3 px-2 font-medium">{r.title}</td>
+                    <td className="py-3 px-2 font-medium">
+                      <Link to="/releases/$id" params={{ id: r.id }} className="hover:text-primary">{r.title}</Link>
+                    </td>
                     <td className="capitalize text-muted-foreground">{r.release_type}</td>
                     <td className="text-muted-foreground">{r.release_date || "—"}</td>
                     <td><span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusBadgeClass(r.status)}`}>{r.status.replace(/_/g, " ")}</span></td>
