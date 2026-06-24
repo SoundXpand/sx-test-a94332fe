@@ -156,9 +156,11 @@ function NewRelease() {
         language: rel.language || "English",
         release_date: rel.release_date || "", original_release_date: rel.original_release_date || "",
         copyright_year: rel.copyright_year || new Date().getFullYear(),
-        record_label: rel.record_label || "", upc: rel.upc || "", catalog_number: rel.catalog_number || "",
+        record_label: rel.record_label || "", sub_label: (rel as any).sub_label || "",
+        upc: rel.upc || "", catalog_number: rel.catalog_number || "",
         parental_advisory: !!rel.parental_advisory,
-        description: "", producer_info: "", copyright_info: "",
+        p_year: (rel as any).p_year || new Date().getFullYear(), p_name: (rel as any).p_name || "",
+        c_year: (rel as any).c_year || new Date().getFullYear(), c_name: (rel as any).c_name || "",
       };
       const trackState: Track[] = (trk ?? []).map(t => ({
         title: t.title, version: t.version || "", language: t.language || "English",
