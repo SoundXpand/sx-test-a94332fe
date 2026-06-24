@@ -235,6 +235,51 @@ function Settings() {
       </Card>
 
       <Card className="p-6 space-y-4 bg-card/60">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold">Payment & withdrawal preference</h2>
+        </div>
+        <p className="text-xs text-muted-foreground">Choose how you'd like to receive your royalty payouts.</p>
+        <div className="space-y-1.5">
+          <UILabel>Payout method</UILabel>
+          <Select value={payoutMethod} onValueChange={(v) => { setPayoutMethod(v); setPayoutDetails({}); }}>
+            <SelectTrigger><SelectValue placeholder="Select method" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="upi">UPI</SelectItem>
+              <SelectItem value="bank">Bank transfer</SelectItem>
+              <SelectItem value="paypal">PayPal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {payoutMethod === "upi" && (
+          <div className="space-y-1.5">
+            <UILabel>UPI ID *</UILabel>
+            <Input value={payoutDetails.upi_id ?? ""} onChange={e => pdSet("upi_id")(e.target.value)} placeholder="yourname@bank" />
+          </div>
+        )}
+
+        {payoutMethod === "bank" && (
+          <div className="grid md:grid-cols-2 gap-3">
+            <div><UILabel>Account holder name *</UILabel><Input value={payoutDetails.account_holder ?? ""} onChange={e => pdSet("account_holder")(e.target.value)} /></div>
+            <div><UILabel>Bank name *</UILabel><Input value={payoutDetails.bank_name ?? ""} onChange={e => pdSet("bank_name")(e.target.value)} /></div>
+            <div><UILabel>Account number *</UILabel><Input value={payoutDetails.account_number ?? ""} onChange={e => pdSet("account_number")(e.target.value)} /></div>
+            <div><UILabel>IFSC / Routing *</UILabel><Input value={payoutDetails.ifsc_or_routing ?? ""} onChange={e => pdSet("ifsc_or_routing")(e.target.value)} /></div>
+            <div className="md:col-span-2"><UILabel>SWIFT (international, optional)</UILabel><Input value={payoutDetails.swift ?? ""} onChange={e => pdSet("swift")(e.target.value)} /></div>
+          </div>
+        )}
+
+        {payoutMethod === "paypal" && (
+          <div className="space-y-1.5">
+            <UILabel>PayPal email *</UILabel>
+            <Input type="email" value={payoutDetails.paypal_email ?? ""} onChange={e => pdSet("paypal_email")(e.target.value)} placeholder="you@example.com" />
+          </div>
+        )}
+
+        <Button onClick={savePayout} disabled={payoutSaving || !payoutMethod}>{payoutSaving ? "Saving…" : "Save payout preference"}</Button>
+      </Card>
+
+      <Card className="p-6 space-y-4 bg-card/60">
         <h2 className="font-semibold">Change password</h2>
         <Input type="password" placeholder="New password" value={password} onChange={e => setPassword(e.target.value)} />
         <Button onClick={async () => {
