@@ -22,6 +22,8 @@ type Artist = {
 
 function Settings() {
   const [profile, setProfile] = useState({ full_name: "", artist_name: "", mobile: "", country: "", label_name: "" });
+  const [subLabels, setSubLabels] = useState<string[]>([]);
+  const [newSubLabel, setNewSubLabel] = useState("");
   const [password, setPassword] = useState("");
   const [artists, setArtists] = useState<Artist[]>([]);
   const [editing, setEditing] = useState<Partial<Artist> | null>(null);
@@ -37,14 +39,27 @@ function Settings() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
-      supabase.from("profiles").select("full_name,artist_name,mobile,country,label_name").eq("user_id", data.user.id).maybeSingle()
-        .then(({ data: p }) => p && setProfile({
-          full_name: p.full_name ?? "", artist_name: p.artist_name ?? "",
-          mobile: p.mobile ?? "", country: p.country ?? "", label_name: (p as any).label_name ?? "",
-        }));
+      supabase.from("profiles").select("full_name,artist_name,mobile,country,label_name,sub_labels").eq("user_id", data.user.id).maybeSingle()
+        .then(({ data: p }) => {
+          if (!p) return;
+          setProfile({
+            full_name: p.full_name ?? "", artist_name: p.artist_name ?? "",
+            mobile: p.mobile ?? "", country: p.country ?? "", label_name: (p as any).label_name ?? "",
+          });
+          setSubLabels(((p as any).sub_labels as string[]) ?? []);
+        });
     });
     loadArtists();
   }, []);
+
+  const saveSubLabels = async (next: string[]) => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    setSubLabels(next);
+    const { error } = await supabase.from("profiles").update({ sub_labels: next } as any).eq("user_id", u.user.id);
+    if (error) toast.error(error.message);
+  };
+
 
   const saveArtist = async () => {
     if (!editing?.name?.trim()) return toast.error("Artist name is required");
