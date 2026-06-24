@@ -338,6 +338,28 @@ function NewRelease() {
       }
 
       const isSingle = singleMode || release.release_type === "single";
+
+      // Auto-generate ISRCs when UPC/barcode missing: INV2I{YY}{NNNNN}
+      let nextIsrcSerial = 0;
+      const yy = String(new Date().getFullYear()).slice(-2);
+      if (!release.upc) {
+        const prefix = `INV2I${yy}`;
+        const { data: existing } = await supabase
+          .from("release_tracks")
+          .select("isrc")
+          .like("isrc", `${prefix}%`)
+          .order("isrc", { ascending: false })
+          .limit(1);
+        const top = existing?.[0]?.isrc ?? "";
+        const tail = parseInt(top.slice(prefix.length), 10);
+        nextIsrcSerial = Math.max(22, isNaN(tail) ? 0 : tail);
+      }
+      const mintIsrc = () => {
+        if (release.upc) return null;
+        nextIsrcSerial += 1;
+        return `INV2I${yy}${String(nextIsrcSerial).padStart(5, "0")}`;
+      };
+
       for (let i = 0; i < tracks.length; i++) {
         const t = tracks[i];
         const eff = isSingle && i === 0 ? {
@@ -357,10 +379,10 @@ function NewRelease() {
         const tArtistNames = myArtists.filter(a => eff.artist_ids.includes(a.id)).map(a => a.name).join(", ");
         await supabase.from("release_tracks").insert({
           release_id: releaseId, track_number: i + 1,
-          title: eff.title, version: eff.version, language: eff.language, isrc: t.isrc || null,
+          title: eff.title, version: eff.version, language: eff.language, isrc: t.isrc || mintIsrc(),
           explicit: t.explicit, composer: t.composer || null, lyricist: t.lyricist || null,
           producer: t.producer || null, featured_artist: tArtistNames || t.featured_artist || null,
-          copyright_owner: t.copyright_owner || null, publishing_info: t.publishing_info || null,
+          copyright_owner: null, publishing_info: t.publishing_info || "SoundXpand",
           primary_genre: eff.primary_genre || null,
           audio_path, file_size_bytes: af?.size ?? null,
           duration_seconds: audioMeta[i]?.duration ?? null,
