@@ -34,6 +34,7 @@ import { Route as AuthenticatedArtistsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedApprovalQueueRouteImport } from './routes/_authenticated/approval-queue'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAccountingRouteImport } from './routes/_authenticated/accounting'
+import { Route as RoleTypeUsernameRouteImport } from './routes/$roleType.$username'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users.index'
 import { Route as AuthenticatedReleasesIndexRouteImport } from './routes/_authenticated/releases.index'
 import { Route as AuthenticatedUsersUsernameRouteImport } from './routes/_authenticated/users.$username'
@@ -41,6 +42,7 @@ import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authe
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 import { Route as AuthenticatedReleasesIdRouteImport } from './routes/_authenticated/releases.$id'
 import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated/admin.tickets'
+import { Route as AuthenticatedAdminBroadcastRouteImport } from './routes/_authenticated/admin.broadcast'
 import { Route as ApiPublicDspWebhookPlatformRouteImport } from './routes/api/public/dsp-webhook/$platform'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -169,6 +171,11 @@ const AuthenticatedAccountingRoute = AuthenticatedAccountingRouteImport.update({
   path: '/accounting',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const RoleTypeUsernameRoute = RoleTypeUsernameRouteImport.update({
+  id: '/$roleType/$username',
+  path: '/$roleType/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -209,6 +216,12 @@ const AuthenticatedAdminTicketsRoute =
     path: '/admin/tickets',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminBroadcastRoute =
+  AuthenticatedAdminBroadcastRouteImport.update({
+    id: '/admin/broadcast',
+    path: '/admin/broadcast',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicDspWebhookPlatformRoute =
   ApiPublicDspWebhookPlatformRouteImport.update({
     id: '/api/public/dsp-webhook/$platform',
@@ -221,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/accounting': typeof AuthenticatedAccountingRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approval-queue': typeof AuthenticatedApprovalQueueRoute
@@ -241,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -255,6 +270,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/accounting': typeof AuthenticatedAccountingRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approval-queue': typeof AuthenticatedApprovalQueueRoute
@@ -274,6 +290,7 @@ export interface FileRoutesByTo {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -290,6 +307,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/_authenticated/accounting': typeof AuthenticatedAccountingRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/approval-queue': typeof AuthenticatedApprovalQueueRoute
@@ -310,6 +328,7 @@ export interface FileRoutesById {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/_authenticated/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -326,6 +345,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pending'
     | '/reset-password'
+    | '/$roleType/$username'
     | '/accounting'
     | '/analytics'
     | '/approval-queue'
@@ -346,6 +366,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/admin/broadcast'
     | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
@@ -360,6 +381,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pending'
     | '/reset-password'
+    | '/$roleType/$username'
     | '/accounting'
     | '/analytics'
     | '/approval-queue'
@@ -379,6 +401,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/admin/broadcast'
     | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
@@ -394,6 +417,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pending'
     | '/reset-password'
+    | '/$roleType/$username'
     | '/_authenticated/accounting'
     | '/_authenticated/analytics'
     | '/_authenticated/approval-queue'
@@ -414,6 +438,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/_authenticated/admin/broadcast'
     | '/_authenticated/admin/tickets'
     | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
@@ -430,6 +455,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PendingRoute: typeof PendingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RoleTypeUsernameRoute: typeof RoleTypeUsernameRoute
   ApiDspLookupRoute: typeof ApiDspLookupRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   LSlugRoute: typeof LSlugRoute
@@ -615,6 +641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/$roleType/$username': {
+      id: '/$roleType/$username'
+      path: '/$roleType/$username'
+      fullPath: '/$roleType/$username'
+      preLoaderRoute: typeof RoleTypeUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/users'
@@ -662,6 +695,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/tickets'
       fullPath: '/admin/tickets'
       preLoaderRoute: typeof AuthenticatedAdminTicketsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/broadcast': {
+      id: '/_authenticated/admin/broadcast'
+      path: '/admin/broadcast'
+      fullPath: '/admin/broadcast'
+      preLoaderRoute: typeof AuthenticatedAdminBroadcastRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/dsp-webhook/$platform': {
@@ -718,6 +758,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRouteWithChildren
+  AuthenticatedAdminBroadcastRoute: typeof AuthenticatedAdminBroadcastRoute
   AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
   AuthenticatedUsersUsernameRoute: typeof AuthenticatedUsersUsernameRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
@@ -739,6 +780,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRouteWithChildren,
+  AuthenticatedAdminBroadcastRoute: AuthenticatedAdminBroadcastRoute,
   AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
   AuthenticatedUsersUsernameRoute: AuthenticatedUsersUsernameRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
@@ -753,6 +795,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PendingRoute: PendingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RoleTypeUsernameRoute: RoleTypeUsernameRoute,
   ApiDspLookupRoute: ApiDspLookupRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   LSlugRoute: LSlugRoute,
