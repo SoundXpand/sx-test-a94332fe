@@ -65,6 +65,8 @@ function NewRelease() {
   const [territory, setTerritory] = useState<"worldwide" | "custom">("worldwide");
   const [pricing, setPricing] = useState("mid");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
+  const [releaseArtistIds, setReleaseArtistIds] = useState<string[]>([]);
+  const { artists: myArtists } = useMyArtists();
 
   // AI artwork
   const [aiOpen, setAiOpen] = useState(false);
