@@ -3,13 +3,22 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Disc3, Plus, BarChart3, DollarSign, Users, FileText,
   Wrench, Settings, LifeBuoy, Music, ChevronsLeft, ChevronsRight,
-  ShieldCheck, ListChecks, UserCircle2, X,
+  ShieldCheck, UserCircle2, X, Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AppRole } from "@/hooks/use-current-user";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 type Item = { to: string; label: string; icon: typeof Music; badge?: number };
+
+const STAFF_NAV: Item[] = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/releases", label: "Releases", icon: Disc3 },
+  { to: "/users", label: "Users", icon: Users },
+  { to: "/accounting", label: "Accounting", icon: Receipt },
+  { to: "/approval-queue", label: "Approval queue", icon: ShieldCheck },
+  { to: "/admin/tickets", label: "Tickets", icon: LifeBuoy },
+];
 
 const ROLE_NAV: Record<AppRole, Item[]> = {
   artist: [
@@ -39,24 +48,16 @@ const ROLE_NAV: Record<AppRole, Item[]> = {
     { to: "/catalog", label: "Catalog", icon: Disc3 },
     { to: "/analytics", label: "Analytics", icon: BarChart3 },
     { to: "/reports", label: "Reports", icon: FileText },
-    { to: "/tools", label: "Tools", icon: Wrench },
     { to: "/support", label: "Support", icon: LifeBuoy },
     { to: "/settings", label: "Settings", icon: Settings },
   ],
   administrator: [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/releases", label: "Releases", icon: Disc3 },
-    { to: "/releases/new", label: "New release", icon: Plus },
-    { to: "/catalog", label: "Catalog", icon: ListChecks },
-    { to: "/users", label: "Users", icon: Users },
-    { to: "/analytics", label: "Analytics", icon: BarChart3 },
-    { to: "/royalties", label: "Royalties", icon: DollarSign },
-    { to: "/reports", label: "Reports", icon: FileText },
-    { to: "/approval-queue", label: "Approval queue", icon: ShieldCheck },
-    { to: "/admin/tickets", label: "Tickets (admin)", icon: LifeBuoy },
-    { to: "/tools", label: "Tools", icon: Wrench },
+    ...STAFF_NAV,
     { to: "/platform-settings", label: "Platform settings", icon: Settings },
-    { to: "/support", label: "Support", icon: LifeBuoy },
+    { to: "/settings", label: "Settings", icon: Settings },
+  ],
+  sx_manager: [
+    ...STAFF_NAV,
     { to: "/settings", label: "Settings", icon: Settings },
   ],
 };
@@ -139,10 +140,14 @@ export function AppSidebar({
             {!collapsed && <span>Collapse</span>}
           </button>
           {!collapsed && (
-            <div className="text-[10px] text-muted-foreground leading-relaxed space-y-0.5">
+            <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">
+              <div className="flex gap-3">
+                <Link to="/legal/terms" className="hover:text-foreground">Terms</Link>
+                <Link to="/legal/privacy" className="hover:text-foreground">Privacy</Link>
+              </div>
               <div>© 2026 SoundXpand</div>
               <div className="flex items-center gap-1.5">
-                <span>v2.0.0</span>
+                <span>v2.1.0</span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-success/15 text-success px-1.5 py-0.5">
                   <span className="h-1 w-1 rounded-full bg-success" /> Production
                 </span>
