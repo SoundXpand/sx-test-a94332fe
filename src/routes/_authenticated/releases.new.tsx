@@ -562,7 +562,7 @@ function NewRelease() {
             <div className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-3 text-sm">
                 <Row k="Title" v={release.title} />
-                <Row k="Artist" v={release.artist_name} />
+                <Row k="Artists" v={myArtists.filter(a => releaseArtistIds.includes(a.id)).map(a => a.name).join(", ")} />
                 <Row k="Type" v={release.release_type} />
                 <Row k="Genre" v={release.primary_genre} />
                 <Row k="Release date" v={release.release_date} />
