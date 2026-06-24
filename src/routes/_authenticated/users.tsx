@@ -56,8 +56,10 @@ function Users() {
           </thead>
           <tbody>
             {items.map(p => (
-              <tr key={p.user_id} className="border-b border-border/50">
-                <td className="px-4 py-3 font-mono text-xs">{p.username}</td>
+              <tr key={p.user_id} className="border-b border-border/50 hover:bg-muted/20">
+                <td className="px-4 py-3 font-mono text-xs">
+                  <Link to="/users/$username" params={{ username: p.username }} className="text-primary hover:underline">{p.username}</Link>
+                </td>
                 <td className="px-4 py-3"><div className="font-medium">{p.full_name}</div><div className="text-xs text-muted-foreground">{p.artist_name}</div></td>
                 <td className="px-4 py-3 text-muted-foreground">{p.email}</td>
                 <td className="px-4 py-3"><Badge>{p.status}</Badge></td>
