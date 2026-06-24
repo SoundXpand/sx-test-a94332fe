@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Check, ChevronRight, ChevronLeft, Save, Sparkles, ImageIcon, Disc3, Music as MusicIcon } from "lucide-react";
 import { toast } from "sonner";
+import { ArtistMultiSelect, useMyArtists } from "@/components/artist-multi-select";
 
 export const Route = createFileRoute("/_authenticated/releases/new")({
   component: NewRelease,
@@ -26,12 +27,14 @@ type Track = {
   title: string; version: string; language: string; explicit: boolean; isrc: string;
   composer: string; lyricist: string; producer: string; featured_artist: string;
   copyright_owner: string; publishing_info: string;
+  artist_ids: string[];
 };
 
 const blankTrack = (): Track => ({
   title: "", version: "", language: "English", explicit: false, isrc: "",
   composer: "", lyricist: "", producer: "", featured_artist: "",
   copyright_owner: "", publishing_info: "",
+  artist_ids: [],
 });
 
 function NewRelease() {
@@ -62,6 +65,8 @@ function NewRelease() {
   const [territory, setTerritory] = useState<"worldwide" | "custom">("worldwide");
   const [pricing, setPricing] = useState("mid");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
+  const [releaseArtistIds, setReleaseArtistIds] = useState<string[]>([]);
+  const { artists: myArtists } = useMyArtists();
 
   // AI artwork
   const [aiOpen, setAiOpen] = useState(false);
@@ -115,6 +120,7 @@ function NewRelease() {
         composer: t.composer || "", lyricist: t.lyricist || "",
         producer: t.producer || "", featured_artist: t.featured_artist || "",
         copyright_owner: t.copyright_owner || "", publishing_info: t.publishing_info || "",
+        artist_ids: [],
       }));
       setRelease(releaseState);
       if (trackState.length) {
@@ -233,6 +239,7 @@ function NewRelease() {
         if (!error) artwork_path = path;
       }
 
+      const primaryName = myArtists.find(a => releaseArtistIds.includes(a.id))?.name ?? "";
       const releasePayload: any = {
         title: release.title, version: release.version, release_type: release.release_type,
         primary_genre: release.primary_genre, secondary_genre: release.secondary_genre, language: release.language,
@@ -240,7 +247,9 @@ function NewRelease() {
         copyright_year: release.copyright_year, record_label: release.record_label,
         upc: release.upc, catalog_number: release.catalog_number, parental_advisory: release.parental_advisory,
         store_selection: stores, status: "pending", rejection_reason: null,
+        artist_ids: releaseArtistIds,
       };
+      if (primaryName && !release.artist_name) release.artist_name = primaryName;
       if (artwork_path) releasePayload.artwork_path = artwork_path;
 
       let releaseId: string;
@@ -267,11 +276,12 @@ function NewRelease() {
           const { error } = await supabase.storage.from("audio").upload(p, af, { upsert: true });
           if (!error) audio_path = p;
         }
+        const tArtistNames = myArtists.filter(a => t.artist_ids.includes(a.id)).map(a => a.name).join(", ");
         await supabase.from("release_tracks").insert({
           release_id: releaseId, track_number: i + 1,
           title: t.title, version: t.version, language: t.language, isrc: t.isrc || null,
           explicit: t.explicit, composer: t.composer || null, lyricist: t.lyricist || null,
-          producer: t.producer || null, featured_artist: t.featured_artist || null,
+          producer: t.producer || null, featured_artist: tArtistNames || t.featured_artist || null,
           copyright_owner: t.copyright_owner || null, publishing_info: t.publishing_info || null,
           audio_path, file_size_bytes: af?.size ?? null,
           duration_seconds: audioMeta[i]?.duration ?? null,
@@ -296,7 +306,7 @@ function NewRelease() {
   };
 
   const allValidAudio = audioFiles.length === tracks.length && audioMeta.every(m => m?.valid);
-  const metadataComplete = !!(release.title && release.artist_name && release.primary_genre && release.release_date);
+  const metadataComplete = !!(release.title && releaseArtistIds.length > 0 && release.primary_genre && release.release_date);
 
   return (
     <div className="space-y-6">
@@ -323,8 +333,6 @@ function NewRelease() {
           {step === 0 && (
             <div className="grid md:grid-cols-2 gap-4">
               <Field label="Release title *"><Input value={release.title} onChange={e => setRelease({ ...release, title: e.target.value })} /></Field>
-              <Field label="Artist name *"><Input value={release.artist_name} onChange={e => setRelease({ ...release, artist_name: e.target.value })} /></Field>
-              <Field label="Primary artist *"><Input value={release.primary_artist} onChange={e => setRelease({ ...release, primary_artist: e.target.value })} /></Field>
               <Field label="Release type *">
                 <Select value={release.release_type} onValueChange={v => setRelease({ ...release, release_type: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -339,7 +347,7 @@ function NewRelease() {
               <Field label="Genre *"><Input value={release.primary_genre} onChange={e => setRelease({ ...release, primary_genre: e.target.value })} /></Field>
               <Field label="Sub genre"><Input value={release.secondary_genre} onChange={e => setRelease({ ...release, secondary_genre: e.target.value })} /></Field>
               <Field label="Language *"><Input value={release.language} onChange={e => setRelease({ ...release, language: e.target.value })} /></Field>
-              <Field label="Release date *"><Input type="date" value={release.release_date} onChange={e => setRelease({ ...release, release_date: e.target.value })} /></Field>
+              
               <Field label="Original release date"><Input type="date" value={release.original_release_date} onChange={e => setRelease({ ...release, original_release_date: e.target.value })} /></Field>
               <Field label="UPC"><Input value={release.upc} onChange={e => setRelease({ ...release, upc: e.target.value })} /></Field>
               <Field label="Catalog number"><Input value={release.catalog_number} onChange={e => setRelease({ ...release, catalog_number: e.target.value })} /></Field>
@@ -447,7 +455,7 @@ function NewRelease() {
                     <Field label="Composer"><Input value={t.composer} onChange={e => upd(tracks, setTracks, i, { composer: e.target.value })} /></Field>
                     <Field label="Lyricist"><Input value={t.lyricist} onChange={e => upd(tracks, setTracks, i, { lyricist: e.target.value })} /></Field>
                     <Field label="Producer"><Input value={t.producer} onChange={e => upd(tracks, setTracks, i, { producer: e.target.value })} /></Field>
-                    <Field label="Featured artist"><Input value={t.featured_artist} onChange={e => upd(tracks, setTracks, i, { featured_artist: e.target.value })} /></Field>
+                    <Field label="Artists"><ArtistMultiSelect value={t.artist_ids} onChange={(ids) => upd(tracks, setTracks, i, { artist_ids: ids })} /></Field>
                     <Field label="Copyright owner"><Input value={t.copyright_owner} onChange={e => upd(tracks, setTracks, i, { copyright_owner: e.target.value })} /></Field>
                     <Field label="Publisher"><Input value={t.publishing_info} onChange={e => upd(tracks, setTracks, i, { publishing_info: e.target.value })} /></Field>
                     <label className="flex items-center gap-2 col-span-full">
@@ -494,6 +502,14 @@ function NewRelease() {
 
           {step === 4 && (
             <div className="space-y-5">
+              <div className="grid md:grid-cols-2 gap-4">
+                <Field label="Select artists *">
+                  <ArtistMultiSelect value={releaseArtistIds} onChange={setReleaseArtistIds} />
+                </Field>
+                <Field label="Release date *">
+                  <Input type="date" value={release.release_date} onChange={e => setRelease({ ...release, release_date: e.target.value })} />
+                </Field>
+              </div>
               <div>
                 <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
                   <Input value={storeQuery} onChange={e => setStoreQuery(e.target.value)} placeholder="Search stores…" className="w-64" />
@@ -546,7 +562,7 @@ function NewRelease() {
             <div className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-3 text-sm">
                 <Row k="Title" v={release.title} />
-                <Row k="Artist" v={release.artist_name} />
+                <Row k="Artists" v={myArtists.filter(a => releaseArtistIds.includes(a.id)).map(a => a.name).join(", ")} />
                 <Row k="Type" v={release.release_type} />
                 <Row k="Genre" v={release.primary_genre} />
                 <Row k="Release date" v={release.release_date} />
@@ -576,7 +592,7 @@ function NewRelease() {
             </div>
             <div className="mt-3 space-y-1">
               <div className="font-display font-semibold truncate">{release.title || "Untitled release"}</div>
-              <div className="text-xs text-muted-foreground truncate">{release.artist_name || "Unknown artist"}</div>
+              <div className="text-xs text-muted-foreground truncate">{myArtists.filter(a => releaseArtistIds.includes(a.id)).map(a => a.name).join(", ") || "Unknown artist"}</div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground capitalize">
                 <Disc3 className="h-3 w-3" />{release.release_type} · <MusicIcon className="h-3 w-3" />{tracks.length} track{tracks.length !== 1 ? "s" : ""}
               </div>
