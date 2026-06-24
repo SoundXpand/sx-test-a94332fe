@@ -289,6 +289,7 @@ export type Database = {
           social_youtube: string | null
           spotify_monthly_listeners_bucket: string | null
           status: Database["public"]["Enums"]["account_status"]
+          sub_labels: string[] | null
           tracks_released_bucket: string | null
           updated_at: string
           user_id: string
@@ -321,6 +322,7 @@ export type Database = {
           social_youtube?: string | null
           spotify_monthly_listeners_bucket?: string | null
           status?: Database["public"]["Enums"]["account_status"]
+          sub_labels?: string[] | null
           tracks_released_bucket?: string | null
           updated_at?: string
           user_id: string
@@ -353,6 +355,7 @@ export type Database = {
           social_youtube?: string | null
           spotify_monthly_listeners_bucket?: string | null
           status?: Database["public"]["Enums"]["account_status"]
+          sub_labels?: string[] | null
           tracks_released_bucket?: string | null
           updated_at?: string
           user_id?: string
@@ -513,6 +516,7 @@ export type Database = {
           isrc: string | null
           language: string | null
           lyricist: string | null
+          primary_genre: string | null
           producer: string | null
           publishing_info: string | null
           release_id: string
@@ -534,6 +538,7 @@ export type Database = {
           isrc?: string | null
           language?: string | null
           lyricist?: string | null
+          primary_genre?: string | null
           producer?: string | null
           publishing_info?: string | null
           release_id: string
@@ -555,6 +560,7 @@ export type Database = {
           isrc?: string | null
           language?: string | null
           lyricist?: string | null
+          primary_genre?: string | null
           producer?: string | null
           publishing_info?: string | null
           release_id?: string
@@ -583,6 +589,8 @@ export type Database = {
         Row: {
           artist_ids: string[]
           artwork_path: string | null
+          c_name: string | null
+          c_year: number | null
           catalog_number: string | null
           copyright_year: number | null
           created_at: string
@@ -590,6 +598,8 @@ export type Database = {
           language: string | null
           original_release_date: string | null
           owner_id: string
+          p_name: string | null
+          p_year: number | null
           parental_advisory: boolean
           primary_genre: string | null
           published_url: string | null
@@ -601,6 +611,7 @@ export type Database = {
           slug: string | null
           status: string
           store_selection: Json
+          sub_label: string | null
           taken_down_at: string | null
           title: string
           upc: string | null
@@ -610,6 +621,8 @@ export type Database = {
         Insert: {
           artist_ids?: string[]
           artwork_path?: string | null
+          c_name?: string | null
+          c_year?: number | null
           catalog_number?: string | null
           copyright_year?: number | null
           created_at?: string
@@ -617,6 +630,8 @@ export type Database = {
           language?: string | null
           original_release_date?: string | null
           owner_id: string
+          p_name?: string | null
+          p_year?: number | null
           parental_advisory?: boolean
           primary_genre?: string | null
           published_url?: string | null
@@ -628,6 +643,7 @@ export type Database = {
           slug?: string | null
           status?: string
           store_selection?: Json
+          sub_label?: string | null
           taken_down_at?: string | null
           title: string
           upc?: string | null
@@ -637,6 +653,8 @@ export type Database = {
         Update: {
           artist_ids?: string[]
           artwork_path?: string | null
+          c_name?: string | null
+          c_year?: number | null
           catalog_number?: string | null
           copyright_year?: number | null
           created_at?: string
@@ -644,6 +662,8 @@ export type Database = {
           language?: string | null
           original_release_date?: string | null
           owner_id?: string
+          p_name?: string | null
+          p_year?: number | null
           parental_advisory?: boolean
           primary_genre?: string | null
           published_url?: string | null
@@ -655,6 +675,7 @@ export type Database = {
           slug?: string | null
           status?: string
           store_selection?: Json
+          sub_label?: string | null
           taken_down_at?: string | null
           title?: string
           upc?: string | null
