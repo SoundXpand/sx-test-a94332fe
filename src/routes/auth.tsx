@@ -82,6 +82,36 @@ function AuthPage() {
   );
 }
 
+function AuthTabs() {
+  const initial = typeof window !== "undefined" && window.location.hash === "#register" ? "register" : "login";
+  const [tab, setTab] = useState<string>(initial);
+  useEffect(() => {
+    const sync = () => {
+      const h = window.location.hash;
+      if (h === "#register") setTab("register");
+      else if (h === "#login") setTab("login");
+    };
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
+  const change = (v: string) => {
+    setTab(v);
+    if (typeof window !== "undefined") {
+      history.replaceState(null, "", `#${v}`);
+    }
+  };
+  return (
+    <Tabs value={tab} onValueChange={change}>
+      <TabsList className="grid grid-cols-2 w-full mb-6">
+        <TabsTrigger value="login">Sign in</TabsTrigger>
+        <TabsTrigger value="register">Register</TabsTrigger>
+      </TabsList>
+      <TabsContent value="login"><LoginForm /></TabsContent>
+      <TabsContent value="register"><RegisterForm /></TabsContent>
+    </Tabs>
+  );
+}
+
 function GoogleButton() {
   const [loading, setLoading] = useState(false);
   return (
