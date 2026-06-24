@@ -280,7 +280,7 @@ function Settings() {
         )}
 
         <Button onClick={savePayout} disabled={payoutSaving || !payoutMethod}>{payoutSaving ? "Saving…" : "Save payout preference"}</Button>
-      </Card>
+      </Card>}
 
       <Card className="p-6 space-y-4 bg-card/60">
         <h2 className="font-semibold">Change password</h2>
