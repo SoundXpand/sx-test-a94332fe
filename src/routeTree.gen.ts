@@ -14,6 +14,8 @@ import { Route as PendingRouteImport } from './routes/pending'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiDspLookupRouteImport } from './routes/api/dsp-lookup'
@@ -31,6 +33,7 @@ import { Route as AuthenticatedCatalogRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedArtistsRouteImport } from './routes/_authenticated/artists'
 import { Route as AuthenticatedApprovalQueueRouteImport } from './routes/_authenticated/approval-queue'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedAccountingRouteImport } from './routes/_authenticated/accounting'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users.index'
 import { Route as AuthenticatedReleasesIndexRouteImport } from './routes/_authenticated/releases.index'
 import { Route as AuthenticatedUsersUsernameRouteImport } from './routes/_authenticated/users.$username'
@@ -62,6 +65,16 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LSlugRoute = LSlugRouteImport.update({
@@ -151,6 +164,11 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAccountingRoute = AuthenticatedAccountingRouteImport.update({
+  id: '/accounting',
+  path: '/accounting',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -203,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/accounting': typeof AuthenticatedAccountingRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approval-queue': typeof AuthenticatedApprovalQueueRoute
   '/artists': typeof AuthenticatedArtistsRoute
@@ -220,6 +239,8 @@ export interface FileRoutesByFullPath {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -234,6 +255,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/accounting': typeof AuthenticatedAccountingRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approval-queue': typeof AuthenticatedApprovalQueueRoute
   '/artists': typeof AuthenticatedArtistsRoute
@@ -250,6 +272,8 @@ export interface FileRoutesByTo {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -266,6 +290,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/accounting': typeof AuthenticatedAccountingRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/approval-queue': typeof AuthenticatedApprovalQueueRoute
   '/_authenticated/artists': typeof AuthenticatedArtistsRoute
@@ -283,6 +308,8 @@ export interface FileRoutesById {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -299,6 +326,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pending'
     | '/reset-password'
+    | '/accounting'
     | '/analytics'
     | '/approval-queue'
     | '/artists'
@@ -316,6 +344,8 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
@@ -330,6 +360,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pending'
     | '/reset-password'
+    | '/accounting'
     | '/analytics'
     | '/approval-queue'
     | '/artists'
@@ -346,6 +377,8 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
@@ -361,6 +394,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pending'
     | '/reset-password'
+    | '/_authenticated/accounting'
     | '/_authenticated/analytics'
     | '/_authenticated/approval-queue'
     | '/_authenticated/artists'
@@ -378,6 +412,8 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/_authenticated/admin/tickets'
     | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
@@ -397,6 +433,8 @@ export interface RootRouteChildren {
   ApiDspLookupRoute: typeof ApiDspLookupRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   LSlugRoute: typeof LSlugRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
   ApiPublicDspWebhookPlatformRoute: typeof ApiPublicDspWebhookPlatformRoute
 }
 
@@ -435,6 +473,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/l/$slug': {
@@ -556,6 +608,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/accounting': {
+      id: '/_authenticated/accounting'
+      path: '/accounting'
+      fullPath: '/accounting'
+      preLoaderRoute: typeof AuthenticatedAccountingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/users'
@@ -644,6 +703,7 @@ const AuthenticatedToolsRouteWithChildren =
   AuthenticatedToolsRoute._addFileChildren(AuthenticatedToolsRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountingRoute: typeof AuthenticatedAccountingRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedApprovalQueueRoute: typeof AuthenticatedApprovalQueueRoute
   AuthenticatedArtistsRoute: typeof AuthenticatedArtistsRoute
@@ -664,6 +724,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountingRoute: AuthenticatedAccountingRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedApprovalQueueRoute: AuthenticatedApprovalQueueRoute,
   AuthenticatedArtistsRoute: AuthenticatedArtistsRoute,
@@ -695,6 +756,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDspLookupRoute: ApiDspLookupRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   LSlugRoute: LSlugRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
   ApiPublicDspWebhookPlatformRoute: ApiPublicDspWebhookPlatformRoute,
 }
 export const routeTree = rootRouteImport

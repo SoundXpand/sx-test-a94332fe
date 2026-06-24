@@ -12,6 +12,7 @@ import { Label as UILabel } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Plus, Pencil, Trash2, Star, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: Settings,
@@ -23,6 +24,8 @@ type Artist = {
 };
 
 function Settings() {
+  const { data: me } = useCurrentUser();
+  const staff = isStaff(me?.primaryRole);
   const [profile, setProfile] = useState({ full_name: "", artist_name: "", mobile: "", country: "", label_name: "" });
   const [subLabels, setSubLabels] = useState<string[]>([]);
   const [newSubLabel, setNewSubLabel] = useState("");
@@ -136,7 +139,7 @@ function Settings() {
         }}>Save profile</Button>
       </Card>
 
-      <Card className="p-6 space-y-4 bg-card/60">
+      {!staff && <Card className="p-6 space-y-4 bg-card/60">
         <h2 className="font-semibold">Label details</h2>
         <p className="text-xs text-muted-foreground">Your label or imprint name appears on release credits.</p>
         <div><Label>Label name</Label><Input value={profile.label_name} onChange={e => setProfile({ ...profile, label_name: e.target.value })} placeholder="e.g. Stardust Records" /></div>
@@ -171,10 +174,10 @@ function Settings() {
             }}>Add</Button>
           </div>
         </div>
-      </Card>
+      </Card>}
 
 
-      <Card className="p-6 space-y-4 bg-card/60">
+      {!staff && <Card className="p-6 space-y-4 bg-card/60">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-semibold">Artists management</h2>
@@ -232,9 +235,9 @@ function Settings() {
             ))}
           </div>
         )}
-      </Card>
+      </Card>}
 
-      <Card className="p-6 space-y-4 bg-card/60">
+      {!staff && <Card className="p-6 space-y-4 bg-card/60">
         <div className="flex items-center gap-2">
           <Wallet className="h-4 w-4 text-primary" />
           <h2 className="font-semibold">Payment & withdrawal preference</h2>
@@ -277,7 +280,7 @@ function Settings() {
         )}
 
         <Button onClick={savePayout} disabled={payoutSaving || !payoutMethod}>{payoutSaving ? "Saving…" : "Save payout preference"}</Button>
-      </Card>
+      </Card>}
 
       <Card className="p-6 space-y-4 bg-card/60">
         <h2 className="font-semibold">Change password</h2>

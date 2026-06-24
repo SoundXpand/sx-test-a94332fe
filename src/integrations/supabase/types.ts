@@ -40,40 +40,112 @@ export type Database = {
       }
       analytics_rows: {
         Row: {
+          artists: string | null
+          censor_catalogue_number: string | null
+          collection_share: number | null
+          commercial_model: string | null
+          conversion_rate: number | null
           country: string | null
           created_at: string
           date: string
           id: string
+          isrc: string | null
+          licensee_catalogue_number: string | null
+          licensor_currency: string | null
+          licensor_revenue: number | null
+          outlet: string | null
           owner_id: string
+          period_begins: string | null
+          period_ends: string | null
           platform: string
+          product: string | null
+          quantity: number | null
+          recording_title: string | null
+          release_ean: string | null
           release_id: string | null
+          release_title: string | null
           revenue: number
+          right_type_group: string | null
+          sale_type: string | null
+          source: string | null
+          source_currency: string | null
           streams: number
           track_id: string | null
+          upload_id: string | null
+          use_type: string | null
+          username: string | null
         }
         Insert: {
+          artists?: string | null
+          censor_catalogue_number?: string | null
+          collection_share?: number | null
+          commercial_model?: string | null
+          conversion_rate?: number | null
           country?: string | null
           created_at?: string
           date: string
           id?: string
+          isrc?: string | null
+          licensee_catalogue_number?: string | null
+          licensor_currency?: string | null
+          licensor_revenue?: number | null
+          outlet?: string | null
           owner_id: string
+          period_begins?: string | null
+          period_ends?: string | null
           platform: string
+          product?: string | null
+          quantity?: number | null
+          recording_title?: string | null
+          release_ean?: string | null
           release_id?: string | null
+          release_title?: string | null
           revenue?: number
+          right_type_group?: string | null
+          sale_type?: string | null
+          source?: string | null
+          source_currency?: string | null
           streams?: number
           track_id?: string | null
+          upload_id?: string | null
+          use_type?: string | null
+          username?: string | null
         }
         Update: {
+          artists?: string | null
+          censor_catalogue_number?: string | null
+          collection_share?: number | null
+          commercial_model?: string | null
+          conversion_rate?: number | null
           country?: string | null
           created_at?: string
           date?: string
           id?: string
+          isrc?: string | null
+          licensee_catalogue_number?: string | null
+          licensor_currency?: string | null
+          licensor_revenue?: number | null
+          outlet?: string | null
           owner_id?: string
+          period_begins?: string | null
+          period_ends?: string | null
           platform?: string
+          product?: string | null
+          quantity?: number | null
+          recording_title?: string | null
+          release_ean?: string | null
           release_id?: string | null
+          release_title?: string | null
           revenue?: number
+          right_type_group?: string | null
+          sale_type?: string | null
+          source?: string | null
+          source_currency?: string | null
           streams?: number
           track_id?: string | null
+          upload_id?: string | null
+          use_type?: string | null
+          username?: string | null
         }
         Relationships: [
           {
@@ -97,7 +169,47 @@ export type Database = {
             referencedRelation: "release_tracks"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "analytics_rows_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_uploads"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      analytics_uploads: {
+        Row: {
+          created_at: string
+          filename: string
+          id: string
+          notes: string | null
+          period_label: string | null
+          row_count: number
+          status: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          id?: string
+          notes?: string | null
+          period_label?: string | null
+          row_count?: number
+          status?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          id?: string
+          notes?: string | null
+          period_label?: string | null
+          row_count?: number
+          status?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
       }
       artists: {
         Row: {
@@ -369,6 +481,54 @@ export type Database = {
         }
         Relationships: []
       }
+      release_deliveries: {
+        Row: {
+          authorized_by: string | null
+          created_at: string
+          delivered_at: string
+          dsp_status: Json
+          excel_path: string | null
+          id: string
+          notes: string | null
+          release_id: string
+        }
+        Insert: {
+          authorized_by?: string | null
+          created_at?: string
+          delivered_at?: string
+          dsp_status?: Json
+          excel_path?: string | null
+          id?: string
+          notes?: string | null
+          release_id: string
+        }
+        Update: {
+          authorized_by?: string | null
+          created_at?: string
+          delivered_at?: string
+          dsp_status?: Json
+          excel_path?: string | null
+          id?: string
+          notes?: string | null
+          release_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_deliveries_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "public_releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "release_deliveries_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       release_drafts: {
         Row: {
           created_at: string
@@ -600,6 +760,8 @@ export type Database = {
           catalog_number: string | null
           copyright_year: number | null
           created_at: string
+          delivered_at: string | null
+          delivery_note: string | null
           id: string
           language: string | null
           original_release_date: string | null
@@ -632,6 +794,8 @@ export type Database = {
           catalog_number?: string | null
           copyright_year?: number | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_note?: string | null
           id?: string
           language?: string | null
           original_release_date?: string | null
@@ -664,6 +828,8 @@ export type Database = {
           catalog_number?: string | null
           copyright_year?: number | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_note?: string | null
           id?: string
           language?: string | null
           original_release_date?: string | null
@@ -847,6 +1013,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       account_status: "pending_approval" | "approved" | "rejected" | "suspended"
@@ -858,6 +1025,7 @@ export type Database = {
         | "manager"
         | "viewer"
         | "administrator"
+        | "sx_manager"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "retired"
     }
     CompositeTypes: {
@@ -995,6 +1163,7 @@ export const Constants = {
         "manager",
         "viewer",
         "administrator",
+        "sx_manager",
       ],
       asset_condition: ["excellent", "good", "fair", "poor", "retired"],
     },
