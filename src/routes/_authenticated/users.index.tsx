@@ -14,7 +14,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useServerFn } from "@tanstack/react-start";
-import { createUserFn, deleteUserFn, setUserRoleFn } from "@/lib/admin-actions.functions";
+import { createUserFn, deleteUserFn, setUserRoleFn, approveUserFn } from "@/lib/admin-actions.functions";
 
 export const Route = createFileRoute("/_authenticated/users/")({
   component: Users,
@@ -57,7 +57,13 @@ function Users() {
   useEffect(() => { if (isStaff) load(); }, [isStaff]);
 
   const setStatus = async (user_id: string, status: "approved" | "rejected" | "suspended" | "pending_approval") => {
-    const { error } = await supabase.from("profiles").update({ status, approved_at: status === "approved" ? new Date().toISOString() : null }).eq("user_id", user_id);
+    if (status === "approved") {
+      try { await approveUserFn({ data: { targetUserId: user_id } }); }
+      catch (e: any) { return toast.error(e.message); }
+      toast.success("User approved — notification sent");
+      return load();
+    }
+    const { error } = await supabase.from("profiles").update({ status, approved_at: null }).eq("user_id", user_id);
     if (error) return toast.error(error.message);
     toast.success(`User ${status}`);
     load();
