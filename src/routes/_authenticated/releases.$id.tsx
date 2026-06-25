@@ -233,31 +233,11 @@ function ReleaseDetail() {
 
         <TabsContent value="delivery">
           <Card className="p-0 bg-card/60 border-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                <th className="py-2 px-4">Platform</th><th>Status</th><th>Last update</th><th>Link</th><th className="text-right pr-4">Actions</th>
-              </tr></thead>
-              <tbody>
-                {deliveries.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No DSPs yet — submit to seed deliveries.</td></tr>}
-                {deliveries.map(d => (
-                  <tr key={d.id} className="border-b border-border/40">
-                    <td className="py-2.5 px-4 font-medium">{d.platform}</td>
-                    <td><span className={`text-xs px-2 py-0.5 rounded-full capitalize ${deliveryStatusClass(d.status)}`}>{d.status.replace(/_/g, " ")}</span></td>
-                    <td className="text-muted-foreground text-xs">{new Date(d.last_event_at).toLocaleString()}</td>
-                    <td>{d.external_url ? <a href={d.external_url} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1"><ExternalLink className="h-3 w-3" />Open</a> : <span className="text-muted-foreground">—</span>}</td>
-                    <td className="text-right pr-4">
-                      {staff && (
-                        <div className="inline-flex gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "in_delivery")} title="Mark in delivery"><RefreshCw className="h-3 w-3" /></Button>
-                          <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "delivered")}>Delivered</Button>
-                          <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "live")}>Live</Button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DspDeliveryTable deliveries={deliveries} releaseId={id} staff={staff} onChanged={load} simulate={simulate} />
+          </Card>
+          <Card className="mt-4 p-6 bg-card/60 border-border">
+            <h3 className="font-display text-base font-semibold mb-3">DSP delivery log</h3>
+            <DspLog events={events} />
           </Card>
         </TabsContent>
 
