@@ -2,11 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/terms")({
   component: Terms,
-  head: () => ({ meta: [
-    { title: "Terms of service — SoundXpand" },
-    { name: "description", content: "SoundXpand terms of service governing use of the music distribution platform." },
-  ]}),
+  head: () => ({
+    meta: [
+      { title: "Terms of service — SoundXpand" },
+      { name: "description", content: "SoundXpand terms of service governing use of the music distribution platform, royalties, and takedowns." },
+      { property: "og:title", content: "Terms of service — SoundXpand" },
+      { property: "og:description", content: "Terms governing SoundXpand music distribution, royalties and takedowns." },
+      { property: "og:url", content: "https://sx-test.lovable.app/legal/terms" },
+    ],
+    links: [{ rel: "canonical", href: "https://sx-test.lovable.app/legal/terms" }],
+  }),
 });
+
 
 function Terms() {
   return (

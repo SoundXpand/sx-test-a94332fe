@@ -1,0 +1,9 @@
+# SoundXpand
+
+> Music distribution platform that releases independent artists' and labels' music to Spotify, Apple Music, YouTube Music, TikTok, JioSaavn and 150+ stores worldwide, with royalty accounting and analytics.
+
+## Pages
+
+- [Home](/): Product overview, pricing tiers, featured artists and FAQs.
+- [Terms of service](/legal/terms): Distribution, royalties and takedown terms.
+- [Privacy policy](/legal/privacy): How user data and payouts are handled.

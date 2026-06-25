@@ -8,8 +8,15 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/reset-password")({
   component: ResetPassword,
-  head: () => ({ meta: [{ title: "Reset password — SoundXpand" }] }),
+  head: () => ({
+    meta: [
+      { title: "Reset password — SoundXpand" },
+      { name: "description", content: "Set a new password for your SoundXpand account." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
 });
+
 
 function ResetPassword() {
   const navigate = useNavigate();

@@ -2,11 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/privacy")({
   component: Privacy,
-  head: () => ({ meta: [
-    { title: "Privacy policy — SoundXpand" },
-    { name: "description", content: "How SoundXpand collects, uses, and protects your personal data." },
-  ]}),
+  head: () => ({
+    meta: [
+      { title: "Privacy policy — SoundXpand" },
+      { name: "description", content: "How SoundXpand collects, uses, and protects your personal data across distribution and payouts." },
+      { property: "og:title", content: "Privacy policy — SoundXpand" },
+      { property: "og:description", content: "How SoundXpand handles your personal data, releases, and payout information." },
+      { property: "og:url", content: "https://sx-test.lovable.app/legal/privacy" },
+    ],
+    links: [{ rel: "canonical", href: "https://sx-test.lovable.app/legal/privacy" }],
+  }),
 });
+
 
 function Privacy() {
   return (

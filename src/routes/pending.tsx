@@ -5,8 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pending")({
   component: Pending,
-  head: () => ({ meta: [{ title: "Awaiting approval — SoundXpand" }] }),
+  head: () => ({
+    meta: [
+      { title: "Awaiting approval — SoundXpand" },
+      { name: "description", content: "Your SoundXpand account is pending administrator approval before dashboard access." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
 });
+
 
 function Pending() {
   return (

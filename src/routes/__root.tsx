@@ -35,34 +35,34 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SoundXpand — Distribute your music everywhere" },
-      {
-        name: "description",
-        content:
-          "Release music to Spotify, Apple Music, YouTube Music, TikTok, Instagram and 150+ platforms worldwide. Premium distribution, royalties and analytics built for modern artists and labels.",
-      },
-      { property: "og:title", content: "SoundXpand — Distribute your music everywhere" },
-      { name: "twitter:title", content: "SoundXpand — Distribute your music everywhere" },
-      {
-        property: "og:description",
-        content:
-          "Release music to 150+ platforms worldwide with premium distribution, royalties and analytics.",
-      },
-      {
-        name: "twitter:description",
-        content:
-          "Release music to 150+ platforms worldwide with premium distribution, royalties and analytics.",
-      },
-      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
-      { name: "description", content: "An internal tool to log, assign, and track company assets with condition notes and depreciation." },
-      { property: "og:description", content: "An internal tool to log, assign, and track company assets with condition notes and depreciation." },
-      { name: "twitter:description", content: "An internal tool to log, assign, and track company assets with condition notes and depreciation." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8kugE3NCUNgJEpO8gYNuZo9zkhO2/social-images/social-1782353703274-E939NK4VIAE297K.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8kugE3NCUNgJEpO8gYNuZo9zkhO2/social-images/social-1782353703274-E939NK4VIAE297K.webp" },
+      { property: "og:site_name", content: "SoundXpand" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "SoundXpand",
+              url: "https://sx-test.lovable.app",
+              email: "mca@soundxpand.com",
+            },
+            {
+              "@type": "WebSite",
+              name: "SoundXpand",
+              url: "https://sx-test.lovable.app",
+            },
+          ],
+        }),
+      },
+    ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
