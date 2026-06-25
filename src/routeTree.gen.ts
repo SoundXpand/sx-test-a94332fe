@@ -14,6 +14,7 @@ import { Route as PendingRouteImport } from './routes/pending'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
@@ -42,8 +43,10 @@ import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authe
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 import { Route as AuthenticatedReleasesIdRouteImport } from './routes/_authenticated/releases.$id'
 import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated/admin.tickets'
+import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin.pages'
 import { Route as AuthenticatedAdminBroadcastRouteImport } from './routes/_authenticated/admin.broadcast'
 import { Route as ApiPublicDspWebhookPlatformRouteImport } from './routes/api/public/dsp-webhook/$platform'
+import { Route as AuthenticatedAdminPagesIdRouteImport } from './routes/_authenticated/admin.pages.$id'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -67,6 +70,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
@@ -216,6 +224,11 @@ const AuthenticatedAdminTicketsRoute =
     path: '/admin/tickets',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminPagesRoute = AuthenticatedAdminPagesRouteImport.update({
+  id: '/admin/pages',
+  path: '/admin/pages',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminBroadcastRoute =
   AuthenticatedAdminBroadcastRouteImport.update({
     id: '/admin/broadcast',
@@ -227,6 +240,12 @@ const ApiPublicDspWebhookPlatformRoute =
     id: '/api/public/dsp-webhook/$platform',
     path: '/api/public/dsp-webhook/$platform',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAdminPagesIdRoute =
+  AuthenticatedAdminPagesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminPagesRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -255,7 +274,9 @@ export interface FileRoutesByFullPath {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/p/$slug': typeof PSlugRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -263,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/releases/': typeof AuthenticatedReleasesIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
+  '/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesByTo {
@@ -290,7 +312,9 @@ export interface FileRoutesByTo {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/p/$slug': typeof PSlugRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -298,6 +322,7 @@ export interface FileRoutesByTo {
   '/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/releases': typeof AuthenticatedReleasesIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesById {
@@ -328,7 +353,9 @@ export interface FileRoutesById {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/p/$slug': typeof PSlugRoute
   '/_authenticated/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
+  '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -336,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/_authenticated/releases/': typeof AuthenticatedReleasesIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRouteTypes {
@@ -366,7 +394,9 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/p/$slug'
     | '/admin/broadcast'
+    | '/admin/pages'
     | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
@@ -374,6 +404,7 @@ export interface FileRouteTypes {
     | '/users/$username'
     | '/releases/'
     | '/users/'
+    | '/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -401,7 +432,9 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/p/$slug'
     | '/admin/broadcast'
+    | '/admin/pages'
     | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
@@ -409,6 +442,7 @@ export interface FileRouteTypes {
     | '/users/$username'
     | '/releases'
     | '/users'
+    | '/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
   id:
     | '__root__'
@@ -438,7 +472,9 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/p/$slug'
     | '/_authenticated/admin/broadcast'
+    | '/_authenticated/admin/pages'
     | '/_authenticated/admin/tickets'
     | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
@@ -446,6 +482,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users/$username'
     | '/_authenticated/releases/'
     | '/_authenticated/users/'
+    | '/_authenticated/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesById: FileRoutesById
 }
@@ -461,6 +498,7 @@ export interface RootRouteChildren {
   LSlugRoute: typeof LSlugRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  PSlugRoute: typeof PSlugRoute
   ApiPublicDspWebhookPlatformRoute: typeof ApiPublicDspWebhookPlatformRoute
 }
 
@@ -499,6 +537,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/terms': {
@@ -697,6 +742,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTicketsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/pages': {
+      id: '/_authenticated/admin/pages'
+      path: '/admin/pages'
+      fullPath: '/admin/pages'
+      preLoaderRoute: typeof AuthenticatedAdminPagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/broadcast': {
       id: '/_authenticated/admin/broadcast'
       path: '/admin/broadcast'
@@ -710,6 +762,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/dsp-webhook/$platform'
       preLoaderRoute: typeof ApiPublicDspWebhookPlatformRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/pages/$id': {
+      id: '/_authenticated/admin/pages/$id'
+      path: '/$id'
+      fullPath: '/admin/pages/$id'
+      preLoaderRoute: typeof AuthenticatedAdminPagesIdRouteImport
+      parentRoute: typeof AuthenticatedAdminPagesRoute
     }
   }
 }
@@ -742,6 +801,20 @@ const AuthenticatedToolsRouteChildren: AuthenticatedToolsRouteChildren = {
 const AuthenticatedToolsRouteWithChildren =
   AuthenticatedToolsRoute._addFileChildren(AuthenticatedToolsRouteChildren)
 
+interface AuthenticatedAdminPagesRouteChildren {
+  AuthenticatedAdminPagesIdRoute: typeof AuthenticatedAdminPagesIdRoute
+}
+
+const AuthenticatedAdminPagesRouteChildren: AuthenticatedAdminPagesRouteChildren =
+  {
+    AuthenticatedAdminPagesIdRoute: AuthenticatedAdminPagesIdRoute,
+  }
+
+const AuthenticatedAdminPagesRouteWithChildren =
+  AuthenticatedAdminPagesRoute._addFileChildren(
+    AuthenticatedAdminPagesRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountingRoute: typeof AuthenticatedAccountingRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
@@ -759,6 +832,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRouteWithChildren
   AuthenticatedAdminBroadcastRoute: typeof AuthenticatedAdminBroadcastRoute
+  AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRouteWithChildren
   AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
   AuthenticatedUsersUsernameRoute: typeof AuthenticatedUsersUsernameRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
@@ -781,6 +855,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRouteWithChildren,
   AuthenticatedAdminBroadcastRoute: AuthenticatedAdminBroadcastRoute,
+  AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRouteWithChildren,
   AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
   AuthenticatedUsersUsernameRoute: AuthenticatedUsersUsernameRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
@@ -801,6 +876,7 @@ const rootRouteChildren: RootRouteChildren = {
   LSlugRoute: LSlugRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  PSlugRoute: PSlugRoute,
   ApiPublicDspWebhookPlatformRoute: ApiPublicDspWebhookPlatformRoute,
 }
 export const routeTree = rootRouteImport

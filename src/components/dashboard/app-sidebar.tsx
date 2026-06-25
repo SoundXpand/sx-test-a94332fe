@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Disc3, Plus, BarChart3, DollarSign, Users, FileText,
   Wrench, Settings, LifeBuoy, Music, ChevronsLeft, ChevronsRight,
-  ShieldCheck, UserCircle2, X, Receipt, LogOut,
+  ShieldCheck, UserCircle2, X, Receipt, LogOut, FileEdit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AppRole } from "@/hooks/use-current-user";
@@ -20,6 +20,7 @@ const STAFF_NAV: Item[] = [
   { to: "/accounting", label: "Accounting", icon: Receipt },
   { to: "/royalties", label: "Royalties", icon: DollarSign },
   { to: "/admin/broadcast", label: "Broadcast", icon: ShieldCheck },
+  { to: "/admin/pages", label: "Pages", icon: FileEdit },
   { to: "/admin/tickets", label: "Tickets", icon: LifeBuoy },
 ];
 

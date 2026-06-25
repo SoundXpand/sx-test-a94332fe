@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { statusBadgeClass } from "@/components/catalog/release-row-actions";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { useServerFn } from "@tanstack/react-start";
-import { archiveReleaseFn, updateReleaseAdminFn } from "@/lib/admin-actions.functions";
+import { archiveReleaseFn, updateReleaseAdminFn, updateDspDeliveryFn } from "@/lib/admin-actions.functions";
 import { ArtworkImage } from "@/components/catalog/artwork-image";
 import { AudioPlayButton } from "@/components/catalog/audio-play-button";
 import { downloadReleaseBundle } from "@/lib/release-bundle";
@@ -233,31 +233,11 @@ function ReleaseDetail() {
 
         <TabsContent value="delivery">
           <Card className="p-0 bg-card/60 border-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                <th className="py-2 px-4">Platform</th><th>Status</th><th>Last update</th><th>Link</th><th className="text-right pr-4">Actions</th>
-              </tr></thead>
-              <tbody>
-                {deliveries.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No DSPs yet — submit to seed deliveries.</td></tr>}
-                {deliveries.map(d => (
-                  <tr key={d.id} className="border-b border-border/40">
-                    <td className="py-2.5 px-4 font-medium">{d.platform}</td>
-                    <td><span className={`text-xs px-2 py-0.5 rounded-full capitalize ${deliveryStatusClass(d.status)}`}>{d.status.replace(/_/g, " ")}</span></td>
-                    <td className="text-muted-foreground text-xs">{new Date(d.last_event_at).toLocaleString()}</td>
-                    <td>{d.external_url ? <a href={d.external_url} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1"><ExternalLink className="h-3 w-3" />Open</a> : <span className="text-muted-foreground">—</span>}</td>
-                    <td className="text-right pr-4">
-                      {staff && (
-                        <div className="inline-flex gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "in_delivery")} title="Mark in delivery"><RefreshCw className="h-3 w-3" /></Button>
-                          <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "delivered")}>Delivered</Button>
-                          <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "live")}>Live</Button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DspDeliveryTable deliveries={deliveries} releaseId={id} staff={staff} onChanged={load} simulate={simulate} />
+          </Card>
+          <Card className="mt-4 p-6 bg-card/60 border-border">
+            <h3 className="font-display text-base font-semibold mb-3">DSP delivery log</h3>
+            <DspLog events={events} />
           </Card>
         </TabsContent>
 
@@ -448,3 +428,96 @@ function deliveryStatusClass(s: string) {
     default: return "bg-muted text-muted-foreground";
   }
 }
+
+const DSP_STATUS_OPTIONS = ["pending", "in_delivery", "delivered", "live", "rejected", "takedown"];
+
+function DspDeliveryTable({
+  deliveries, releaseId, staff, onChanged, simulate,
+}: { deliveries: any[]; releaseId: string; staff: boolean; onChanged: () => void; simulate: (p: string, s: string) => void }) {
+  const updateFn = useServerFn(updateDspDeliveryFn);
+  const [edits, setEdits] = useState<Record<string, { status: string; url: string; error: string }>>({});
+  const init = (d: any) => edits[d.id] ?? { status: d.status, url: d.external_url ?? "", error: d.error ?? "" };
+  const set = (id: string, patch: Partial<{ status: string; url: string; error: string }>) =>
+    setEdits(s => ({ ...s, [id]: { ...init({ id, status: "", external_url: "", error: "" }), ...s[id], ...patch } }));
+
+  const save = async (d: any) => {
+    const e = init(d);
+    try {
+      await updateFn({ data: { deliveryId: d.id, releaseId, platform: d.platform, status: e.status, external_url: e.url || null, error: e.error || null } });
+      toast.success(`${d.platform} updated`);
+      setEdits(s => { const n = { ...s }; delete n[d.id]; return n; });
+      onChanged();
+    } catch (e: any) { toast.error(e.message ?? "Update failed"); }
+  };
+
+  return (
+    <table className="w-full text-sm">
+      <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
+        <th className="py-2 px-4">Platform</th><th>Status</th><th>Link</th><th>Note</th><th>Updated</th><th className="text-right pr-4">Actions</th>
+      </tr></thead>
+      <tbody>
+        {deliveries.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No DSPs yet.</td></tr>}
+        {deliveries.map(d => {
+          const e = init(d);
+          const dirty = !!edits[d.id];
+          return (
+            <tr key={d.id} className="border-b border-border/40 align-top">
+              <td className="py-2.5 px-4 font-medium">{d.platform}</td>
+              <td className="pr-2">
+                {staff ? (
+                  <select className="bg-background border border-input rounded-md text-xs px-2 py-1" value={e.status} onChange={ev => set(d.id, { status: ev.target.value })}>
+                    {DSP_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                  </select>
+                ) : (
+                  <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${deliveryStatusClass(d.status)}`}>{d.status.replace(/_/g, " ")}</span>
+                )}
+              </td>
+              <td className="pr-2">
+                {staff ? (
+                  <Input className="h-7 text-xs w-44" value={e.url} onChange={ev => set(d.id, { url: ev.target.value })} placeholder="https://…" />
+                ) : d.external_url ? (
+                  <a href={d.external_url} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1 text-xs"><ExternalLink className="h-3 w-3" />Open</a>
+                ) : <span className="text-muted-foreground text-xs">—</span>}
+              </td>
+              <td className="pr-2">
+                {staff ? (
+                  <Input className="h-7 text-xs w-44" value={e.error} onChange={ev => set(d.id, { error: ev.target.value })} placeholder="Optional note" />
+                ) : <span className="text-muted-foreground text-xs">{d.error || "—"}</span>}
+              </td>
+              <td className="text-muted-foreground text-xs">{d.last_event_at ? new Date(d.last_event_at).toLocaleString() : "—"}</td>
+              <td className="text-right pr-4">
+                {staff && (
+                  <div className="inline-flex gap-1">
+                    <Button size="sm" variant={dirty ? "default" : "ghost"} onClick={() => save(d)} disabled={!dirty}>
+                      <Save className="h-3 w-3 mr-1" />Save
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => simulate(d.platform, "live")} title="Simulate webhook → live"><RefreshCw className="h-3 w-3" /></Button>
+                  </div>
+                )}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function DspLog({ events }: { events: any[] }) {
+  const dspEvents = events.filter(e => typeof e.type === "string" && e.type.startsWith("dsp_"));
+  if (dspEvents.length === 0) return <p className="text-sm text-muted-foreground">No DSP events recorded yet.</p>;
+  return (
+    <ol className="space-y-2 text-sm">
+      {dspEvents.map(ev => (
+        <li key={ev.id} className="flex items-start gap-3 border-b border-border/30 pb-2">
+          <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${ev.type.includes("live") ? "bg-success" : ev.type.includes("rejected") ? "bg-destructive" : ev.type.includes("delivered") ? "bg-blue-500" : "bg-muted-foreground/40"}`} />
+          <div className="flex-1 min-w-0">
+            <div className="capitalize">{ev.note || ev.type.replace(/_/g, " ")}</div>
+            <div className="text-xs text-muted-foreground">{new Date(ev.created_at).toLocaleString()}</div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+

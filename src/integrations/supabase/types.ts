@@ -247,6 +247,86 @@ export type Database = {
         }
         Relationships: []
       }
+      cms_page_blocks: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          page_id: string
+          position: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          page_id: string
+          position?: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          page_id?: string
+          position?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_page_blocks_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cms_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cms_pages: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          og_image_url: string | null
+          published_at: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          og_image_url?: string | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          og_image_url?: string | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dsp_deliveries: {
         Row: {
           created_at: string
@@ -1175,31 +1255,40 @@ export type Database = {
       public_releases: {
         Row: {
           artwork_path: string | null
+          delivered_at: string | null
           id: string | null
+          owner_id: string | null
           primary_genre: string | null
           release_date: string | null
           release_type: string | null
           slug: string | null
+          status: string | null
           title: string | null
           version: string | null
         }
         Insert: {
           artwork_path?: string | null
+          delivered_at?: string | null
           id?: string | null
+          owner_id?: string | null
           primary_genre?: string | null
           release_date?: string | null
           release_type?: string | null
           slug?: string | null
+          status?: string | null
           title?: string | null
           version?: string | null
         }
         Update: {
           artwork_path?: string | null
+          delivered_at?: string | null
           id?: string | null
+          owner_id?: string | null
           primary_genre?: string | null
           release_date?: string | null
           release_type?: string | null
           slug?: string | null
+          status?: string | null
           title?: string | null
           version?: string | null
         }
