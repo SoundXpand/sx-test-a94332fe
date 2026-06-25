@@ -140,3 +140,35 @@ export const purgeArchivedFn = createServerFn({ method: "POST" })
     return { purged: ids.length };
   });
 
+export const updateDspDeliveryFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    deliveryId?: string;
+    releaseId: string;
+    platform: string;
+    status: string;
+    external_url?: string | null;
+    error?: string | null;
+  }) => d)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId);
+    const now = new Date().toISOString();
+    const patch = {
+      release_id: data.releaseId,
+      platform: data.platform,
+      status: data.status,
+      external_url: data.external_url ?? null,
+      error: data.error ?? null,
+      last_event_at: now,
+    };
+    if (data.deliveryId) {
+      const { error } = await context.supabase.from("dsp_deliveries").update(patch).eq("id", data.deliveryId);
+      if (error) throw error;
+    } else {
+      const { error } = await context.supabase.from("dsp_deliveries").upsert(patch, { onConflict: "release_id,platform" } as any);
+      if (error) throw error;
+    }
+    return { ok: true };
+  });
+
+
