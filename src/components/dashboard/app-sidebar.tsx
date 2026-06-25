@@ -1,13 +1,15 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Disc3, Plus, BarChart3, DollarSign, Users, FileText,
   Wrench, Settings, LifeBuoy, Music, ChevronsLeft, ChevronsRight,
-  ShieldCheck, UserCircle2, X, Receipt,
+  ShieldCheck, UserCircle2, X, Receipt, LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AppRole } from "@/hooks/use-current-user";
-import { useCurrentUser } from "@/hooks/use-current-user";
+import { useCurrentUser, roleLabel } from "@/hooks/use-current-user";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Item = { to: string; label: string; icon: typeof Music; badge?: number };
 
