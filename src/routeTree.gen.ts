@@ -45,6 +45,7 @@ import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin.pages'
 import { Route as AuthenticatedAdminBroadcastRouteImport } from './routes/_authenticated/admin.broadcast'
 import { Route as ApiPublicDspWebhookPlatformRouteImport } from './routes/api/public/dsp-webhook/$platform'
+import { Route as AuthenticatedAdminPagesIdRouteImport } from './routes/_authenticated/admin.pages.$id'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -234,6 +235,12 @@ const ApiPublicDspWebhookPlatformRoute =
     path: '/api/public/dsp-webhook/$platform',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAdminPagesIdRoute =
+  AuthenticatedAdminPagesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminPagesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -262,7 +269,7 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
-  '/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/releases/': typeof AuthenticatedReleasesIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
+  '/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesByTo {
@@ -298,7 +306,7 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
-  '/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -306,6 +314,7 @@ export interface FileRoutesByTo {
   '/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/releases': typeof AuthenticatedReleasesIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRoutesById {
@@ -337,7 +346,7 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/_authenticated/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
-  '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -345,6 +354,7 @@ export interface FileRoutesById {
   '/_authenticated/users/$username': typeof AuthenticatedUsersUsernameRoute
   '/_authenticated/releases/': typeof AuthenticatedReleasesIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
 }
 export interface FileRouteTypes {
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/users/$username'
     | '/releases/'
     | '/users/'
+    | '/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -420,6 +431,7 @@ export interface FileRouteTypes {
     | '/users/$username'
     | '/releases'
     | '/users'
+    | '/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
   id:
     | '__root__'
@@ -458,6 +470,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users/$username'
     | '/_authenticated/releases/'
     | '/_authenticated/users/'
+    | '/_authenticated/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
   fileRoutesById: FileRoutesById
 }
@@ -730,6 +743,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDspWebhookPlatformRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/pages/$id': {
+      id: '/_authenticated/admin/pages/$id'
+      path: '/$id'
+      fullPath: '/admin/pages/$id'
+      preLoaderRoute: typeof AuthenticatedAdminPagesIdRouteImport
+      parentRoute: typeof AuthenticatedAdminPagesRoute
+    }
   }
 }
 
@@ -761,6 +781,20 @@ const AuthenticatedToolsRouteChildren: AuthenticatedToolsRouteChildren = {
 const AuthenticatedToolsRouteWithChildren =
   AuthenticatedToolsRoute._addFileChildren(AuthenticatedToolsRouteChildren)
 
+interface AuthenticatedAdminPagesRouteChildren {
+  AuthenticatedAdminPagesIdRoute: typeof AuthenticatedAdminPagesIdRoute
+}
+
+const AuthenticatedAdminPagesRouteChildren: AuthenticatedAdminPagesRouteChildren =
+  {
+    AuthenticatedAdminPagesIdRoute: AuthenticatedAdminPagesIdRoute,
+  }
+
+const AuthenticatedAdminPagesRouteWithChildren =
+  AuthenticatedAdminPagesRoute._addFileChildren(
+    AuthenticatedAdminPagesRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountingRoute: typeof AuthenticatedAccountingRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
@@ -778,7 +812,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRouteWithChildren
   AuthenticatedAdminBroadcastRoute: typeof AuthenticatedAdminBroadcastRoute
-  AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRoute
+  AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRouteWithChildren
   AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
   AuthenticatedUsersUsernameRoute: typeof AuthenticatedUsersUsernameRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
@@ -801,7 +835,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRouteWithChildren,
   AuthenticatedAdminBroadcastRoute: AuthenticatedAdminBroadcastRoute,
-  AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRoute,
+  AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRouteWithChildren,
   AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
   AuthenticatedUsersUsernameRoute: AuthenticatedUsersUsernameRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
