@@ -38,6 +38,7 @@ function ReleaseDetail() {
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [artworkUrl, setArtworkUrl] = useState<string | null>(null);
+  const [ownerProfile, setOwnerProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const updateFn = useServerFn(updateReleaseAdminFn);
@@ -54,6 +55,10 @@ function ReleaseDetail() {
     setTracks(t.data ?? []);
     setDeliveries((d.data as any[]) ?? []);
     setEvents((e.data as any[]) ?? []);
+    if (r.data?.owner_id) {
+      const { data: prof } = await supabase.from("profiles").select("country,full_name,artist_name").eq("user_id", r.data.owner_id).maybeSingle();
+      setOwnerProfile(prof);
+    }
     if (r.data?.artwork_path) {
       const { data: s } = await supabase.storage.from("artwork").createSignedUrl(r.data.artwork_path, 3600);
       setArtworkUrl(s?.signedUrl ?? null);
