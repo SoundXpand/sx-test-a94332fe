@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCurrentUser, roleLabel } from "@/hooks/use-current-user";
+import { useCurrentUser, displayRoleLabel } from "@/hooks/use-current-user";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
