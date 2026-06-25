@@ -266,6 +266,23 @@
     0 10px 40px -10px color-mix(in oklch, var(--brand-violet-deep) 60%, transparent);
 }
 
+@utility pop-blur {
+  position: relative;
+  isolation: isolate;
+}
+@utility pop-blur::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(40% 50% at 20% 30%, color-mix(in oklch, var(--brand-violet) 45%, transparent) 0%, transparent 70%),
+    radial-gradient(35% 45% at 80% 70%, color-mix(in oklch, var(--brand-pink) 40%, transparent) 0%, transparent 70%),
+    radial-gradient(40% 40% at 60% 20%, color-mix(in oklch, var(--brand-cyan) 35%, transparent) 0%, transparent 70%);
+  filter: blur(80px) saturate(140%);
+  opacity: 0.85;
+  pointer-events: none;
+
 @keyframes orb-float {
   0%, 100% { transform: translateY(0) translateX(0); }
   33% { transform: translateY(-30px) translateX(10px); }
