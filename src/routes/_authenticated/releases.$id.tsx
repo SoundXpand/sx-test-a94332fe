@@ -188,27 +188,48 @@ function ReleaseDetail() {
         </TabsContent>
 
         <TabsContent value="tracks">
-          <Card className="p-0 bg-card/60 border-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                <th className="py-2 px-2 w-10"></th><th className="px-2 w-10">#</th><th>Title</th><th>ISRC</th><th>Duration</th><th>Explicit</th>
-              </tr></thead>
-              <tbody>
-                {tracks.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No tracks</td></tr>}
-                {tracks.map(t => (
-                  <tr key={t.id} className="border-b border-border/40">
-                    <td className="py-2 px-2"><AudioPlayButton path={t.audio_path} /></td>
-                    <td className="py-2.5 px-2 text-muted-foreground">{t.track_number}</td>
-                    <td className="font-medium">{t.title}{t.version ? <span className="text-muted-foreground"> ({t.version})</span> : null}</td>
-                    <td className="text-muted-foreground font-mono text-xs">{t.isrc || "—"}</td>
-                    <td className="text-muted-foreground">{t.duration_seconds ? formatDur(t.duration_seconds) : "—"}</td>
-                    <td>{t.explicit ? <Badge variant="destructive">E</Badge> : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <Card className="p-2 bg-card/60 border-border space-y-1">
+            {tracks.length === 0 && <div className="p-6 text-center text-muted-foreground text-sm">No tracks</div>}
+            {tracks.map(t => (
+              <Collapsible key={t.id} className="border border-border/40 rounded-lg overflow-hidden">
+                <div className="flex items-center gap-3 px-3 py-2 hover:bg-muted/30 transition">
+                  <AudioPlayButton path={t.audio_path} />
+                  <span className="text-muted-foreground text-xs w-6">{t.track_number}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{t.title}{t.version ? <span className="text-muted-foreground"> ({t.version})</span> : null}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {[t.isrc, t.duration_seconds ? formatDur(t.duration_seconds) : null, t.language, t.explicit ? "Explicit" : null].filter(Boolean).join(" · ")}
+                    </div>
+                  </div>
+                  <CollapsibleTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"><ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" /></Button>
+                  </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent>
+                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 px-4 py-3 text-xs border-t border-border/40 bg-background/40">
+                    <Row k="Title" v={t.title} />
+                    <Row k="Version" v={t.version} />
+                    <Row k="ISRC" v={t.isrc} />
+                    <Row k="Duration" v={t.duration_seconds ? formatDur(t.duration_seconds) : null} />
+                    <Row k="Language" v={t.language} />
+                    <Row k="Genre" v={t.primary_genre} />
+                    <Row k="Explicit" v={t.explicit ? "Yes" : "No"} />
+                    <Row k="Composer" v={t.composer} />
+                    <Row k="Lyricist" v={t.lyricist} />
+                    <Row k="Producer" v={t.producer} />
+                    <Row k="Featured artist" v={t.featured_artist} />
+                    <Row k="Contributors" v={t.contributors} />
+                    <Row k="Publishing info" v={t.publishing_info} />
+                    <Row k="© owner" v={t.copyright_owner} />
+                    <Row k="Audio file" v={t.audio_path?.split("/").pop()} />
+                    <Row k="Size" v={t.file_size_bytes ? `${(t.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : null} />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
           </Card>
         </TabsContent>
+
 
         <TabsContent value="delivery">
           <Card className="p-0 bg-card/60 border-border overflow-hidden">
