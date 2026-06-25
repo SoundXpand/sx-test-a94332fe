@@ -21,7 +21,7 @@ export type Release = {
   rejection_reason?: string | null;
 };
 
-export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged: () => void }) {
+export function ReleaseRowActions({ row, onChanged, admin = false }: { row: Release; onChanged: () => void; admin?: boolean }) {
   const navigate = useNavigate();
   const [reasonOpen, setReasonOpen] = useState(false);
 
@@ -65,49 +65,67 @@ export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged:
             <DropdownMenuItem onClick={() => navigate({ to: "/releases/$id", params: { id: row.id } })}>
               <Eye className="h-4 w-4 mr-2" />View details
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {row.status === "draft" && (
-              <>
-                <DropdownMenuItem onClick={() => navigate({ to: "/releases/new", search: { draft: row.id } as any })}>
-                  <Edit className="h-4 w-4 mr-2" />Resume edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={deleteDraft} className="text-destructive">
-                  <Trash2 className="h-4 w-4 mr-2" />Delete draft
-                </DropdownMenuItem>
-              </>
-            )}
-            {row.status === "pending" && (
-              <DropdownMenuItem onClick={() => updateStatus("draft")}>
-                <ArrowDownToLine className="h-4 w-4 mr-2" />Withdraw to draft
-              </DropdownMenuItem>
-            )}
-            {isReleaseLive(row.status) && smartlink && (
+            {smartlink && (
               <>
                 <DropdownMenuItem onClick={copySmartlink}><Copy className="h-4 w-4 mr-2" />Copy smartlink</DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <a href={smartlink} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-2" />Open smartlink</a>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => updateStatus("takedown_requested")} className="text-destructive">
-                  <ArrowDownToLine className="h-4 w-4 mr-2" />Request takedown
-                </DropdownMenuItem>
               </>
             )}
-            {row.status === "rejected" && (
+            {admin ? (
               <>
-                <DropdownMenuItem onClick={() => setReasonOpen(true)}><Eye className="h-4 w-4 mr-2" />View reason</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate({ to: "/releases/new", search: { edit: row.id } as any })}>
-                  <Edit className="h-4 w-4 mr-2" />Edit & resubmit
-                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {row.status === "taken_down" ? (
+                  <DropdownMenuItem onClick={() => updateStatus("live")}>
+                    <RotateCcw className="h-4 w-4 mr-2" />Restore live
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => updateStatus("taken_down")} className="text-destructive">
+                    <ArrowDownToLine className="h-4 w-4 mr-2" />Takedown
+                  </DropdownMenuItem>
+                )}
               </>
-            )}
-            {row.status === "takedown_requested" && (
-              <DropdownMenuItem disabled><Send className="h-4 w-4 mr-2" />Awaiting admin</DropdownMenuItem>
-            )}
-            {row.status === "taken_down" && (
-              <DropdownMenuItem onClick={() => updateStatus("pending")}>
-                <RotateCcw className="h-4 w-4 mr-2" />Request restore
-              </DropdownMenuItem>
+            ) : (
+              <>
+                <DropdownMenuSeparator />
+                {row.status === "draft" && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate({ to: "/releases/new", search: { draft: row.id } as any })}>
+                      <Edit className="h-4 w-4 mr-2" />Resume edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={deleteDraft} className="text-destructive">
+                      <Trash2 className="h-4 w-4 mr-2" />Delete draft
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {row.status === "pending" && (
+                  <DropdownMenuItem onClick={() => updateStatus("draft")}>
+                    <ArrowDownToLine className="h-4 w-4 mr-2" />Withdraw to draft
+                  </DropdownMenuItem>
+                )}
+                {isReleaseLive(row.status) && (
+                  <DropdownMenuItem onClick={() => updateStatus("takedown_requested")} className="text-destructive">
+                    <ArrowDownToLine className="h-4 w-4 mr-2" />Request takedown
+                  </DropdownMenuItem>
+                )}
+                {row.status === "rejected" && (
+                  <>
+                    <DropdownMenuItem onClick={() => setReasonOpen(true)}><Eye className="h-4 w-4 mr-2" />View reason</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate({ to: "/releases/new", search: { edit: row.id } as any })}>
+                      <Edit className="h-4 w-4 mr-2" />Edit & resubmit
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {row.status === "takedown_requested" && (
+                  <DropdownMenuItem disabled><Send className="h-4 w-4 mr-2" />Awaiting admin</DropdownMenuItem>
+                )}
+                {row.status === "taken_down" && (
+                  <DropdownMenuItem onClick={() => updateStatus("pending")}>
+                    <RotateCcw className="h-4 w-4 mr-2" />Request restore
+                  </DropdownMenuItem>
+                )}
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

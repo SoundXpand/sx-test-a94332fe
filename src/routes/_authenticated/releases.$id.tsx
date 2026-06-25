@@ -59,7 +59,7 @@ function ReleaseDetail() {
     setDeliveries((d.data as any[]) ?? []);
     setEvents((e.data as any[]) ?? []);
     if (r.data?.owner_id) {
-      const { data: prof } = await supabase.from("profiles").select("country,full_name,artist_name").eq("user_id", r.data.owner_id).maybeSingle();
+      const { data: prof } = await supabase.from("profiles").select("user_id,country,full_name,artist_name,username,email,role_type,mobile,city").eq("user_id", r.data.owner_id).maybeSingle();
       setOwnerProfile(prof);
     }
     if (r.data?.artwork_path) {
@@ -96,7 +96,7 @@ function ReleaseDetail() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
-        <Button size="icon" variant="ghost" onClick={() => navigate({ to: "/catalog" })}><ArrowLeft className="h-4 w-4" /></Button>
+        <Button size="icon" variant="ghost" onClick={() => navigate({ to: staff ? "/releases" : "/catalog" })}><ArrowLeft className="h-4 w-4" /></Button>
         <h1 className="font-display text-2xl font-semibold truncate">{release.title}</h1>
         <ReleaseStatusBadge status={release.status} />
         {release.archived_at && <Badge variant="destructive">Archived</Badge>}
@@ -155,6 +155,7 @@ function ReleaseDetail() {
           <TabsTrigger value="tracks">Tracklist ({tracks.length})</TabsTrigger>
           <TabsTrigger value="delivery">Delivery ({deliveries.length})</TabsTrigger>
           {staff && <TabsTrigger value="prefs">Delivery prefs</TabsTrigger>}
+          {staff && <TabsTrigger value="submission">Submission</TabsTrigger>}
           <TabsTrigger value="timeline">Activity log ({events.length})</TabsTrigger>
           {staff && <TabsTrigger value="admin">Admin</TabsTrigger>}
         </TabsList>
@@ -289,6 +290,47 @@ function ReleaseDetail() {
         )}
 
 
+
+        {staff && (
+          <TabsContent value="submission">
+            <Card className="p-6 bg-card/60 border-border space-y-6">
+              <div>
+                <h3 className="font-display text-base font-semibold mb-3">Submitted by</h3>
+                <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                  <Row k="Artist name" v={ownerProfile?.artist_name} />
+                  <Row k="Full name" v={ownerProfile?.full_name} />
+                  <Row k="Username" v={ownerProfile?.username} />
+                  <Row k="Email" v={ownerProfile?.email} />
+                  <Row k="Mobile" v={ownerProfile?.mobile} />
+                  <Row k="Role type" v={ownerProfile?.role_type} />
+                  <Row k="City" v={ownerProfile?.city} />
+                  <Row k="Country" v={ownerProfile?.country} />
+                  <Row k="Owner ID" v={release.owner_id} />
+                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-base font-semibold mb-3">Submission timestamps</h3>
+                <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                  <Row k="Created" v={release.created_at ? new Date(release.created_at).toLocaleString() : null} />
+                  <Row k="Last updated" v={release.updated_at ? new Date(release.updated_at).toLocaleString() : null} />
+                  <Row k="Submitted (pending)" v={(() => { const ev = events.find((e: any) => e.type === "status_pending"); return ev ? new Date(ev.created_at).toLocaleString() : null; })()} />
+                  <Row k="Approved" v={(() => { const ev = events.find((e: any) => e.type === "status_approved"); return ev ? new Date(ev.created_at).toLocaleString() : null; })()} />
+                  <Row k="Delivered" v={release.delivered_at ? new Date(release.delivered_at).toLocaleString() : null} />
+                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-base font-semibold mb-3">Credits & contributors</h3>
+                <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                  <Row k="Primary artist" v={release.primary_artist || ownerProfile?.artist_name} />
+                  <Row k="Featured artists" v={Array.isArray(release.featured_artists) ? release.featured_artists.join(", ") : release.featured_artists} />
+                  <Row k="Publisher" v={release.publisher} />
+                  <Row k="℗ line" v={release.p_name ? `${release.p_year ?? ""} ${release.p_name}`.trim() : null} />
+                  <Row k="© line" v={release.c_name ? `${release.c_year ?? ""} ${release.c_name}`.trim() : null} />
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="timeline">
           <Card className="p-6 bg-card/60 border-border">

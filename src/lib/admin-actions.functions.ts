@@ -56,7 +56,7 @@ export const createUserFn = createServerFn({ method: "POST" })
 
 export const markDeliveredFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { releaseId: string; dspStatus: Record<string, { status: string; note?: string }>; notes?: string }) => d)
+  .inputValidator((d: { releaseId: string; dspStatus: Record<string, { status: string; note?: string; url?: string }>; notes?: string }) => d)
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
     const now = new Date().toISOString();
@@ -75,6 +75,26 @@ export const markDeliveredFn = createServerFn({ method: "POST" })
         notes: data.notes ?? null,
       });
     if (delErr) throw delErr;
+
+    // Mirror per-DSP status into dsp_deliveries (universal table used by Delivery tab + smartlinks)
+    const dspRows = Object.entries(data.dspStatus).map(([platform, v]) => ({
+      release_id: data.releaseId,
+      platform,
+      status: v.status === "sent" ? "delivered" : v.status,
+      external_url: v.url || null,
+      error: v.note || null,
+      last_event_at: now,
+    }));
+    if (dspRows.length) {
+      await context.supabase.from("dsp_deliveries").upsert(dspRows, { onConflict: "release_id,platform" } as any);
+    }
+    // Mirror provided URLs to release_links so smartlinks display them
+    const linkRows = Object.entries(data.dspStatus)
+      .filter(([_, v]) => v.url && v.url.trim())
+      .map(([platform, v]) => ({ release_id: data.releaseId, platform, url: v.url!.trim() }));
+    if (linkRows.length) {
+      await context.supabase.from("release_links").upsert(linkRows, { onConflict: "release_id,platform" } as any);
+    }
     return { ok: true };
   });
 
@@ -167,6 +187,13 @@ export const updateDspDeliveryFn = createServerFn({ method: "POST" })
     } else {
       const { error } = await context.supabase.from("dsp_deliveries").upsert(patch, { onConflict: "release_id,platform" } as any);
       if (error) throw error;
+    }
+    // Mirror external_url into release_links so smartlinks pick it up universally
+    if (data.external_url && data.external_url.trim()) {
+      await context.supabase.from("release_links").upsert(
+        { release_id: data.releaseId, platform: data.platform, url: data.external_url.trim() },
+        { onConflict: "release_id,platform" } as any
+      );
     }
     return { ok: true };
   });
