@@ -10,6 +10,7 @@ import type { AppRole } from "@/hooks/use-current-user";
 import { useCurrentUser, roleLabel } from "@/hooks/use-current-user";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { BrandLogo } from "@/components/branding/brand-logo";
 
 type Item = { to: string; label: string; icon: typeof Music; badge?: number };
 
