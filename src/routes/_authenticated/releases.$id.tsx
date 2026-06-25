@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { statusBadgeClass } from "@/components/catalog/release-row-actions";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { useServerFn } from "@tanstack/react-start";
-import { archiveReleaseFn, updateReleaseAdminFn } from "@/lib/admin-actions.functions";
+import { archiveReleaseFn, updateReleaseAdminFn, updateDspDeliveryFn } from "@/lib/admin-actions.functions";
 import { ArtworkImage } from "@/components/catalog/artwork-image";
 import { AudioPlayButton } from "@/components/catalog/audio-play-button";
 import { downloadReleaseBundle } from "@/lib/release-bundle";
