@@ -155,6 +155,7 @@ function ReleaseDetail() {
           <TabsTrigger value="tracks">Tracklist ({tracks.length})</TabsTrigger>
           <TabsTrigger value="delivery">Delivery ({deliveries.length})</TabsTrigger>
           {staff && <TabsTrigger value="prefs">Delivery prefs</TabsTrigger>}
+          {staff && <TabsTrigger value="submission">Submission</TabsTrigger>}
           <TabsTrigger value="timeline">Activity log ({events.length})</TabsTrigger>
           {staff && <TabsTrigger value="admin">Admin</TabsTrigger>}
         </TabsList>
