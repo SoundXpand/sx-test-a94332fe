@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { Disc3, Download, Truck, Check, X, ShieldCheck, ArrowDownToLine, Trash2, RotateCcw } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
-import { ReleaseRowActions, statusBadgeClass } from "@/components/catalog/release-row-actions";
+import { ReleaseRowActions } from "@/components/catalog/release-row-actions";
+import { ReleaseStatusBadge } from "@/components/catalog/status-badge";
+import { isReleaseLive } from "@/lib/release-status";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { useServerFn } from "@tanstack/react-start";
 import { markDeliveredFn } from "@/lib/admin-actions.functions";
@@ -53,8 +55,8 @@ function ReleasesAdmin() {
 
   const active = rows.filter(r => !r.archived_at);
   const pending = active.filter(r => r.status === "pending");
-  const approved = active.filter(r => r.status === "live");
-  const delivered = active.filter(r => r.status === "delivered");
+  const approvedReady = active.filter(r => r.status === "approved");
+  const live = active.filter(r => isReleaseLive(r.status));
   const takedowns = active.filter(r => r.status === "takedown_requested" || r.status === "taken_down");
   const archived = rows.filter(r => r.archived_at);
 
@@ -62,7 +64,7 @@ function ReleasesAdmin() {
     const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n;
   });
   const bulkDownload = async () => {
-    const picked = approved.filter(r => selected.has(r.id));
+    const picked = approvedReady.filter(r => selected.has(r.id));
     if (picked.length === 0) return toast.error("Select at least one approved release");
     setBusy(true);
     try { await downloadBulkBundles(picked); toast.success(`Bundled ${picked.length} releases`); }
@@ -253,7 +255,7 @@ function ReleaseTable({ rows, onChanged, emptyIcon, emptyTitle, emptyDesc }: any
               <td className="capitalize text-muted-foreground">{r.release_type}</td>
               <td className="text-muted-foreground font-mono text-xs">{r.upc || "—"}</td>
               <td className="text-muted-foreground">{r.release_date || "—"}</td>
-              <td><span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusBadgeClass(r.status)}`}>{r.status.replace(/_/g, " ")}</span></td>
+              <td><ReleaseStatusBadge status={r.status} /></td>
               <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={onChanged} /></td>
             </tr>
           ))}
