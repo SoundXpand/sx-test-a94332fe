@@ -11,8 +11,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Home, Music } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ROLE_TYPES, MAIN_GENRES, DISTRIBUTORS, TRACKS_RELEASED_BUCKETS, LISTENERS_BUCKETS } from "@/lib/onboarding-options";
+import { ROLE_TYPES, TRACKS_RELEASED_BUCKETS, LISTENERS_BUCKETS } from "@/lib/onboarding-options";
+import { GENRES } from "@/lib/release-options";
+import { DISTRIBUTORS } from "@/lib/distributors";
+import { CONTINENTS } from "@/lib/territories";
 import { BrandLogo } from "@/components/branding/brand-logo";
+import { getPublicPlatformFlagsFn } from "@/lib/platform-flags.functions";
+
+const COUNTRIES = CONTINENTS.flatMap(c => c.countries).sort((a, b) => a.name.localeCompare(b.name));
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -83,10 +89,6 @@ function AuthPage() {
         <div className="rounded-3xl border border-border bg-card/60 p-8 backdrop-blur-xl shadow-2xl">
           <AuthTabs />
         </div>
-
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          New accounts require administrator approval before dashboard access.
-        </p>
       </div>
     </div>
   );
@@ -95,6 +97,10 @@ function AuthPage() {
 function AuthTabs() {
   const initial = typeof window !== "undefined" && window.location.hash === "#register" ? "register" : "login";
   const [tab, setTab] = useState<string>(initial);
+  const [autoApprove, setAutoApprove] = useState(false);
+  useEffect(() => {
+    getPublicPlatformFlagsFn().then(f => setAutoApprove(!!f.auto_approve)).catch(() => {});
+  }, []);
   useEffect(() => {
     const sync = () => {
       const h = window.location.hash;
@@ -117,7 +123,14 @@ function AuthTabs() {
         <TabsTrigger value="register">Register</TabsTrigger>
       </TabsList>
       <TabsContent value="login"><LoginForm /></TabsContent>
-      <TabsContent value="register"><RegisterForm /></TabsContent>
+      <TabsContent value="register">
+        {!autoApprove && (
+          <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+            New accounts require approval before you start using SoundXpand.
+          </div>
+        )}
+        <RegisterForm />
+      </TabsContent>
     </Tabs>
   );
 }
@@ -279,7 +292,13 @@ function RegisterForm() {
         <div className="space-y-1"><Label>Email *</Label><Input type="email" required value={form.email} onChange={e => set("email")(e.target.value)} /></div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1"><Label>Phone *</Label><Input required value={form.mobile} onChange={e => set("mobile")(e.target.value)} /></div>
-          <div className="space-y-1"><Label>Country *</Label><Input required value={form.country} onChange={e => set("country")(e.target.value)} /></div>
+          <div className="space-y-1">
+            <Label>Country *</Label>
+            <Select value={form.country} onValueChange={set("country")}>
+              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectContent className="max-h-72">{COUNTRIES.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="space-y-1"><Label>City *</Label><Input required value={form.city} onChange={e => set("city")(e.target.value)} /></div>
         <div className="space-y-1"><Label>Your name (Artist, Band, Label) *</Label><Input required value={form.artist_name} onChange={e => set("artist_name")(e.target.value)} /></div>
@@ -288,7 +307,7 @@ function RegisterForm() {
           <Label>Main music genre *</Label>
           <Select value={form.main_genre} onValueChange={set("main_genre")}>
             <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-            <SelectContent className="max-h-72">{MAIN_GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+            <SelectContent className="max-h-72">{GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
           </Select>
         </div>
 

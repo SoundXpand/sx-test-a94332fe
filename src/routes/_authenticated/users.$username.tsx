@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
+import { approveUserFn } from "@/lib/admin-actions.functions";
 
 export const Route = createFileRoute("/_authenticated/users/$username")({
   component: UserDetail,
@@ -48,8 +49,13 @@ function UserDetail() {
 
   const setStatus = async (status: "approved" | "rejected" | "suspended") => {
     if (!profile) return;
+    if (status === "approved") {
+      try { await approveUserFn({ data: { targetUserId: profile.user_id } }); }
+      catch (e: any) { return toast.error(e.message); }
+      toast.success("User approved — notification sent");
+      return load();
+    }
     const patch: any = { status };
-    if (status === "approved") patch.approved_at = new Date().toISOString();
     if (status === "rejected") patch.rejection_reason = reason || null;
     const { error } = await supabase.from("profiles").update(patch).eq("user_id", profile.user_id);
     if (error) return toast.error(error.message);
