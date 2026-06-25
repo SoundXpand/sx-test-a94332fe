@@ -123,7 +123,14 @@ function AuthTabs() {
         <TabsTrigger value="register">Register</TabsTrigger>
       </TabsList>
       <TabsContent value="login"><LoginForm /></TabsContent>
-      <TabsContent value="register"><RegisterForm /></TabsContent>
+      <TabsContent value="register">
+        {!autoApprove && (
+          <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+            New accounts require approval before you start using SoundXpand.
+          </div>
+        )}
+        <RegisterForm />
+      </TabsContent>
     </Tabs>
   );
 }
