@@ -51,7 +51,7 @@ export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged:
   return (
     <>
       <div className="flex items-center gap-1.5 justify-end">
-        {row.status === "live" && smartlink && (
+        {(row.status === "live" || row.status === "delivered") && smartlink && (
           <Button size="sm" variant="outline" onClick={copySmartlink} title={smartlink}>
             <Link2 className="h-3.5 w-3.5 mr-1" />Smartlink
           </Button>
