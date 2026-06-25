@@ -80,7 +80,7 @@ export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged:
                 <ArrowDownToLine className="h-4 w-4 mr-2" />Withdraw to draft
               </DropdownMenuItem>
             )}
-            {row.status === "live" && smartlink && (
+            {(row.status === "live" || row.status === "delivered") && smartlink && (
               <>
                 <DropdownMenuItem onClick={copySmartlink}><Copy className="h-4 w-4 mr-2" />Copy smartlink</DropdownMenuItem>
                 <DropdownMenuItem asChild>
