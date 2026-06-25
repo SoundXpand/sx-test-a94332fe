@@ -125,6 +125,20 @@ function Profile() {
           </div>
         </div>
 
+        <div className="rounded-lg border border-border p-3 space-y-2">
+          <Label className="text-sm font-medium">Custom username (your public URL)</Label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground shrink-0 font-mono">/{roleSlug}/</span>
+            <Input
+              value={form.username || ""}
+              onChange={e => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "") })}
+              placeholder={data.profile?.username || "your-handle"}
+              className="font-mono"
+            />
+          </div>
+          <div className={`text-xs ${statusColor}`}>{statusText || "Pick a memorable handle — others will discover you at this URL."}</div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-4">
           <div><Label>Full name</Label><Input value={form.full_name || ""} onChange={e => setForm({ ...form, full_name: e.target.value })} /></div>
           <div><Label>Display name</Label><Input value={form.display_name || form.artist_name || ""} onChange={e => setForm({ ...form, display_name: e.target.value })} /></div>
