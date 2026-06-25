@@ -72,8 +72,19 @@ function Profile() {
   if (!data) return null;
   const initials = (data.profile?.full_name || data.user.email || "?").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
   const roleSlug = (data.profile?.role_type || "artist").toLowerCase();
-  const publicPath = `/${roleSlug}/${data.profile?.username || ""}`;
+  const previewUsername = (form.username || data.profile?.username || "").toLowerCase();
+  const publicPath = `/${roleSlug}/${previewUsername}`;
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}${publicPath}` : publicPath;
+  const statusColor =
+    usernameStatus === "available" ? "text-emerald-500" :
+    usernameStatus === "taken" || usernameStatus === "invalid" ? "text-destructive" :
+    usernameStatus === "checking" ? "text-muted-foreground" : "text-muted-foreground";
+  const statusText =
+    usernameStatus === "available" ? "Available ✓" :
+    usernameStatus === "taken" ? "Already taken" :
+    usernameStatus === "invalid" ? "3–32 chars: a–z, 0–9, _ or -" :
+    usernameStatus === "checking" ? "Checking…" :
+    usernameStatus === "current" ? "Your current username" : "";
 
   return (
     <div className="space-y-6 max-w-3xl">
