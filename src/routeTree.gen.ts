@@ -14,6 +14,7 @@ import { Route as PendingRouteImport } from './routes/pending'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
@@ -69,6 +70,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
@@ -268,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/p/$slug': typeof PSlugRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
@@ -305,6 +312,7 @@ export interface FileRoutesByTo {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/p/$slug': typeof PSlugRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
@@ -345,6 +353,7 @@ export interface FileRoutesById {
   '/l/$slug': typeof LSlugRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/p/$slug': typeof PSlugRoute
   '/_authenticated/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
@@ -385,6 +394,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/p/$slug'
     | '/admin/broadcast'
     | '/admin/pages'
     | '/admin/tickets'
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/p/$slug'
     | '/admin/broadcast'
     | '/admin/pages'
     | '/admin/tickets'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/p/$slug'
     | '/_authenticated/admin/broadcast'
     | '/_authenticated/admin/pages'
     | '/_authenticated/admin/tickets'
@@ -486,6 +498,7 @@ export interface RootRouteChildren {
   LSlugRoute: typeof LSlugRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  PSlugRoute: typeof PSlugRoute
   ApiPublicDspWebhookPlatformRoute: typeof ApiPublicDspWebhookPlatformRoute
 }
 
@@ -524,6 +537,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/terms': {
@@ -856,6 +876,7 @@ const rootRouteChildren: RootRouteChildren = {
   LSlugRoute: LSlugRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  PSlugRoute: PSlugRoute,
   ApiPublicDspWebhookPlatformRoute: ApiPublicDspWebhookPlatformRoute,
 }
 export const routeTree = rootRouteImport

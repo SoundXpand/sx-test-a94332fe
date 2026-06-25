@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Disc3, Plus, BarChart3, DollarSign, Users, FileText,
   Wrench, Settings, LifeBuoy, Music, ChevronsLeft, ChevronsRight,
-  ShieldCheck, UserCircle2, X, Receipt, LogOut,
+  ShieldCheck, UserCircle2, X, Receipt, LogOut, FileEdit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AppRole } from "@/hooks/use-current-user";
