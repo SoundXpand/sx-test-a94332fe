@@ -98,9 +98,9 @@ function ReleasesAdmin() {
       <Tabs defaultValue="all">
         <TabsList>
           <TabsTrigger value="all">All <Badge className="ml-2" variant="secondary">{active.length}</Badge></TabsTrigger>
-          <TabsTrigger value="approval">Approval queue <Badge className="ml-2" variant="secondary">{pending.length}</Badge></TabsTrigger>
-          <TabsTrigger value="delivery">Delivery <Badge className="ml-2" variant="secondary">{approved.length}</Badge></TabsTrigger>
-          <TabsTrigger value="delivered">Delivered <Badge className="ml-2" variant="secondary">{delivered.length}</Badge></TabsTrigger>
+          <TabsTrigger value="approval">Pending moderation <Badge className="ml-2" variant="secondary">{pending.length}</Badge></TabsTrigger>
+          <TabsTrigger value="delivery">Approved · Delivery <Badge className="ml-2" variant="secondary">{approvedReady.length}</Badge></TabsTrigger>
+          <TabsTrigger value="live">Live <Badge className="ml-2" variant="secondary">{live.length}</Badge></TabsTrigger>
           <TabsTrigger value="takedowns">Takedowns <Badge className="ml-2" variant="secondary">{takedowns.length}</Badge></TabsTrigger>
           <TabsTrigger value="archived">Archived <Badge className="ml-2" variant="secondary">{archived.length}</Badge></TabsTrigger>
         </TabsList>
@@ -109,7 +109,7 @@ function ReleasesAdmin() {
           <ReleaseTable rows={active} onChanged={load} emptyIcon={Disc3} emptyTitle="No releases" emptyDesc="" />
         </TabsContent>
         <TabsContent value="approval">
-          <ReleaseTable rows={pending} onChanged={load} emptyIcon={ShieldCheck} emptyTitle="No releases waiting" emptyDesc="Submitted releases will appear here for approval." />
+          <ReleaseTable rows={pending} onChanged={load} emptyIcon={ShieldCheck} emptyTitle="No releases waiting" emptyDesc="Submitted releases will appear here for moderation." />
         </TabsContent>
         <TabsContent value="delivery">
           <Card className="p-4 bg-card/60 border-border space-y-3">
@@ -119,7 +119,7 @@ function ReleasesAdmin() {
                 <Package className="h-3.5 w-3.5 mr-1" />{busy ? "Bundling…" : "Download bulk ZIP"}
               </Button>
             </div>
-            {approved.length === 0 ? (
+            {approvedReady.length === 0 ? (
               <EmptyState icon={Truck} title="No approved releases to deliver" description="Approved releases will queue here for distribution." />
             ) : (
               <table className="w-full text-sm">
@@ -127,7 +127,7 @@ function ReleasesAdmin() {
                   <th className="py-2 px-2 w-8"></th><th>Title</th><th>Catalog</th><th>UPC</th><th>Release date</th><th className="text-right pr-2">Action</th>
                 </tr></thead>
                 <tbody>
-                  {approved.map(r => (
+                  {approvedReady.map(r => (
                     <tr key={r.id} className="border-b border-border/50 hover:bg-muted/30">
                       <td className="px-2"><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSel(r.id)} /></td>
                       <td className="py-3 px-2 font-medium">
@@ -150,7 +150,7 @@ function ReleasesAdmin() {
                           <Package className="h-3.5 w-3.5 mr-1" />Bundle ZIP
                         </Button>
                         <Button size="sm" onClick={() => setDeliverFor(r)}>
-                          <Truck className="h-3.5 w-3.5 mr-1" />Mark delivered
+                          <Truck className="h-3.5 w-3.5 mr-1" />Mark live
                         </Button>
                       </td>
                     </tr>
@@ -160,17 +160,17 @@ function ReleasesAdmin() {
             )}
           </Card>
         </TabsContent>
-        <TabsContent value="delivered">
+        <TabsContent value="live">
           <Card className="p-4 bg-card/60 border-border">
-            {delivered.length === 0 ? (
-              <EmptyState icon={Truck} title="Nothing delivered yet" description="Once released, deliveries will be tracked here." />
+            {live.length === 0 ? (
+              <EmptyState icon={Truck} title="Nothing live yet" description="Once delivered to DSPs, releases will appear here as Live." />
             ) : (
               <table className="w-full text-sm">
                 <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                  <th className="py-2 px-2">Title</th><th>Catalog</th><th>Delivered</th><th>Note</th>
+                  <th className="py-2 px-2">Title</th><th>Catalog</th><th>Went live</th><th>Note</th><th className="text-right pr-2">Actions</th>
                 </tr></thead>
                 <tbody>
-                  {delivered.map(r => {
+                  {live.map(r => {
                     const d = deliveries.find(x => x.release_id === r.id);
                     return (
                       <tr key={r.id} className="border-b border-border/40">
@@ -178,6 +178,7 @@ function ReleasesAdmin() {
                         <td className="text-muted-foreground font-mono text-xs">{r.catalog_number || "—"}</td>
                         <td className="text-xs text-muted-foreground">{r.delivered_at ? new Date(r.delivered_at).toLocaleString() : "—"}</td>
                         <td className="text-xs text-muted-foreground truncate max-w-[20rem]">{d?.notes || r.delivery_note || "—"}</td>
+                        <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={load} /></td>
                       </tr>
                     );
                   })}
@@ -193,6 +194,7 @@ function ReleasesAdmin() {
           <ArchivedTable rows={archived} onChanged={load} />
         </TabsContent>
       </Tabs>
+
 
       <DeliveryDialog release={deliverFor} onClose={() => setDeliverFor(null)} onDelivered={() => { setDeliverFor(null); load(); }} />
     </div>
