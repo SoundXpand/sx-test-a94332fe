@@ -285,7 +285,13 @@ function RegisterForm() {
         <div className="space-y-1"><Label>Email *</Label><Input type="email" required value={form.email} onChange={e => set("email")(e.target.value)} /></div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1"><Label>Phone *</Label><Input required value={form.mobile} onChange={e => set("mobile")(e.target.value)} /></div>
-          <div className="space-y-1"><Label>Country *</Label><Input required value={form.country} onChange={e => set("country")(e.target.value)} /></div>
+          <div className="space-y-1">
+            <Label>Country *</Label>
+            <Select value={form.country} onValueChange={set("country")}>
+              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectContent className="max-h-72">{COUNTRIES.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="space-y-1"><Label>City *</Label><Input required value={form.city} onChange={e => set("city")(e.target.value)} /></div>
         <div className="space-y-1"><Label>Your name (Artist, Band, Label) *</Label><Input required value={form.artist_name} onChange={e => set("artist_name")(e.target.value)} /></div>
@@ -294,7 +300,7 @@ function RegisterForm() {
           <Label>Main music genre *</Label>
           <Select value={form.main_genre} onValueChange={set("main_genre")}>
             <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-            <SelectContent className="max-h-72">{MAIN_GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+            <SelectContent className="max-h-72">{GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
           </Select>
         </div>
 
