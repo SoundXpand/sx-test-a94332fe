@@ -502,21 +502,6 @@ function DspDeliveryTable({
   );
 }
 
-function DspLog({ events }: { events: any[] }) {
-  const dspEvents = events.filter(e => typeof e.type === "string" && e.type.startsWith("dsp_"));
-  if (dspEvents.length === 0) return <p className="text-sm text-muted-foreground">No DSP events recorded yet.</p>;
-  return (
-    <ol className="space-y-2 text-sm">
-      {dspEvents.map(ev => (
-        <li key={ev.id} className="flex items-start gap-3 border-b border-border/30 pb-2">
-          <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${ev.type.includes("live") ? "bg-success" : ev.type.includes("rejected") ? "bg-destructive" : ev.type.includes("delivered") ? "bg-blue-500" : "bg-muted-foreground/40"}`} />
-          <div className="flex-1 min-w-0">
-            <div className="capitalize">{ev.note || ev.type.replace(/_/g, " ")}</div>
-            <div className="text-xs text-muted-foreground">{new Date(ev.created_at).toLocaleString()}</div>
-          </div>
-        </li>
-      ))}
-    </ol>
-  );
-}
+// (Old standalone DspLog removed — all DSP events are now reflected inline in the delivery table and the global Activity log tab.)
+
 
