@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -77,9 +78,20 @@ function Profile() {
             <div className="text-xs text-muted-foreground truncate">{publicPath}</div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Switch checked={!!form.is_public} onCheckedChange={(v) => setForm({ ...form, is_public: v })} />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span><Switch checked={!!form.is_public} onCheckedChange={(v) => setForm({ ...form, is_public: v })} /></span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-xs">When on, anyone with the link can view your public page (bio, releases, socials). When off, only you can see it.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(publicUrl); toast.success("Link copied"); }}><Copy className="h-3 w-3 mr-1" />Copy</Button>
-            <Button size="sm" variant="outline" asChild><Link to={publicPath as any}><ExternalLink className="h-3 w-3 mr-1" />Visit</Link></Button>
+            <Button size="sm" variant="outline" asChild>
+              <a href={publicPath} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3 w-3 mr-1" />Visit</a>
+            </Button>
           </div>
         </div>
 

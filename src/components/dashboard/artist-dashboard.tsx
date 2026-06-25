@@ -162,14 +162,72 @@ export function ArtistDashboard() {
             <a href="mailto:mca@soundxpand.com"><Mail className="h-4 w-4 mr-1.5" />mca@soundxpand.com</a>
           </Button>
         </Card>
-        <Card className="p-6 bg-card/60 border-border flex flex-col justify-center">
-          <Heart className="h-6 w-6 text-primary mb-3" />
-          <blockquote className="font-display text-lg italic leading-snug">
-            "Music is the universal language of mankind."
-          </blockquote>
-          <p className="text-xs text-muted-foreground mt-2">— Henry Wadsworth Longfellow</p>
-        </Card>
+        <RotatingQuoteCard />
       </div>
+
+      {/* YouTube channel feature */}
+      <Card className="p-0 bg-card/60 border-border overflow-hidden">
+        <div className="grid md:grid-cols-[1fr_1.4fr]">
+          <div className="p-6 flex flex-col justify-center">
+            <div className="text-xs uppercase tracking-wider text-primary mb-2">SoundXpand on YouTube</div>
+            <h3 className="font-display text-xl font-semibold">Watch artist stories, tutorials & behind-the-scenes</h3>
+            <p className="text-sm text-muted-foreground mt-2">Subscribe to follow our community of independent artists.</p>
+            <Button asChild className="mt-4 w-fit" variant="outline">
+              <a href="https://www.youtube.com/@soundxpand" target="_blank" rel="noreferrer">
+                <Video className="h-4 w-4 mr-1.5" />Open channel
+              </a>
+            </Button>
+          </div>
+          <div className="aspect-video bg-black">
+            <iframe
+              className="w-full h-full"
+              src="https://www.youtube.com/embed?listType=user_uploads&list=soundxpand"
+              title="SoundXpand YouTube"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </Card>
     </div>
+  );
+}
+
+const QUOTES: { text: string; author: string }[] = [
+  { text: "Music is the universal language of mankind.", author: "Henry Wadsworth Longfellow" },
+  { text: "Where words fail, music speaks.", author: "Hans Christian Andersen" },
+  { text: "One good thing about music — when it hits you, you feel no pain.", author: "Bob Marley" },
+  { text: "Music produces a kind of pleasure which human nature cannot do without.", author: "Confucius" },
+  { text: "Without music, life would be a mistake.", author: "Friedrich Nietzsche" },
+  { text: "Music is the strongest form of magic.", author: "Marilyn Manson" },
+  { text: "If music be the food of love, play on.", author: "William Shakespeare" },
+  { text: "Music expresses that which cannot be said and on which it is impossible to be silent.", author: "Victor Hugo" },
+  { text: "Music gives a soul to the universe, wings to the mind, flight to the imagination.", author: "Plato" },
+  { text: "The only truth is music.", author: "Jack Kerouac" },
+];
+
+function RotatingQuoteCard() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI(v => (v + 1) % QUOTES.length), 30000);
+    return () => clearInterval(t);
+  }, []);
+  const q = QUOTES[i];
+  return (
+    <Card className="p-6 bg-card/60 border-border flex flex-col justify-center relative overflow-hidden">
+      <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+      <Heart className="h-6 w-6 text-primary mb-3 relative" />
+      <blockquote key={i} className="font-display text-lg italic leading-snug animate-in fade-in slide-in-from-bottom-1 duration-700 relative">
+        "{q.text}"
+      </blockquote>
+      <p className="text-xs text-muted-foreground mt-2 relative">— {q.author}</p>
+      <div className="flex gap-1 mt-4 relative">
+        {QUOTES.map((_, idx) => (
+          <span key={idx} className={`h-1 rounded-full transition-all ${idx === i ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"}`} />
+        ))}
+      </div>
+    </Card>
   );
 }

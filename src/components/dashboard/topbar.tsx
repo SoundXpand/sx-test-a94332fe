@@ -222,7 +222,8 @@ function NotificationsBell() {
     const { data } = await supabase.from("notifications" as any).select("*").order("created_at", { ascending: false }).limit(6);
     const list = (data as any[]) ?? [];
     setItems(list);
-    setUnread(list.filter(n => !n.read_at).length);
+    const cur = Number(localStorage.getItem("sx-bcast-last-seen") || "0");
+    setUnread(list.filter(n => (n.user_id ? !n.read_at : new Date(n.created_at).getTime() > cur)).length);
   };
   useEffect(() => {
     load();
@@ -234,6 +235,8 @@ function NotificationsBell() {
   const markAllRead = async () => {
     const ids = items.filter(n => !n.read_at && n.user_id).map(n => n.id);
     if (ids.length) await supabase.from("notifications" as any).update({ read_at: new Date().toISOString() } as any).in("id", ids);
+    localStorage.setItem("sx-bcast-last-seen", String(Date.now()));
+    setUnread(0);
     load();
   };
   return (

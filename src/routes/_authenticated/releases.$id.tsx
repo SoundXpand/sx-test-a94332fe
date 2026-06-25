@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ExternalLink, Copy, RefreshCw, Disc3, Check, X, Clock, Send, Save, Trash2, Package, Download } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ArrowLeft, ExternalLink, Copy, RefreshCw, Disc3, Check, X, Clock, Send, Save, Trash2, Package, Download, ChevronDown, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { statusBadgeClass } from "@/components/catalog/release-row-actions";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
@@ -18,6 +19,7 @@ import { ArtworkImage } from "@/components/catalog/artwork-image";
 import { AudioPlayButton } from "@/components/catalog/audio-play-button";
 import { downloadReleaseBundle } from "@/lib/release-bundle";
 import { downloadReleaseMetadataXlsx } from "@/lib/metadata-export";
+import { DSPS_FULL } from "@/lib/dsp-list";
 
 export const Route = createFileRoute("/_authenticated/releases/$id")({
   component: ReleaseDetail,
@@ -36,6 +38,7 @@ function ReleaseDetail() {
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [artworkUrl, setArtworkUrl] = useState<string | null>(null);
+  const [ownerProfile, setOwnerProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const updateFn = useServerFn(updateReleaseAdminFn);
@@ -52,6 +55,10 @@ function ReleaseDetail() {
     setTracks(t.data ?? []);
     setDeliveries((d.data as any[]) ?? []);
     setEvents((e.data as any[]) ?? []);
+    if (r.data?.owner_id) {
+      const { data: prof } = await supabase.from("profiles").select("country,full_name,artist_name").eq("user_id", r.data.owner_id).maybeSingle();
+      setOwnerProfile(prof);
+    }
     if (r.data?.artwork_path) {
       const { data: s } = await supabase.storage.from("artwork").createSignedUrl(r.data.artwork_path, 3600);
       setArtworkUrl(s?.signedUrl ?? null);
@@ -113,7 +120,7 @@ function ReleaseDetail() {
               )}
               {staff && (
                 <>
-                  <Button size="sm" variant="outline" onClick={() => downloadReleaseMetadataXlsx(release, tracks)}>
+                  <Button size="sm" variant="outline" onClick={() => downloadReleaseMetadataXlsx(release, tracks, { ownerCountry: ownerProfile?.country, ownerName: ownerProfile?.artist_name || ownerProfile?.full_name })}>
                     <Download className="h-3.5 w-3.5 mr-1" />Metadata
                   </Button>
                   <Button size="sm" variant="outline" onClick={async () => {
@@ -140,10 +147,11 @@ function ReleaseDetail() {
       </Card>
 
       <Tabs defaultValue="overview">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tracks">Tracklist ({tracks.length})</TabsTrigger>
           <TabsTrigger value="delivery">Delivery ({deliveries.length})</TabsTrigger>
+          {staff && <TabsTrigger value="prefs">Delivery prefs</TabsTrigger>}
           <TabsTrigger value="timeline">Activity log ({events.length})</TabsTrigger>
           {staff && <TabsTrigger value="admin">Admin</TabsTrigger>}
         </TabsList>
@@ -180,27 +188,48 @@ function ReleaseDetail() {
         </TabsContent>
 
         <TabsContent value="tracks">
-          <Card className="p-0 bg-card/60 border-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                <th className="py-2 px-2 w-10"></th><th className="px-2 w-10">#</th><th>Title</th><th>ISRC</th><th>Duration</th><th>Explicit</th>
-              </tr></thead>
-              <tbody>
-                {tracks.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No tracks</td></tr>}
-                {tracks.map(t => (
-                  <tr key={t.id} className="border-b border-border/40">
-                    <td className="py-2 px-2"><AudioPlayButton path={t.audio_path} /></td>
-                    <td className="py-2.5 px-2 text-muted-foreground">{t.track_number}</td>
-                    <td className="font-medium">{t.title}{t.version ? <span className="text-muted-foreground"> ({t.version})</span> : null}</td>
-                    <td className="text-muted-foreground font-mono text-xs">{t.isrc || "—"}</td>
-                    <td className="text-muted-foreground">{t.duration_seconds ? formatDur(t.duration_seconds) : "—"}</td>
-                    <td>{t.explicit ? <Badge variant="destructive">E</Badge> : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <Card className="p-2 bg-card/60 border-border space-y-1">
+            {tracks.length === 0 && <div className="p-6 text-center text-muted-foreground text-sm">No tracks</div>}
+            {tracks.map(t => (
+              <Collapsible key={t.id} className="border border-border/40 rounded-lg overflow-hidden">
+                <div className="flex items-center gap-3 px-3 py-2 hover:bg-muted/30 transition">
+                  <AudioPlayButton path={t.audio_path} />
+                  <span className="text-muted-foreground text-xs w-6">{t.track_number}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{t.title}{t.version ? <span className="text-muted-foreground"> ({t.version})</span> : null}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {[t.isrc, t.duration_seconds ? formatDur(t.duration_seconds) : null, t.language, t.explicit ? "Explicit" : null].filter(Boolean).join(" · ")}
+                    </div>
+                  </div>
+                  <CollapsibleTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"><ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" /></Button>
+                  </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent>
+                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 px-4 py-3 text-xs border-t border-border/40 bg-background/40">
+                    <Row k="Title" v={t.title} />
+                    <Row k="Version" v={t.version} />
+                    <Row k="ISRC" v={t.isrc} />
+                    <Row k="Duration" v={t.duration_seconds ? formatDur(t.duration_seconds) : null} />
+                    <Row k="Language" v={t.language} />
+                    <Row k="Genre" v={t.primary_genre} />
+                    <Row k="Explicit" v={t.explicit ? "Yes" : "No"} />
+                    <Row k="Composer" v={t.composer} />
+                    <Row k="Lyricist" v={t.lyricist} />
+                    <Row k="Producer" v={t.producer} />
+                    <Row k="Featured artist" v={t.featured_artist} />
+                    <Row k="Contributors" v={t.contributors} />
+                    <Row k="Publishing info" v={t.publishing_info} />
+                    <Row k="© owner" v={t.copyright_owner} />
+                    <Row k="Audio file" v={t.audio_path?.split("/").pop()} />
+                    <Row k="Size" v={t.file_size_bytes ? `${(t.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : null} />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
           </Card>
         </TabsContent>
+
 
         <TabsContent value="delivery">
           <Card className="p-0 bg-card/60 border-border overflow-hidden">
@@ -231,6 +260,56 @@ function ReleaseDetail() {
             </table>
           </Card>
         </TabsContent>
+
+        {staff && (
+          <TabsContent value="prefs">
+            <Card className="p-6 bg-card/60 border-border space-y-5">
+              <div>
+                <h3 className="font-display text-base font-semibold mb-2 flex items-center gap-2"><Globe className="h-4 w-4 text-primary" />Territories</h3>
+                <p className="text-sm text-muted-foreground">{Array.isArray(release.territories) && release.territories.length ? release.territories.join(", ") : "Worldwide"}</p>
+                {Array.isArray(release.excluded_territories) && release.excluded_territories.length > 0 && (
+                  <p className="text-xs text-destructive mt-1">Excluded: {release.excluded_territories.join(", ")}</p>
+                )}
+              </div>
+              <div>
+                <h3 className="font-display text-base font-semibold mb-2">Release window</h3>
+                <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                  <Row k="Release date" v={release.release_date} />
+                  <Row k="Original release" v={release.original_release_date} />
+                  <Row k="Pre-order" v={release.preorder_date} />
+                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-base font-semibold mb-2">Pricing</h3>
+                <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                  <Row k="Pricing tier" v={release.price_tier || "Standard"} />
+                  <Row k="Currency" v={release.currency || "USD"} />
+                  <Row k="Suggested price" v={release.suggested_price ?? "—"} />
+                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-base font-semibold mb-2">DSP outlets ({Array.isArray(release.store_selection) ? release.store_selection.length || "All" : "All"})</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
+                  {DSPS_FULL.map(d => {
+                    const sel = Array.isArray(release.store_selection) && release.store_selection.length
+                      ? release.store_selection.includes(d.name) || release.store_selection.includes(d.slug)
+                      : true;
+                    const status = deliveries.find(x => x.platform === d.name)?.status;
+                    return (
+                      <div key={d.slug} className={`flex items-center gap-2 rounded-md border px-2 py-1.5 ${sel ? "border-border" : "border-dashed border-border/40 opacity-50"}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${status === "live" ? "bg-success" : status === "delivered" ? "bg-blue-500" : status === "rejected" ? "bg-destructive" : "bg-muted-foreground/40"}`} />
+                        <span className="truncate flex-1">{d.name}</span>
+                        {status && <span className="text-[10px] uppercase text-muted-foreground">{status.replace(/_/g, " ")}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+        )}
+
+
 
         <TabsContent value="timeline">
           <Card className="p-6 bg-card/60 border-border">
