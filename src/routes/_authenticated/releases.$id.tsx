@@ -59,7 +59,7 @@ function ReleaseDetail() {
     setDeliveries((d.data as any[]) ?? []);
     setEvents((e.data as any[]) ?? []);
     if (r.data?.owner_id) {
-      const { data: prof } = await supabase.from("profiles").select("country,full_name,artist_name").eq("user_id", r.data.owner_id).maybeSingle();
+      const { data: prof } = await supabase.from("profiles").select("user_id,country,full_name,artist_name,username,email,role_type,mobile,city").eq("user_id", r.data.owner_id).maybeSingle();
       setOwnerProfile(prof);
     }
     if (r.data?.artwork_path) {
