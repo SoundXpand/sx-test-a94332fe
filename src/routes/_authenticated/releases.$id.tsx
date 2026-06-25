@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ExternalLink, Copy, RefreshCw, Disc3, Check, X, Clock, Send, Save, Trash2, Package, Download } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ArrowLeft, ExternalLink, Copy, RefreshCw, Disc3, Check, X, Clock, Send, Save, Trash2, Package, Download, ChevronDown, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { statusBadgeClass } from "@/components/catalog/release-row-actions";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
@@ -18,6 +19,7 @@ import { ArtworkImage } from "@/components/catalog/artwork-image";
 import { AudioPlayButton } from "@/components/catalog/audio-play-button";
 import { downloadReleaseBundle } from "@/lib/release-bundle";
 import { downloadReleaseMetadataXlsx } from "@/lib/metadata-export";
+import { DSPS_FULL } from "@/lib/dsp-list";
 
 export const Route = createFileRoute("/_authenticated/releases/$id")({
   component: ReleaseDetail,
