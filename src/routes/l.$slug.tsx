@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
-import { Music } from "lucide-react";
+import { Music, Sparkles, ArrowRight, Share2, ExternalLink } from "lucide-react";
 import { ArtworkImage } from "@/components/catalog/artwork-image";
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -25,7 +25,7 @@ const getSmartlink = createServerFn({ method: "GET" })
     );
     const { data: rel } = await sb
       .from("public_releases")
-      .select("id, slug, title, version, release_type, primary_genre, release_date, artwork_path")
+      .select("id, slug, title, version, release_type, primary_genre, release_date, artwork_path, owner_id, status, delivered_at")
       .eq("slug", data.slug)
       .maybeSingle();
     if (!rel) return null;
@@ -38,17 +38,14 @@ const getSmartlink = createServerFn({ method: "GET" })
       const { data: signed } = await sb.storage.from("artwork").createSignedUrl(rel.artwork_path, 60 * 60);
       artworkUrl = signed?.signedUrl ?? null;
     }
-    // Look up artist via releases (need owner profile artist_name OR release.artist_name)
-    const { data: full } = await sb.from("releases").select("id").eq("slug", data.slug).maybeSingle();
     let artist = "";
-    if (full) {
-      const { data: r2 } = await sb.from("releases").select("owner_id").eq("id", full.id).maybeSingle();
-      if (r2?.owner_id) {
-        const { data: prof } = await sb.from("profiles").select("artist_name, full_name").eq("user_id", r2.owner_id).maybeSingle();
-        artist = prof?.artist_name || prof?.full_name || "";
-      }
+    let artistUsername = "";
+    if ((rel as any).owner_id) {
+      const { data: prof } = await sb.from("public_profiles").select("artist_name, full_name, username").eq("user_id", (rel as any).owner_id).maybeSingle();
+      artist = (prof as any)?.artist_name || (prof as any)?.full_name || "";
+      artistUsername = (prof as any)?.username || "";
     }
-    return { release: rel, links: links ?? [], artworkUrl, artist };
+    return { release: rel, links: links ?? [], artworkUrl, artist, artistUsername };
   });
 
 export const Route = createFileRoute("/l/$slug")({
@@ -57,24 +54,48 @@ export const Route = createFileRoute("/l/$slug")({
     if (!r) throw notFound();
     return r;
   },
-  head: ({ loaderData }) => {
+  head: ({ params, loaderData }) => {
     if (!loaderData) return { meta: [{ title: "Not found" }] };
     const { release, artworkUrl, artist } = loaderData;
     const title = `${release.title}${artist ? " — " + artist : ""}`;
-    const desc = `Listen to ${release.title} on Spotify, Apple Music, YouTube and more.`;
+    const desc = `Listen to ${release.title}${artist ? " by " + artist : ""} on Spotify, Apple Music, YouTube and 150+ streaming platforms.`;
+    const url = `https://asset-friend-hub.lovable.app/l/${params.slug}`;
     return {
       meta: [
         { title },
         { name: "description", content: desc },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
-        ...(artworkUrl ? [{ property: "og:image", content: artworkUrl }] : []),
+        { property: "og:type", content: "music.song" },
+        { property: "og:url", content: url },
+        ...(artworkUrl ? [
+          { property: "og:image", content: artworkUrl },
+          { property: "og:image:width", content: "1400" },
+          { property: "og:image:height", content: "1400" },
+        ] : []),
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+        ...(artworkUrl ? [{ name: "twitter:image", content: artworkUrl }] : []),
       ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "MusicRecording",
+          name: release.title,
+          ...(artist ? { byArtist: { "@type": "MusicGroup", name: artist } } : {}),
+          ...(release.release_date ? { datePublished: release.release_date } : {}),
+          genre: release.primary_genre,
+          ...(artworkUrl ? { image: artworkUrl } : {}),
+          url,
+        }),
+      }],
     };
   },
   notFoundComponent: () => (
-    <div className="min-h-screen grid place-items-center text-center p-8">
+    <div className="min-h-screen grid place-items-center text-center p-8 bg-background">
       <div>
         <h1 className="font-display text-2xl">Link not found</h1>
         <p className="text-muted-foreground mt-2">This smartlink may have been taken down.</p>
@@ -83,47 +104,119 @@ export const Route = createFileRoute("/l/$slug")({
     </div>
   ),
   errorComponent: () => (
-    <div className="min-h-screen grid place-items-center"><p>Something went wrong.</p></div>
+    <div className="min-h-screen grid place-items-center bg-background"><p>Something went wrong.</p></div>
   ),
   component: Smartlink,
 });
 
 function Smartlink() {
-  const { release, links, artworkUrl, artist } = Route.useLoaderData() as NonNullable<Awaited<ReturnType<typeof getSmartlink>>>;
+  const { release, links, artworkUrl, artist, artistUsername } = Route.useLoaderData() as NonNullable<Awaited<ReturnType<typeof getSmartlink>>>;
+  const isLive = (release as any).status === "live" || (release as any).status === "delivered";
+
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background">
-      {artworkUrl && (
-        <div className="absolute inset-0 -z-10">
-          <img src={artworkUrl} alt="" className="h-full w-full object-cover blur-3xl scale-125 opacity-30" />
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
-        </div>
-      )}
-      <div className="mx-auto max-w-md px-5 py-10 sm:py-16">
-        <div className="aspect-square rounded-2xl overflow-hidden border border-border shadow-2xl">
+    <div className="min-h-screen relative overflow-hidden bg-background text-foreground">
+      {/* Vibrant artwork blur backdrop */}
+      <div className="absolute inset-0 -z-10">
+        {artworkUrl ? (
+          <>
+            <img src={artworkUrl} alt="" className="h-full w-full object-cover blur-3xl scale-150 opacity-40" aria-hidden />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background" />
+          </>
+        ) : (
+          <>
+            <div className="absolute -top-32 -left-32 h-[420px] w-[420px] rounded-full bg-primary/30 blur-[140px]" />
+            <div className="absolute bottom-0 right-0 h-[420px] w-[420px] rounded-full bg-fuchsia-500/25 blur-[140px]" />
+          </>
+        )}
+      </div>
+
+      {/* Top brand bar */}
+      <header className="absolute top-0 left-0 right-0 z-20 px-5 py-4 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 text-sm">
+          <Music className="h-4 w-4 text-primary" />
+          <span className="font-display font-semibold">SoundXpand</span>
+        </Link>
+        <Link to="/auth" className="text-xs rounded-full bg-background/60 backdrop-blur border border-border/60 px-3 py-1.5 hover:bg-background">
+          Distribute free
+        </Link>
+      </header>
+
+      <div className="mx-auto max-w-md px-5 pt-20 pb-12 sm:pt-24 sm:pb-16">
+        <div className="aspect-square rounded-3xl overflow-hidden border border-border/60 shadow-2xl shadow-primary/10">
           {artworkUrl ? (
             <ArtworkImage src={artworkUrl} alt={release.title} className="h-full w-full" />
           ) : (
             <div className="h-full w-full grid place-items-center bg-muted"><Music className="h-12 w-12 text-muted-foreground" /></div>
           )}
         </div>
+
         <div className="mt-6 text-center">
-          <h1 className="font-display text-2xl font-semibold">{release.title}</h1>
-          {artist && <p className="text-muted-foreground mt-1">{artist}</p>}
-          <p className="text-xs text-muted-foreground mt-2 capitalize">{release.release_type} · {release.primary_genre}</p>
+          {isLive && (
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-500 mb-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Out now
+            </span>
+          )}
+          <h1 className="font-display text-3xl font-bold leading-tight">{release.title}</h1>
+          {artist && (
+            artistUsername ? (
+              <Link to="/$roleType/$username" params={{ roleType: "artist", username: artistUsername }} className="text-muted-foreground mt-1 inline-block hover:text-foreground">
+                {artist}
+              </Link>
+            ) : <p className="text-muted-foreground mt-1">{artist}</p>
+          )}
+          <p className="text-xs text-muted-foreground mt-2 capitalize">
+            {release.release_type}{release.primary_genre ? ` · ${release.primary_genre}` : ""}{release.release_date ? ` · ${release.release_date}` : ""}
+          </p>
         </div>
-        <div className="mt-8 space-y-2.5">
+
+        {/* Share */}
+        <div className="mt-5 flex justify-center">
+          <button
+            onClick={() => {
+              if (typeof navigator !== "undefined" && navigator.share) {
+                navigator.share({ title: release.title, url: window.location.href }).catch(() => {});
+              } else if (typeof navigator !== "undefined") {
+                navigator.clipboard?.writeText(window.location.href);
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-xs rounded-full border border-border/60 bg-background/60 backdrop-blur px-3 py-1.5 hover:bg-background"
+          >
+            <Share2 className="h-3 w-3" /> Share
+          </button>
+        </div>
+
+        <div className="mt-6 space-y-2.5">
           {links.length === 0 ? (
-            <p className="text-center text-sm text-muted-foreground">No streaming links available yet.</p>
+            <p className="text-center text-sm text-muted-foreground py-6">Streaming links coming soon.</p>
           ) : links.map((l) => (
             <a key={l.platform} href={l.url} target="_blank" rel="noopener noreferrer"
-              className={`flex items-center justify-between rounded-xl px-5 py-3.5 font-semibold transition ${PLATFORM_COLORS[l.platform] ?? "bg-card border border-border hover:bg-muted"}`}>
+              className={`flex items-center justify-between rounded-xl px-5 py-3.5 font-semibold transition shadow-lg shadow-black/10 ${PLATFORM_COLORS[l.platform] ?? "bg-card border border-border hover:bg-muted"}`}>
               <span>{l.platform}</span>
-              <span className="text-sm opacity-80">Play →</span>
+              <span className="text-sm opacity-80 inline-flex items-center gap-1">Play <ExternalLink className="h-3 w-3" /></span>
             </a>
           ))}
         </div>
-        <div className="mt-10 text-center text-xs text-muted-foreground">
+
+        {/* Signup promo */}
+        <div className="mt-10 relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-fuchsia-500/10 to-cyan-500/10 p-6">
+          <Sparkles className="h-6 w-6 text-primary mb-2" />
+          <h2 className="font-display text-lg font-semibold leading-snug">
+            Got a track? Release it to the world.
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            SoundXpand puts your music on Spotify, Apple Music, YouTube, JioSaavn and 150+ platforms — keep 100% of your rights.
+          </p>
+          <Link to="/auth" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:opacity-90">
+            Get started free <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        <div className="mt-8 text-center text-xs text-muted-foreground">
           <Link to="/" className="hover:text-foreground">Powered by SoundXpand</Link>
+          <span className="mx-2">·</span>
+          <Link to="/legal/terms" className="hover:text-foreground">Terms</Link>
+          <span className="mx-2">·</span>
+          <Link to="/legal/privacy" className="hover:text-foreground">Privacy</Link>
         </div>
       </div>
     </div>
