@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { Music, Sparkles, ArrowRight, Share2, ExternalLink } from "lucide-react";
 import { ArtworkImage } from "@/components/catalog/artwork-image";
+import { BrandLogo } from "@/components/branding/brand-logo";
 
 const PLATFORM_COLORS: Record<string, string> = {
   Spotify: "bg-[#1DB954] text-black hover:bg-[#1ed760]",
@@ -133,8 +134,7 @@ function Smartlink() {
       {/* Top brand bar */}
       <header className="absolute top-0 left-0 right-0 z-20 px-5 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 text-sm">
-          <Music className="h-4 w-4 text-primary" />
-          <span className="font-display font-semibold">SoundXpand</span>
+          <BrandLogo height={22} />
         </Link>
         <Link to="/auth" className="text-xs rounded-full bg-background/60 backdrop-blur border border-border/60 px-3 py-1.5 hover:bg-background">
           Distribute free

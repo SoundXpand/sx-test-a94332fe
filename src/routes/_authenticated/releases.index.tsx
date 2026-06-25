@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { Disc3, Download, Truck, Check, X, ShieldCheck, ArrowDownToLine, Trash2, RotateCcw } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
-import { ReleaseRowActions, statusBadgeClass } from "@/components/catalog/release-row-actions";
+import { ReleaseRowActions } from "@/components/catalog/release-row-actions";
+import { ReleaseStatusBadge } from "@/components/catalog/status-badge";
+import { isReleaseLive } from "@/lib/release-status";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { useServerFn } from "@tanstack/react-start";
 import { markDeliveredFn } from "@/lib/admin-actions.functions";
@@ -53,8 +55,8 @@ function ReleasesAdmin() {
 
   const active = rows.filter(r => !r.archived_at);
   const pending = active.filter(r => r.status === "pending");
-  const approved = active.filter(r => r.status === "live");
-  const delivered = active.filter(r => r.status === "delivered");
+  const approvedReady = active.filter(r => r.status === "approved");
+  const live = active.filter(r => isReleaseLive(r.status));
   const takedowns = active.filter(r => r.status === "takedown_requested" || r.status === "taken_down");
   const archived = rows.filter(r => r.archived_at);
 
@@ -62,7 +64,7 @@ function ReleasesAdmin() {
     const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n;
   });
   const bulkDownload = async () => {
-    const picked = approved.filter(r => selected.has(r.id));
+    const picked = approvedReady.filter(r => selected.has(r.id));
     if (picked.length === 0) return toast.error("Select at least one approved release");
     setBusy(true);
     try { await downloadBulkBundles(picked); toast.success(`Bundled ${picked.length} releases`); }
@@ -96,9 +98,9 @@ function ReleasesAdmin() {
       <Tabs defaultValue="all">
         <TabsList>
           <TabsTrigger value="all">All <Badge className="ml-2" variant="secondary">{active.length}</Badge></TabsTrigger>
-          <TabsTrigger value="approval">Approval queue <Badge className="ml-2" variant="secondary">{pending.length}</Badge></TabsTrigger>
-          <TabsTrigger value="delivery">Delivery <Badge className="ml-2" variant="secondary">{approved.length}</Badge></TabsTrigger>
-          <TabsTrigger value="delivered">Delivered <Badge className="ml-2" variant="secondary">{delivered.length}</Badge></TabsTrigger>
+          <TabsTrigger value="approval">Pending moderation <Badge className="ml-2" variant="secondary">{pending.length}</Badge></TabsTrigger>
+          <TabsTrigger value="delivery">Approved · Delivery <Badge className="ml-2" variant="secondary">{approvedReady.length}</Badge></TabsTrigger>
+          <TabsTrigger value="live">Live <Badge className="ml-2" variant="secondary">{live.length}</Badge></TabsTrigger>
           <TabsTrigger value="takedowns">Takedowns <Badge className="ml-2" variant="secondary">{takedowns.length}</Badge></TabsTrigger>
           <TabsTrigger value="archived">Archived <Badge className="ml-2" variant="secondary">{archived.length}</Badge></TabsTrigger>
         </TabsList>
@@ -107,7 +109,7 @@ function ReleasesAdmin() {
           <ReleaseTable rows={active} onChanged={load} emptyIcon={Disc3} emptyTitle="No releases" emptyDesc="" />
         </TabsContent>
         <TabsContent value="approval">
-          <ReleaseTable rows={pending} onChanged={load} emptyIcon={ShieldCheck} emptyTitle="No releases waiting" emptyDesc="Submitted releases will appear here for approval." />
+          <ReleaseTable rows={pending} onChanged={load} emptyIcon={ShieldCheck} emptyTitle="No releases waiting" emptyDesc="Submitted releases will appear here for moderation." />
         </TabsContent>
         <TabsContent value="delivery">
           <Card className="p-4 bg-card/60 border-border space-y-3">
@@ -117,7 +119,7 @@ function ReleasesAdmin() {
                 <Package className="h-3.5 w-3.5 mr-1" />{busy ? "Bundling…" : "Download bulk ZIP"}
               </Button>
             </div>
-            {approved.length === 0 ? (
+            {approvedReady.length === 0 ? (
               <EmptyState icon={Truck} title="No approved releases to deliver" description="Approved releases will queue here for distribution." />
             ) : (
               <table className="w-full text-sm">
@@ -125,7 +127,7 @@ function ReleasesAdmin() {
                   <th className="py-2 px-2 w-8"></th><th>Title</th><th>Catalog</th><th>UPC</th><th>Release date</th><th className="text-right pr-2">Action</th>
                 </tr></thead>
                 <tbody>
-                  {approved.map(r => (
+                  {approvedReady.map(r => (
                     <tr key={r.id} className="border-b border-border/50 hover:bg-muted/30">
                       <td className="px-2"><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSel(r.id)} /></td>
                       <td className="py-3 px-2 font-medium">
@@ -148,7 +150,7 @@ function ReleasesAdmin() {
                           <Package className="h-3.5 w-3.5 mr-1" />Bundle ZIP
                         </Button>
                         <Button size="sm" onClick={() => setDeliverFor(r)}>
-                          <Truck className="h-3.5 w-3.5 mr-1" />Mark delivered
+                          <Truck className="h-3.5 w-3.5 mr-1" />Mark live
                         </Button>
                       </td>
                     </tr>
@@ -158,17 +160,17 @@ function ReleasesAdmin() {
             )}
           </Card>
         </TabsContent>
-        <TabsContent value="delivered">
+        <TabsContent value="live">
           <Card className="p-4 bg-card/60 border-border">
-            {delivered.length === 0 ? (
-              <EmptyState icon={Truck} title="Nothing delivered yet" description="Once released, deliveries will be tracked here." />
+            {live.length === 0 ? (
+              <EmptyState icon={Truck} title="Nothing live yet" description="Once delivered to DSPs, releases will appear here as Live." />
             ) : (
               <table className="w-full text-sm">
                 <thead><tr className="text-left text-xs text-muted-foreground border-b border-border">
-                  <th className="py-2 px-2">Title</th><th>Catalog</th><th>Delivered</th><th>Note</th>
+                  <th className="py-2 px-2">Title</th><th>Catalog</th><th>Went live</th><th>Note</th><th className="text-right pr-2">Actions</th>
                 </tr></thead>
                 <tbody>
-                  {delivered.map(r => {
+                  {live.map(r => {
                     const d = deliveries.find(x => x.release_id === r.id);
                     return (
                       <tr key={r.id} className="border-b border-border/40">
@@ -176,6 +178,7 @@ function ReleasesAdmin() {
                         <td className="text-muted-foreground font-mono text-xs">{r.catalog_number || "—"}</td>
                         <td className="text-xs text-muted-foreground">{r.delivered_at ? new Date(r.delivered_at).toLocaleString() : "—"}</td>
                         <td className="text-xs text-muted-foreground truncate max-w-[20rem]">{d?.notes || r.delivery_note || "—"}</td>
+                        <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={load} /></td>
                       </tr>
                     );
                   })}
@@ -191,6 +194,7 @@ function ReleasesAdmin() {
           <ArchivedTable rows={archived} onChanged={load} />
         </TabsContent>
       </Tabs>
+
 
       <DeliveryDialog release={deliverFor} onClose={() => setDeliverFor(null)} onDelivered={() => { setDeliverFor(null); load(); }} />
     </div>
@@ -253,7 +257,7 @@ function ReleaseTable({ rows, onChanged, emptyIcon, emptyTitle, emptyDesc }: any
               <td className="capitalize text-muted-foreground">{r.release_type}</td>
               <td className="text-muted-foreground font-mono text-xs">{r.upc || "—"}</td>
               <td className="text-muted-foreground">{r.release_date || "—"}</td>
-              <td><span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusBadgeClass(r.status)}`}>{r.status.replace(/_/g, " ")}</span></td>
+              <td><ReleaseStatusBadge status={r.status} /></td>
               <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={onChanged} /></td>
             </tr>
           ))}

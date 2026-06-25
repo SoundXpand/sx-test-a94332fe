@@ -62,7 +62,7 @@ export const markDeliveredFn = createServerFn({ method: "POST" })
     const now = new Date().toISOString();
     const { error: relErr } = await context.supabase
       .from("releases")
-      .update({ status: "delivered", delivered_at: now, delivery_note: data.notes ?? null })
+      .update({ status: "live", delivered_at: now, delivery_note: data.notes ?? null })
       .eq("id", data.releaseId);
     if (relErr) throw relErr;
     const { error: delErr } = await context.supabase

@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ArrowLeft, ExternalLink, Copy, RefreshCw, Disc3, Check, X, Clock, Send, Save, Trash2, Package, Download, ChevronDown, Globe } from "lucide-react";
 import { toast } from "sonner";
-import { statusBadgeClass } from "@/components/catalog/release-row-actions";
+import { ReleaseStatusBadge } from "@/components/catalog/status-badge";
+import { EDITABLE_RELEASE_STATUSES, getStatusMeta } from "@/lib/release-status";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { useServerFn } from "@tanstack/react-start";
 import { archiveReleaseFn, updateReleaseAdminFn, updateDspDeliveryFn } from "@/lib/admin-actions.functions";
@@ -26,7 +27,9 @@ export const Route = createFileRoute("/_authenticated/releases/$id")({
   head: () => ({ meta: [{ title: "Release detail — SoundXpand" }] }),
 });
 
-const STATUS_OPTIONS = ["draft", "pending", "approved", "live", "delivered", "rejected", "takedown_requested", "taken_down"];
+const STATUS_OPTIONS = EDITABLE_RELEASE_STATUSES;
+
+
 
 function ReleaseDetail() {
   const { id } = Route.useParams();
@@ -95,7 +98,7 @@ function ReleaseDetail() {
       <div className="flex items-center gap-3 flex-wrap">
         <Button size="icon" variant="ghost" onClick={() => navigate({ to: "/catalog" })}><ArrowLeft className="h-4 w-4" /></Button>
         <h1 className="font-display text-2xl font-semibold truncate">{release.title}</h1>
-        <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusBadgeClass(release.status)}`}>{release.status.replace(/_/g, " ")}</span>
+        <ReleaseStatusBadge status={release.status} />
         {release.archived_at && <Badge variant="destructive">Archived</Badge>}
       </div>
 
@@ -234,10 +237,6 @@ function ReleaseDetail() {
         <TabsContent value="delivery">
           <Card className="p-0 bg-card/60 border-border overflow-hidden">
             <DspDeliveryTable deliveries={deliveries} releaseId={id} staff={staff} onChanged={load} simulate={simulate} />
-          </Card>
-          <Card className="mt-4 p-6 bg-card/60 border-border">
-            <h3 className="font-display text-base font-semibold mb-3">DSP delivery log</h3>
-            <DspLog events={events} />
           </Card>
         </TabsContent>
 
@@ -503,21 +502,6 @@ function DspDeliveryTable({
   );
 }
 
-function DspLog({ events }: { events: any[] }) {
-  const dspEvents = events.filter(e => typeof e.type === "string" && e.type.startsWith("dsp_"));
-  if (dspEvents.length === 0) return <p className="text-sm text-muted-foreground">No DSP events recorded yet.</p>;
-  return (
-    <ol className="space-y-2 text-sm">
-      {dspEvents.map(ev => (
-        <li key={ev.id} className="flex items-start gap-3 border-b border-border/30 pb-2">
-          <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${ev.type.includes("live") ? "bg-success" : ev.type.includes("rejected") ? "bg-destructive" : ev.type.includes("delivered") ? "bg-blue-500" : "bg-muted-foreground/40"}`} />
-          <div className="flex-1 min-w-0">
-            <div className="capitalize">{ev.note || ev.type.replace(/_/g, " ")}</div>
-            <div className="text-xs text-muted-foreground">{new Date(ev.created_at).toLocaleString()}</div>
-          </div>
-        </li>
-      ))}
-    </ol>
-  );
-}
+// (Old standalone DspLog removed — all DSP events are now reflected inline in the delivery table and the global Activity log tab.)
+
 

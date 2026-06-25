@@ -10,6 +10,7 @@ import type { AppRole } from "@/hooks/use-current-user";
 import { useCurrentUser, roleLabel } from "@/hooks/use-current-user";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { BrandLogo } from "@/components/branding/brand-logo";
 
 type Item = { to: string; label: string; icon: typeof Music; badge?: number };
 
@@ -109,10 +110,7 @@ export function AppSidebar({
       >
         <div className="flex h-16 items-center justify-between px-3 border-b border-border">
           <Link to="/dashboard" className="flex items-center gap-2 px-2 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
-              <Music className="h-4 w-4" />
-            </div>
-            {!collapsed && <span className="font-display font-semibold truncate">SoundXpand</span>}
+            <BrandLogo height={26} className={collapsed ? "" : ""} />
           </Link>
           <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8" onClick={onMobileClose}>
             <X className="h-4 w-4" />

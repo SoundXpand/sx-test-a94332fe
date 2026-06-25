@@ -12,6 +12,7 @@ import { ArrowLeft, Home, Music } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { ROLE_TYPES, MAIN_GENRES, DISTRIBUTORS, TRACKS_RELEASED_BUCKETS, LISTENERS_BUCKETS } from "@/lib/onboarding-options";
+import { BrandLogo } from "@/components/branding/brand-logo";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -64,10 +65,7 @@ function AuthPage() {
 
       <div className="mx-auto max-w-2xl px-6 pb-16">
         <div className="mb-8 flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-            <Music className="h-5 w-5" />
-          </div>
-          <span className="font-display text-xl font-semibold">SoundXpand</span>
+          <BrandLogo height={36} />
         </div>
 
         <div className="rounded-3xl border border-border bg-card/60 p-8 backdrop-blur-xl shadow-2xl">
