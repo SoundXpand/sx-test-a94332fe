@@ -11,8 +11,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Home, Music } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ROLE_TYPES, MAIN_GENRES, DISTRIBUTORS, TRACKS_RELEASED_BUCKETS, LISTENERS_BUCKETS } from "@/lib/onboarding-options";
+import { ROLE_TYPES, TRACKS_RELEASED_BUCKETS, LISTENERS_BUCKETS } from "@/lib/onboarding-options";
+import { GENRES } from "@/lib/release-options";
+import { DISTRIBUTORS } from "@/lib/distributors";
+import { CONTINENTS } from "@/lib/territories";
 import { BrandLogo } from "@/components/branding/brand-logo";
+import { getPublicPlatformFlagsFn } from "@/lib/platform-flags.functions";
+
+const COUNTRIES = CONTINENTS.flatMap(c => c.countries).sort((a, b) => a.name.localeCompare(b.name));
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
