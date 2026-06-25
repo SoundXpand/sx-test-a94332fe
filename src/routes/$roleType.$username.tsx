@@ -30,7 +30,7 @@ function PublicProfile() {
 
   useEffect(() => {
     (async () => {
-      const { data: p } = await supabase.from("profiles").select("*").ilike("username", username).eq("is_public", true).maybeSingle();
+      const { data: p } = await supabase.from("public_profiles" as any).select("*").ilike("username", username).maybeSingle();
       setProfile(p);
       if (p) {
         const { data: rels } = await supabase
