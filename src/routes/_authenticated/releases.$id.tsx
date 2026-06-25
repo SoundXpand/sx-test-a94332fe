@@ -120,7 +120,7 @@ function ReleaseDetail() {
               )}
               {staff && (
                 <>
-                  <Button size="sm" variant="outline" onClick={() => downloadReleaseMetadataXlsx(release, tracks)}>
+                  <Button size="sm" variant="outline" onClick={() => downloadReleaseMetadataXlsx(release, tracks, { ownerCountry: ownerProfile?.country, ownerName: ownerProfile?.artist_name || ownerProfile?.full_name })}>
                     <Download className="h-3.5 w-3.5 mr-1" />Metadata
                   </Button>
                   <Button size="sm" variant="outline" onClick={async () => {
