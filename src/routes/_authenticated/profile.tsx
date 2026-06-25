@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCurrentUser, roleLabel } from "@/hooks/use-current-user";
+import { useCurrentUser, displayRoleLabel } from "@/hooks/use-current-user";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -99,7 +99,7 @@ function Profile() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-semibold">{data.profile?.full_name}</div>
-            <div className="text-sm text-muted-foreground">{roleLabel(data.primaryRole)} · {data.profile?.username}</div>
+            <div className="text-sm text-muted-foreground">{displayRoleLabel(data.primaryRole, (data.profile as any)?.role_type)} · {data.profile?.username}</div>
             <div className="text-xs text-muted-foreground truncate">{data.user.email}</div>
           </div>
         </div>

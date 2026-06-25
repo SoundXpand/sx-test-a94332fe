@@ -37,3 +37,17 @@ export function isStaff(role?: AppRole) {
 export function roleLabel(r: AppRole) {
   return { artist: "Artist", manager: "Manager", viewer: "Viewer", administrator: "Administrator", sx_manager: "SX Manager" }[r];
 }
+
+const ROLE_TYPE_LABELS: Record<string, string> = {
+  artist: "Artist",
+  label: "Label",
+  songwriter: "Songwriter",
+  publisher: "Publisher",
+};
+
+/** For non-staff, show profile.role_type (Artist/Label/Songwriter/Publisher). Staff fall back to app role. */
+export function displayRoleLabel(primaryRole: AppRole | undefined, roleType?: string | null) {
+  if (primaryRole && isStaff(primaryRole)) return roleLabel(primaryRole);
+  const key = (roleType || "artist").toLowerCase();
+  return ROLE_TYPE_LABELS[key] ?? roleLabel(primaryRole ?? "artist");
+}

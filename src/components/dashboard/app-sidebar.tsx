@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AppRole } from "@/hooks/use-current-user";
-import { useCurrentUser, roleLabel } from "@/hooks/use-current-user";
+import { useCurrentUser, displayRoleLabel } from "@/hooks/use-current-user";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { BrandLogo } from "@/components/branding/brand-logo";
@@ -163,7 +163,7 @@ export function AppSidebar({
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium truncate">{displayName}</div>
-                <div className="text-[10px] text-muted-foreground truncate">{roleLabel(role)}</div>
+                <div className="text-[10px] text-muted-foreground truncate">{displayRoleLabel(role, (profile as any)?.role_type)}</div>
               </div>
             )}
           </Link>

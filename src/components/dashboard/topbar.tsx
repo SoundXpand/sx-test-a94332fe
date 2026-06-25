@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useCurrentUser, roleLabel } from "@/hooks/use-current-user";
+import { useCurrentUser, displayRoleLabel } from "@/hooks/use-current-user";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -152,7 +152,7 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
                 <div className="hidden md:flex flex-col items-start leading-tight">
                   <span className="text-xs font-semibold">{data?.profile?.full_name || data?.user?.email}</span>
                   <span className="text-[10px] text-muted-foreground">
-                    {data && roleLabel(data.primaryRole)} · {data?.profile?.username}
+                    {data && displayRoleLabel(data.primaryRole, (data.profile as any)?.role_type)} · {data?.profile?.username}
                   </span>
                 </div>
                 <ChevronDown className="h-3 w-3 text-muted-foreground hidden md:block" />
@@ -163,7 +163,7 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
                 <div className="flex flex-col">
                   <span className="font-semibold">{data?.profile?.full_name || "—"}</span>
                   <span className="text-xs text-muted-foreground">
-                    {data && roleLabel(data.primaryRole)} · {data?.profile?.username}
+                    {data && displayRoleLabel(data.primaryRole, (data.profile as any)?.role_type)} · {data?.profile?.username}
                   </span>
                 </div>
               </DropdownMenuLabel>
