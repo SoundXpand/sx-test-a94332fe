@@ -147,10 +147,11 @@ function ReleaseDetail() {
       </Card>
 
       <Tabs defaultValue="overview">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tracks">Tracklist ({tracks.length})</TabsTrigger>
           <TabsTrigger value="delivery">Delivery ({deliveries.length})</TabsTrigger>
+          {staff && <TabsTrigger value="prefs">Delivery prefs</TabsTrigger>}
           <TabsTrigger value="timeline">Activity log ({events.length})</TabsTrigger>
           {staff && <TabsTrigger value="admin">Admin</TabsTrigger>}
         </TabsList>
