@@ -237,7 +237,6 @@ function NotificationsBell() {
     if (ids.length) await supabase.from("notifications" as any).update({ read_at: new Date().toISOString() } as any).in("id", ids);
     const now = Date.now();
     localStorage.setItem("sx-bcast-last-seen", String(now));
-    setLastSeen(now);
     setUnread(0);
     load();
   };
