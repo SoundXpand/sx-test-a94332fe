@@ -235,8 +235,7 @@ function NotificationsBell() {
   const markAllRead = async () => {
     const ids = items.filter(n => !n.read_at && n.user_id).map(n => n.id);
     if (ids.length) await supabase.from("notifications" as any).update({ read_at: new Date().toISOString() } as any).in("id", ids);
-    const now = Date.now();
-    localStorage.setItem("sx-bcast-last-seen", String(now));
+    localStorage.setItem("sx-bcast-last-seen", String(Date.now()));
     setUnread(0);
     load();
   };
