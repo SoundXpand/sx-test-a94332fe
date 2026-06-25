@@ -16,8 +16,18 @@ import { BrandLogo } from "@/components/branding/brand-logo";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
-  head: () => ({ meta: [{ title: "Sign in — SoundXpand" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in or register — SoundXpand" },
+      { name: "description", content: "Sign in to SoundXpand or create a free distribution account for artists, labels, songwriters and publishers." },
+      { property: "og:title", content: "Sign in or register — SoundXpand" },
+      { property: "og:description", content: "Sign in to SoundXpand or create a free distribution account." },
+      { property: "og:url", content: "https://sx-test.lovable.app/auth" },
+    ],
+    links: [{ rel: "canonical", href: "https://sx-test.lovable.app/auth" }],
+  }),
 });
+
 
 const step1Schema = z.object({
   role_type: z.enum(ROLE_TYPES, { errorMap: () => ({ message: "Select what you are" }) }),
