@@ -163,7 +163,7 @@ export function Topbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => voi
                 <div className="flex flex-col">
                   <span className="font-semibold">{data?.profile?.full_name || "—"}</span>
                   <span className="text-xs text-muted-foreground">
-                    {data && roleLabel(data.primaryRole)} · {data?.profile?.username}
+                    {data && displayRoleLabel(data.primaryRole, (data.profile as any)?.role_type)} · {data?.profile?.username}
                   </span>
                 </div>
               </DropdownMenuLabel>
