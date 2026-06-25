@@ -261,6 +261,56 @@ function ReleaseDetail() {
           </Card>
         </TabsContent>
 
+        {staff && (
+          <TabsContent value="prefs">
+            <Card className="p-6 bg-card/60 border-border space-y-5">
+              <div>
+                <h3 className="font-display text-base font-semibold mb-2 flex items-center gap-2"><Globe className="h-4 w-4 text-primary" />Territories</h3>
+                <p className="text-sm text-muted-foreground">{Array.isArray(release.territories) && release.territories.length ? release.territories.join(", ") : "Worldwide"}</p>
+                {Array.isArray(release.excluded_territories) && release.excluded_territories.length > 0 && (
+                  <p className="text-xs text-destructive mt-1">Excluded: {release.excluded_territories.join(", ")}</p>
+                )}
+              </div>
+              <div>
+                <h3 className="font-display text-base font-semibold mb-2">Release window</h3>
+                <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                  <Row k="Release date" v={release.release_date} />
+                  <Row k="Original release" v={release.original_release_date} />
+                  <Row k="Pre-order" v={release.preorder_date} />
+                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-base font-semibold mb-2">Pricing</h3>
+                <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                  <Row k="Pricing tier" v={release.price_tier || "Standard"} />
+                  <Row k="Currency" v={release.currency || "USD"} />
+                  <Row k="Suggested price" v={release.suggested_price ?? "—"} />
+                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-base font-semibold mb-2">DSP outlets ({Array.isArray(release.store_selection) ? release.store_selection.length || "All" : "All"})</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
+                  {DSPS_FULL.map(d => {
+                    const sel = Array.isArray(release.store_selection) && release.store_selection.length
+                      ? release.store_selection.includes(d.name) || release.store_selection.includes(d.slug)
+                      : true;
+                    const status = deliveries.find(x => x.platform === d.name)?.status;
+                    return (
+                      <div key={d.slug} className={`flex items-center gap-2 rounded-md border px-2 py-1.5 ${sel ? "border-border" : "border-dashed border-border/40 opacity-50"}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${status === "live" ? "bg-success" : status === "delivered" ? "bg-blue-500" : status === "rejected" ? "bg-destructive" : "bg-muted-foreground/40"}`} />
+                        <span className="truncate flex-1">{d.name}</span>
+                        {status && <span className="text-[10px] uppercase text-muted-foreground">{status.replace(/_/g, " ")}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+        )}
+
+
+
         <TabsContent value="timeline">
           <Card className="p-6 bg-card/60 border-border">
             {events.length === 0 ? (
