@@ -36,6 +36,58 @@ export const deleteUserFn = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const approveUserFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { targetUserId: string }) => d)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const now = new Date().toISOString();
+
+    const { data: profile, error: upErr } = await supabaseAdmin
+      .from("profiles")
+      .update({ status: "approved", approved_at: now })
+      .eq("user_id", data.targetUserId)
+      .select("email, full_name, artist_name, username")
+      .maybeSingle();
+    if (upErr) throw upErr;
+
+    await supabaseAdmin.from("notifications").insert({
+      user_id: data.targetUserId,
+      kind: "account_approved",
+      title: "Your SoundXpand account is approved 🎉",
+      body: "Welcome aboard! You can now sign in and start releasing music.",
+    });
+
+    // Best-effort email — only sends if Lovable Emails / transactional infra is configured.
+    try {
+      const origin = process.env.PUBLIC_APP_ORIGIN || "https://sx-test.lovable.app";
+      const res = await fetch(`${origin}/lovable/email/transactional/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.LOVABLE_API_KEY ?? ""}`,
+        },
+        body: JSON.stringify({
+          templateName: "account-approved",
+          recipientEmail: profile?.email,
+          idempotencyKey: `account-approved-${data.targetUserId}`,
+          templateData: {
+            name: profile?.artist_name || profile?.full_name || profile?.username || "",
+            loginUrl: `${origin}/auth`,
+          },
+        }),
+      });
+      if (!res.ok) {
+        // Silent — infra likely not set up yet; in-app notification still posted.
+        console.warn("approval email skipped:", res.status, await res.text().catch(() => ""));
+      }
+    } catch (e) {
+      console.warn("approval email error:", e);
+    }
+    return { ok: true };
+  });
+
 export const createUserFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { email: string; password: string; role: AppRole; fullName?: string }) => d)
