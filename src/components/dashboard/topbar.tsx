@@ -218,10 +218,6 @@ function Disc3Icon() {
 function NotificationsBell() {
   const [items, setItems] = useState<any[]>([]);
   const [unread, setUnread] = useState(0);
-  const [lastSeen, setLastSeen] = useState<number>(() => {
-    if (typeof window === "undefined") return 0;
-    return Number(localStorage.getItem("sx-bcast-last-seen") || "0");
-  });
   const load = async () => {
     const { data } = await supabase.from("notifications" as any).select("*").order("created_at", { ascending: false }).limit(6);
     const list = (data as any[]) ?? [];
