@@ -125,9 +125,9 @@ function PublicProfile() {
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       {/* Vibrant gradient blur backdrop */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-primary/30 blur-[140px]" />
-        <div className="absolute top-40 -right-32 h-[420px] w-[420px] rounded-full bg-fuchsia-500/25 blur-[140px]" />
-        <div className="absolute bottom-0 left-1/3 h-[420px] w-[420px] rounded-full bg-cyan-500/20 blur-[140px]" />
+        <div className="absolute -top-40 -left-40 h-[560px] w-[560px] rounded-full bg-primary/40 blur-[160px] animate-orb" />
+        <div className="absolute top-40 -right-40 h-[500px] w-[500px] rounded-full bg-fuchsia-500/35 blur-[160px] animate-orb" style={{ animationDelay: "2s" }} />
+        <div className="absolute bottom-0 left-1/3 h-[480px] w-[480px] rounded-full bg-cyan-500/30 blur-[160px] animate-orb" style={{ animationDelay: "4s" }} />
       </div>
 
       <header className="border-b border-border/60 bg-background/70 backdrop-blur sticky top-0 z-30">
