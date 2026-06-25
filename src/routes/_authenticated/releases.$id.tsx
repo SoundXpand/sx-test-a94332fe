@@ -96,7 +96,7 @@ function ReleaseDetail() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
-        <Button size="icon" variant="ghost" onClick={() => navigate({ to: "/catalog" })}><ArrowLeft className="h-4 w-4" /></Button>
+        <Button size="icon" variant="ghost" onClick={() => navigate({ to: staff ? "/releases" : "/catalog" })}><ArrowLeft className="h-4 w-4" /></Button>
         <h1 className="font-display text-2xl font-semibold truncate">{release.title}</h1>
         <ReleaseStatusBadge status={release.status} />
         {release.archived_at && <Badge variant="destructive">Archived</Badge>}
