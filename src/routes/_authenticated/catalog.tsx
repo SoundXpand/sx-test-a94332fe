@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Disc3, Plus, Search, Trash2 } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ReleaseRowActions, statusBadgeClass } from "@/components/catalog/release-row-actions";
+import { ReleaseRowActions } from "@/components/catalog/release-row-actions";
+import { ReleaseStatusBadge } from "@/components/catalog/status-badge";
+import { isReleaseLive } from "@/lib/release-status";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/catalog")({
@@ -60,10 +62,12 @@ function Catalog() {
 
   const combined = [...draftRows, ...rows];
 
-  const filtered = combined.filter(r =>
-    (tab === "all" || r.status === tab) &&
-    (!q || (r.title ?? "").toLowerCase().includes(q.toLowerCase()))
-  );
+  const filtered = combined.filter(r => {
+    if (q && !(r.title ?? "").toLowerCase().includes(q.toLowerCase())) return false;
+    if (tab === "all") return true;
+    if (tab === "live") return isReleaseLive(r.status);
+    return r.status === tab;
+  });
 
   const visibleDrafts = showAllDrafts ? drafts : drafts.slice(0, 2);
 
@@ -144,7 +148,7 @@ function Catalog() {
                     </td>
                     <td className="capitalize text-muted-foreground">{r.release_type}</td>
                     <td className="text-muted-foreground">{r.release_date || "—"}</td>
-                    <td><span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusBadgeClass(r.status)}`}>{r.status.replace(/_/g, " ")}</span></td>
+                    <td><ReleaseStatusBadge status={r.status} /></td>
                     <td className="text-right pr-2">
                       {r._isDraft ? (
                         <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteDraft(r.id)} aria-label="Delete draft">
