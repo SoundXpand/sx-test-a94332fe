@@ -1106,6 +1106,72 @@ export type Database = {
       }
     }
     Views: {
+      public_profiles: {
+        Row: {
+          artist_name: string | null
+          avatar_url: string | null
+          bio: string | null
+          country: string | null
+          display_name: string | null
+          full_name: string | null
+          is_public: boolean | null
+          role_type: string | null
+          social_apple: string | null
+          social_facebook: string | null
+          social_instagram: string | null
+          social_soundcloud: string | null
+          social_spotify: string | null
+          social_tiktok: string | null
+          social_vk: string | null
+          social_website: string | null
+          social_youtube: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          artist_name?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          display_name?: string | null
+          full_name?: string | null
+          is_public?: boolean | null
+          role_type?: string | null
+          social_apple?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_soundcloud?: string | null
+          social_spotify?: string | null
+          social_tiktok?: string | null
+          social_vk?: string | null
+          social_website?: string | null
+          social_youtube?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          artist_name?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          display_name?: string | null
+          full_name?: string | null
+          is_public?: boolean | null
+          role_type?: string | null
+          social_apple?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_soundcloud?: string | null
+          social_spotify?: string | null
+          social_tiktok?: string | null
+          social_vk?: string | null
+          social_website?: string | null
+          social_youtube?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       public_releases: {
         Row: {
           artwork_path: string | null
