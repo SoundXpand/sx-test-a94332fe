@@ -32,18 +32,37 @@ const SOCIAL_KEYS = [
 function Profile() {
   const { data, refetch } = useCurrentUser();
   const [form, setForm] = useState<any>({});
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid" | "current">("idle");
 
   useEffect(() => {
     if (data?.profile) setForm({ ...data.profile });
   }, [data]);
 
+  // Live availability check
+  useEffect(() => {
+    const u = (form.username || "").trim().toLowerCase();
+    if (!data?.profile) return;
+    if (u === (data.profile.username || "").toLowerCase()) { setUsernameStatus("current"); return; }
+    if (!/^[a-z0-9_-]{3,32}$/.test(u)) { setUsernameStatus("invalid"); return; }
+    setUsernameStatus("checking");
+    const t = setTimeout(async () => {
+      const { data: hit } = await supabase.from("profiles").select("user_id").ilike("username", u).maybeSingle();
+      setUsernameStatus(hit ? "taken" : "available");
+    }, 350);
+    return () => clearTimeout(t);
+  }, [form.username, data]);
+
   const save = async () => {
     const allowed = [
-      "full_name","artist_name","display_name","country","mobile","bio","is_public","avatar_url",
+      "full_name","artist_name","display_name","country","mobile","bio","is_public","avatar_url","username",
       ...SOCIAL_KEYS.map(([k]) => k),
     ];
     const patch: any = {};
     for (const k of allowed) if (k in form) patch[k] = form[k];
+    if (patch.username) patch.username = String(patch.username).trim().toLowerCase();
+    if (patch.username && usernameStatus !== "available" && usernameStatus !== "current") {
+      return toast.error("Pick an available username (3–32 chars, a–z, 0–9, _ or -).");
+    }
     const { error } = await supabase.from("profiles").update(patch).eq("user_id", data!.user.id);
     if (error) return toast.error(error.message);
     toast.success("Profile updated");
@@ -53,8 +72,19 @@ function Profile() {
   if (!data) return null;
   const initials = (data.profile?.full_name || data.user.email || "?").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
   const roleSlug = (data.profile?.role_type || "artist").toLowerCase();
-  const publicPath = `/${roleSlug}/${data.profile?.username || ""}`;
+  const previewUsername = (form.username || data.profile?.username || "").toLowerCase();
+  const publicPath = `/${roleSlug}/${previewUsername}`;
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}${publicPath}` : publicPath;
+  const statusColor =
+    usernameStatus === "available" ? "text-emerald-500" :
+    usernameStatus === "taken" || usernameStatus === "invalid" ? "text-destructive" :
+    usernameStatus === "checking" ? "text-muted-foreground" : "text-muted-foreground";
+  const statusText =
+    usernameStatus === "available" ? "Available ✓" :
+    usernameStatus === "taken" ? "Already taken" :
+    usernameStatus === "invalid" ? "3–32 chars: a–z, 0–9, _ or -" :
+    usernameStatus === "checking" ? "Checking…" :
+    usernameStatus === "current" ? "Your current username" : "";
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -93,6 +123,20 @@ function Profile() {
               <a href={publicPath} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3 w-3 mr-1" />Visit</a>
             </Button>
           </div>
+        </div>
+
+        <div className="rounded-lg border border-border p-3 space-y-2">
+          <Label className="text-sm font-medium">Custom username (your public URL)</Label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground shrink-0 font-mono">/{roleSlug}/</span>
+            <Input
+              value={form.username || ""}
+              onChange={e => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "") })}
+              placeholder={data.profile?.username || "your-handle"}
+              className="font-mono"
+            />
+          </div>
+          <div className={`text-xs ${statusColor}`}>{statusText || "Pick a memorable handle — others will discover you at this URL."}</div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">

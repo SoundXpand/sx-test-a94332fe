@@ -125,9 +125,9 @@ function PublicProfile() {
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       {/* Vibrant gradient blur backdrop */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-primary/30 blur-[140px]" />
-        <div className="absolute top-40 -right-32 h-[420px] w-[420px] rounded-full bg-fuchsia-500/25 blur-[140px]" />
-        <div className="absolute bottom-0 left-1/3 h-[420px] w-[420px] rounded-full bg-cyan-500/20 blur-[140px]" />
+        <div className="absolute -top-40 -left-40 h-[560px] w-[560px] rounded-full bg-primary/40 blur-[160px] animate-orb" />
+        <div className="absolute top-40 -right-40 h-[500px] w-[500px] rounded-full bg-fuchsia-500/35 blur-[160px] animate-orb" style={{ animationDelay: "2s" }} />
+        <div className="absolute bottom-0 left-1/3 h-[480px] w-[480px] rounded-full bg-cyan-500/30 blur-[160px] animate-orb" style={{ animationDelay: "4s" }} />
       </div>
 
       <header className="border-b border-border/60 bg-background/70 backdrop-blur sticky top-0 z-30">
@@ -146,21 +146,27 @@ function PublicProfile() {
 
       <main className="max-w-5xl mx-auto px-4 py-10 space-y-12">
         {/* Hero */}
-        <section className="flex items-end gap-6 flex-wrap">
-          <div className="h-32 w-32 sm:h-40 sm:w-40 rounded-3xl bg-gradient-to-br from-primary/40 to-fuchsia-500/40 text-white grid place-items-center text-4xl font-bold overflow-hidden shrink-0 ring-4 ring-background shadow-2xl">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={name} className="h-full w-full object-cover" loading="eager" />
-            ) : initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs uppercase tracking-[0.2em] text-primary font-medium">{roleType}</div>
-            <h1 className="font-display text-4xl sm:text-5xl font-bold mt-1 leading-tight">{name}</h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-muted-foreground">
-              <span>@{p.username}</span>
-              {p.country && <span>· {p.country}</span>}
-              <span>· {releases.length} release{releases.length !== 1 ? "s" : ""}</span>
+        <section className="relative rounded-3xl border border-hairline bg-card/40 backdrop-blur-xl p-6 sm:p-8 overflow-hidden">
+          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="relative flex items-end gap-6 flex-wrap">
+            <div className="h-32 w-32 sm:h-44 sm:w-44 rounded-3xl bg-gradient-to-br from-primary/50 via-fuchsia-500/40 to-cyan-500/40 text-primary-foreground grid place-items-center text-4xl font-bold overflow-hidden shrink-0 ring-4 ring-background shadow-[0_20px_60px_-15px_color-mix(in_oklch,var(--brand-violet)_55%,transparent)]">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={name} className="h-full w-full object-cover" loading="eager" />
+              ) : initials}
             </div>
-            {p.bio && <p className="mt-4 text-base leading-relaxed max-w-2xl whitespace-pre-line text-foreground/90">{p.bio}</p>}
+            <div className="flex-1 min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-primary font-semibold">
+                <Sparkles className="h-3 w-3" /> {roleType}
+              </div>
+              <h1 className="font-display text-4xl sm:text-6xl font-bold mt-3 leading-[1.05] tracking-tight">{name}</h1>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">
+                <span className="font-mono">@{p.username}</span>
+                {p.country && <span>· {p.country}</span>}
+                <span>· {releases.length} release{releases.length !== 1 ? "s" : ""}</span>
+              </div>
+              {p.bio && <p className="mt-4 text-base leading-relaxed max-w-2xl whitespace-pre-line text-foreground/90">{p.bio}</p>}
+            </div>
           </div>
         </section>
 
