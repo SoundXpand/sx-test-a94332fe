@@ -89,10 +89,6 @@ function AuthPage() {
         <div className="rounded-3xl border border-border bg-card/60 p-8 backdrop-blur-xl shadow-2xl">
           <AuthTabs />
         </div>
-
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          New accounts require administrator approval before dashboard access.
-        </p>
       </div>
     </div>
   );
@@ -101,6 +97,10 @@ function AuthPage() {
 function AuthTabs() {
   const initial = typeof window !== "undefined" && window.location.hash === "#register" ? "register" : "login";
   const [tab, setTab] = useState<string>(initial);
+  const [autoApprove, setAutoApprove] = useState(false);
+  useEffect(() => {
+    getPublicPlatformFlagsFn().then(f => setAutoApprove(!!f.auto_approve)).catch(() => {});
+  }, []);
   useEffect(() => {
     const sync = () => {
       const h = window.location.hash;
