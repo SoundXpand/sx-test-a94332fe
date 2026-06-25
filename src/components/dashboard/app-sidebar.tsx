@@ -80,6 +80,18 @@ export function AppSidebar({
   const { data } = useCurrentUser();
   const role = data?.primaryRole ?? "artist";
   const items = ROLE_NAV[role];
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const profile: any = data?.profile;
+  const displayName = profile?.display_name || profile?.artist_name || profile?.full_name || profile?.username || "Account";
+  const initials = displayName.split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase();
+
+  const handleSignOut = async () => {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
 
   return (
     <>
