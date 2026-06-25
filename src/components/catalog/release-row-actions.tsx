@@ -11,6 +11,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isReleaseLive } from "@/lib/release-status";
 
 export type Release = {
   id: string;
@@ -51,7 +52,7 @@ export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged:
   return (
     <>
       <div className="flex items-center gap-1.5 justify-end">
-        {(row.status === "live" || row.status === "delivered") && smartlink && (
+        {isReleaseLive(row.status) && smartlink && (
           <Button size="sm" variant="outline" onClick={copySmartlink} title={smartlink}>
             <Link2 className="h-3.5 w-3.5 mr-1" />Smartlink
           </Button>
@@ -80,7 +81,7 @@ export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged:
                 <ArrowDownToLine className="h-4 w-4 mr-2" />Withdraw to draft
               </DropdownMenuItem>
             )}
-            {(row.status === "live" || row.status === "delivered") && smartlink && (
+            {isReleaseLive(row.status) && smartlink && (
               <>
                 <DropdownMenuItem onClick={copySmartlink}><Copy className="h-4 w-4 mr-2" />Copy smartlink</DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -128,13 +129,8 @@ export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged:
   );
 }
 
+// Back-compat wrapper kept so legacy imports don't break — prefer <ReleaseStatusBadge />.
+import { getStatusMeta } from "@/lib/release-status";
 export function statusBadgeClass(status: string) {
-  switch (status) {
-    case "live": return "bg-success/15 text-success";
-    case "pending": return "bg-amber-500/15 text-amber-500";
-    case "rejected": return "bg-destructive/15 text-destructive";
-    case "takedown_requested": return "bg-orange-500/15 text-orange-500";
-    case "taken_down": return "bg-muted text-muted-foreground";
-    default: return "bg-muted text-muted-foreground";
-  }
+  return getStatusMeta(status).badgeClass;
 }
