@@ -178,7 +178,7 @@ function ReleasesAdmin() {
                         <td className="text-muted-foreground font-mono text-xs">{r.catalog_number || "—"}</td>
                         <td className="text-xs text-muted-foreground">{r.delivered_at ? new Date(r.delivered_at).toLocaleString() : "—"}</td>
                         <td className="text-xs text-muted-foreground truncate max-w-[20rem]">{d?.notes || r.delivery_note || "—"}</td>
-                        <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={load} /></td>
+                        <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={load} admin /></td>
                       </tr>
                     );
                   })}
@@ -258,7 +258,7 @@ function ReleaseTable({ rows, onChanged, emptyIcon, emptyTitle, emptyDesc }: any
               <td className="text-muted-foreground font-mono text-xs">{r.upc || "—"}</td>
               <td className="text-muted-foreground">{r.release_date || "—"}</td>
               <td><ReleaseStatusBadge status={r.status} /></td>
-              <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={onChanged} /></td>
+              <td className="text-right pr-2"><ReleaseRowActions row={r} onChanged={onChanged} admin /></td>
             </tr>
           ))}
         </tbody>
