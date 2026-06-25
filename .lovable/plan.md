@@ -1,78 +1,71 @@
 ## Scope
 
-Five connected changes: (1) Admin Page Builder, (2) fix Smartlink visibility/access for delivered releases, (3) admin per-DSP status editor on the Delivered tab, (4) DSP delivery log visible to admin + owning artist, (5) wire it all into the existing releases/catalog UI.
+Six grouped changes across status semantics, DSP delivery UX, smartlink artwork, public profile route, and brand logo.
 
 ---
 
-## 1. Admin Page Builder (`/admin/pages`)
+### 1. Unify release status vocabulary
 
-New DB tables (migration):
-- `cms_pages` — `slug` (unique), `title`, `status` ('draft'|'published'), `seo_title`, `seo_description`, `og_image_path`, `published_at`, `created_by`.
-- `cms_page_blocks` — `page_id` (FK), `position` (int), `type` ('hero'|'rich_text'|'image'|'cta'|'features'|'embed'), `data` (jsonb).
+Canonical statuses + tooltip copy (used everywhere a badge or filter renders):
 
-Both: RLS = staff full access; `anon`/`authenticated` SELECT only where `status='published'`. GRANTs per template rules.
+| Key | Label | Tooltip |
+|---|---|---|
+| `draft` | Draft | Work-in-progress release. Not yet submitted. |
+| `pending` | Pending review | Submitted by user, awaiting moderation. |
+| `approved` | Approved | Approved by moderation. Ready for delivery to DSPs. |
+| `live` | Live | Delivered and live on DSPs. |
+| `rejected` | Rejected | Disapproved by moderation. Edit and resubmit. |
+| `takedown_requested` | Takedown requested | User requested removal. Awaiting admin. |
+| `taken_down` | Taken down | Removed from DSPs. |
 
-UI:
-- `/admin/pages` — table of pages (title, slug, status, updated_at, view/edit/delete actions). "New page" button.
-- `/admin/pages/$id` — editor with:
-  - SEO panel (title, description, OG image upload, slug, status toggle).
-  - Block list with drag-reorder (dnd-kit, already present via shadcn), add-block menu, inline editor per block type, delete block.
-  - Save + Publish buttons; "View live" opens `/p/{slug}` in new tab.
-- Public route `/p/$slug` — SSR loader fetches published page via public server fn, renders blocks, full SEO head() with OG tags.
+- Add `src/lib/release-status.ts` with `STATUS_META` (label, tooltip, badge classes, dot color). Replace ad-hoc badge maps in `release-row-actions.tsx`, `releases.$id.tsx`, `releases.tsx`, `catalog.tsx`, `approval-queue.tsx`, `admin-overview.tsx`, smartlink page, profile, and dashboards.
+- Build a `<StatusBadge status=… />` component that wraps shadcn `Tooltip` with the description.
+- Treat `delivered` as `live` for display + filtering (DB enum retained; UI maps `delivered → live`). Tabs: All / Approval queue / Delivery / Live / Takedowns / Archived.
+- Add a broadcast/notification trigger: when status flips `pending → approved`, insert a `notifications` row to the owner: "Release '{title}' approved and ready for delivery. Congrats!" (migration: small DB trigger on `releases` AFTER UPDATE).
 
-Sidebar entry under admin section: "Pages".
+### 2. DSP delivery editor (replace standalone log)
 
----
+- Remove the "DSP delivery log" section from `releases.$id.tsx`.
+- Inside the **Delivery** tab, render the per-DSP table with columns: Platform · Status · Link · Note · Updated · Actions. Empty state: "No DSPs yet. Add platforms when marking delivered."
+- Inline editors: status `Select` (Pending / In review / Live / Rejected / Taken down), URL `Input`, Note `Input`, Save button per row. Reuses existing `updateDspDeliveryFn`. Visible for staff on Delivery + Delivered (live) releases; read-only for owner.
+- Mirrors the screenshot pattern from the "Mark delivered" flow.
 
-## 2. Smartlink visibility & access fix
+### 3. Smartlink artwork
 
-Issue: smartlink button only shows when `row.status === 'live'`, but delivered releases use status `delivered` (or similar). Also `/l/$slug` may 404 for non-live.
+- `l.$slug.tsx` currently signs `artwork_path` for 1h. Confirmed the bucket signed-url path is correct; issue is the public view sometimes lacks artwork.
+- Fix: when `artwork_path` missing on `public_releases`, fall back to first track's cover or release default; ensure `ArtworkImage` uses the signed URL not the storage path. Add `loading="eager"` on the hero artwork (above the fold) but keep `loading="lazy"` for any below-fold artwork on the page.
 
-Fix:
-- `release-row-actions.tsx`: show smartlink button + menu items whenever `row.slug` exists AND `status ∈ {live, delivered, taken_down(read-only)}`. (Confirm exact status values via a quick query at build time.)
-- `catalog.tsx` + `releases.index.tsx`: same condition for any inline smartlink column.
-- `l.$slug.tsx` loader: allow any release with a slug that is not `draft`/`pending`/`rejected` — currently likely gated to `live` only.
+### 4. Public profile route `/{roleType}/{username}`
 
----
+- Current route file `src/routes/$roleType.$username.tsx` already exists. Confirm:
+  - `roleType` validated against `artist | band | publisher | songwriter` (currently likely only `artist`).
+  - Loader uses a **public** server fn (publishable client, no `requireSupabaseAuth`) so unauthenticated users can view.
+  - URL canonicalises to `/{roleType}/{username}/{display-slug}` (display name slugged). If only 2 segments, accept; if user shares 3-segment, route still resolves by username.
+- Add `src/routes/$roleType.$username.$displaySlug.tsx` as an alias that loads same data by username and ignores slug (slug for SEO only).
+- Ensure RLS: `public_profiles` view already exposes read to anon for `public_profile=true`; verify.
 
-## 3. Admin per-DSP status editor on Delivered tab
+### 5. Brand logo (light + dark)
 
-Current state: `releases.$id.tsx` "Delivery prefs" tab shows a read-only per-DSP grid for staff.
-
-Add:
-- New "DSP delivery" tab (staff-only) on delivered releases.
-- Table rows = DSPs from `dsp_deliveries` for this release. Editable columns: status (pending/sent/live/rejected/takedown), DSP URL, note. Save per row → updates `dsp_deliveries` + writes `release_events` audit row.
-- Reuse existing status enum + components from the artist delivery view for consistency.
-
----
-
-## 4. DSP delivery log (admin + owning artist)
-
-On `releases.$id.tsx`, add "Delivery log" tab visible to staff AND release owner:
-- Query `dsp_deliveries` joined with DSP metadata: shows each DSP, current status, last updated, note, link.
-- Below: timeline from `release_events` filtered to delivery-related types (`dsp_sent`, `dsp_live`, `dsp_rejected`, `status_*`), newest first, with actor name + timestamp.
-- Artist sees same data read-only; admin sees inline edit (from #3).
-
----
-
-## 5. Wiring
-
-- Add migration creating `cms_pages`, `cms_page_blocks` with RLS + GRANTs.
-- Add migration ensuring `dsp_deliveries` has `note`, `dsp_url`, `updated_at`, and an `updated_by` column if missing (verify first via read query — skip if present).
-- Add public server fn `getPublishedPage(slug)` using server publishable client.
-- Add staff server fn `updateDspDelivery({ id, status, note, url })` with `requireSupabaseAuth` + `is_staff` check; writes `release_events`.
-- Sidebar: add "Pages" link under admin group in `app-sidebar.tsx`.
+- Add uploaded SVGs to `src/assets/`:
+  - `sx-logo-white.svg` → for dark backgrounds
+  - `sx-logo-dark.svg` → for light backgrounds
+- Build `<BrandLogo />` component that picks the variant from `useTheme()` (or CSS `dark:` swap via two `<img>` tags). Renders SVG only, no text, no music icon.
+- Replace logo usage in: `app-sidebar.tsx`, `topbar.tsx`, `landing-nav.tsx`, `landing-footer.tsx`, smartlink `l.$slug.tsx` header, `p.$slug.tsx` header, `auth.tsx`, `pending.tsx`. Remove the `<Music />` + "SoundXpand" wordmark pairs.
 
 ---
 
-## Out of scope (call out)
+## Technical details
 
-- No public Page Builder theming options beyond the listed block types this round.
-- No bulk DSP status update; per-row only.
-- No notification fan-out when admin changes DSP status (can follow up).
+- Migration: trigger `notify_owner_on_approved()` on `public.releases` AFTER UPDATE OF status WHEN old=pending and new=approved → insert into `public.notifications` (kind='release_approved', release_id, user_id=owner).
+- No enum changes. `delivered` value stays in DB; UI normalises with `displayStatus(s) = s === 'delivered' ? 'live' : s`.
+- New file: `src/lib/release-status.ts`, `src/components/catalog/status-badge.tsx`, `src/components/branding/brand-logo.tsx`.
+- Edited files: row actions, release detail, releases list, catalog, approval queue, admin overview, smartlink, profile public route, sidebar, topbar, landing nav/footer, auth, pending.
+- Public profile loader switches to publishable-key server client (no auth middleware) so unauthenticated visitors can view.
 
-## Technical notes
+---
 
-- Block editor uses existing shadcn primitives; reorder via `@dnd-kit/sortable` (add if missing).
-- Public `/p/$slug` loader pattern mirrors `/l/$slug` SSR setup already in place.
-- Status value for delivered releases will be confirmed against `releases.status` distinct values before changing the smartlink gate to avoid showing for wrong states.
+## Out of scope
+
+- Renaming the DB enum value `delivered` → `live` (display-only normalisation).
+- Page Builder additions.
+- New notification delivery channels (in-app only).
