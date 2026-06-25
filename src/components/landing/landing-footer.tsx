@@ -27,7 +27,7 @@ export function LandingFooter() {
         <div className="grid grid-cols-2 gap-10 md:grid-cols-6">
           <div className="col-span-2">
             <div className="flex items-center gap-2.5">
-              <BrandLogo height={28} />
+              <BrandLogo height={36} />
             </div>
             <p className="mt-4 max-w-xs text-sm font-light text-muted-foreground">
               The next-generation music distribution platform for independent artists, producers and labels.
