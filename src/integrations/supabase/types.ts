@@ -511,6 +511,7 @@ export type Database = {
           payout_method: string | null
           privacy_accepted_at: string | null
           private_link: string | null
+          public_handle: string | null
           rejection_reason: string | null
           role_type: string | null
           social_apple: string | null
@@ -554,6 +555,7 @@ export type Database = {
           payout_method?: string | null
           privacy_accepted_at?: string | null
           private_link?: string | null
+          public_handle?: string | null
           rejection_reason?: string | null
           role_type?: string | null
           social_apple?: string | null
@@ -597,6 +599,7 @@ export type Database = {
           payout_method?: string | null
           privacy_accepted_at?: string | null
           private_link?: string | null
+          public_handle?: string | null
           rejection_reason?: string | null
           role_type?: string | null
           social_apple?: string | null
@@ -1195,6 +1198,7 @@ export type Database = {
           display_name: string | null
           full_name: string | null
           is_public: boolean | null
+          public_handle: string | null
           role_type: string | null
           social_apple: string | null
           social_facebook: string | null
@@ -1216,6 +1220,7 @@ export type Database = {
           display_name?: string | null
           full_name?: string | null
           is_public?: boolean | null
+          public_handle?: string | null
           role_type?: string | null
           social_apple?: string | null
           social_facebook?: string | null
@@ -1237,6 +1242,7 @@ export type Database = {
           display_name?: string | null
           full_name?: string | null
           is_public?: boolean | null
+          public_handle?: string | null
           role_type?: string | null
           social_apple?: string | null
           social_facebook?: string | null

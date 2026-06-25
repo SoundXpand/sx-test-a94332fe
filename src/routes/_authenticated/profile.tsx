@@ -38,30 +38,31 @@ function Profile() {
     if (data?.profile) setForm({ ...data.profile });
   }, [data]);
 
-  // Live availability check
+  // Live availability check on public_handle
   useEffect(() => {
-    const u = (form.username || "").trim().toLowerCase();
+    const u = (form.public_handle || "").trim().toLowerCase();
     if (!data?.profile) return;
-    if (u === (data.profile.username || "").toLowerCase()) { setUsernameStatus("current"); return; }
+    const current = (data.profile.public_handle || "").toLowerCase();
+    if (u === "" || u === current) { setUsernameStatus(u === current && u !== "" ? "current" : "idle"); return; }
     if (!/^[a-z0-9_-]{3,32}$/.test(u)) { setUsernameStatus("invalid"); return; }
     setUsernameStatus("checking");
     const t = setTimeout(async () => {
-      const { data: hit } = await supabase.from("profiles").select("user_id").ilike("username", u).maybeSingle();
+      const { data: hit } = await supabase.from("profiles").select("user_id").ilike("public_handle", u).maybeSingle();
       setUsernameStatus(hit ? "taken" : "available");
     }, 350);
     return () => clearTimeout(t);
-  }, [form.username, data]);
+  }, [form.public_handle, data]);
 
   const save = async () => {
     const allowed = [
-      "full_name","artist_name","display_name","country","mobile","bio","is_public","avatar_url","username",
+      "full_name","artist_name","display_name","country","mobile","bio","is_public","avatar_url","public_handle",
       ...SOCIAL_KEYS.map(([k]) => k),
     ];
     const patch: any = {};
     for (const k of allowed) if (k in form) patch[k] = form[k];
-    if (patch.username) patch.username = String(patch.username).trim().toLowerCase();
-    if (patch.username && usernameStatus !== "available" && usernameStatus !== "current") {
-      return toast.error("Pick an available username (3–32 chars, a–z, 0–9, _ or -).");
+    if (patch.public_handle) patch.public_handle = String(patch.public_handle).trim().toLowerCase() || null;
+    if (patch.public_handle && usernameStatus !== "available" && usernameStatus !== "current" && usernameStatus !== "idle") {
+      return toast.error("Pick an available handle (3–32 chars, a–z, 0–9, _ or -).");
     }
     const { error } = await supabase.from("profiles").update(patch).eq("user_id", data!.user.id);
     if (error) return toast.error(error.message);
@@ -72,8 +73,8 @@ function Profile() {
   if (!data) return null;
   const initials = (data.profile?.full_name || data.user.email || "?").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
   const roleSlug = (data.profile?.role_type || "artist").toLowerCase();
-  const previewUsername = (form.username || data.profile?.username || "").toLowerCase();
-  const publicPath = `/${roleSlug}/${previewUsername}`;
+  const handle = (form.public_handle || data.profile?.public_handle || data.profile?.username || "").toLowerCase();
+  const publicPath = `/${roleSlug}/${handle}`;
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}${publicPath}` : publicPath;
   const statusColor =
     usernameStatus === "available" ? "text-emerald-500" :
@@ -84,7 +85,8 @@ function Profile() {
     usernameStatus === "taken" ? "Already taken" :
     usernameStatus === "invalid" ? "3–32 chars: a–z, 0–9, _ or -" :
     usernameStatus === "checking" ? "Checking…" :
-    usernameStatus === "current" ? "Your current username" : "";
+    usernameStatus === "current" ? "Your current handle" : "";
+
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -125,19 +127,27 @@ function Profile() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border p-3 space-y-2">
-          <Label className="text-sm font-medium">Custom username (your public URL)</Label>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground shrink-0 font-mono">/{roleSlug}/</span>
-            <Input
-              value={form.username || ""}
-              onChange={e => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "") })}
-              placeholder={data.profile?.username || "your-handle"}
-              className="font-mono"
-            />
+        <div className="rounded-lg border border-border p-3 space-y-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Account ID</Label>
+            <Input value={data.profile?.username || ""} readOnly className="font-mono bg-muted/40 cursor-not-allowed" />
+            <div className="text-[11px] text-muted-foreground mt-1">Permanent ID — used for support and internal references.</div>
           </div>
-          <div className={`text-xs ${statusColor}`}>{statusText || "Pick a memorable handle — others will discover you at this URL."}</div>
+          <div>
+            <Label className="text-sm font-medium">Custom handle (your public URL)</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-muted-foreground shrink-0 font-mono">/{roleSlug}/</span>
+              <Input
+                value={form.public_handle || ""}
+                onChange={e => setForm({ ...form, public_handle: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "") })}
+                placeholder="your-handle"
+                className="font-mono"
+              />
+            </div>
+            <div className={`text-xs mt-1 ${statusColor}`}>{statusText || "Pick a memorable handle — leave empty to use your Account ID."}</div>
+          </div>
         </div>
+
 
         <div className="grid md:grid-cols-2 gap-4">
           <div><Label>Full name</Label><Input value={form.full_name || ""} onChange={e => setForm({ ...form, full_name: e.target.value })} /></div>

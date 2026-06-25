@@ -39,11 +39,12 @@ export function LandingHero() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.05 }}
-          className="mx-auto mt-7 max-w-4xl font-display text-[clamp(44px,7vw,88px)] font-extrabold leading-[1.02] tracking-[-0.04em]"
+          className="mx-auto mt-7 max-w-4xl font-display text-[clamp(34px,7vw,88px)] font-extrabold leading-[1.05] tracking-[-0.04em] [overflow-wrap:anywhere] [text-wrap:balance] hyphens-auto"
         >
           Distribute your music{" "}
           <span className="text-gradient-brand">everywhere</span> at once.
         </motion.h1>
+
 
         <motion.p
           initial={{ opacity: 0, y: 16 }}
