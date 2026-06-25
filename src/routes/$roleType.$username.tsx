@@ -21,8 +21,9 @@ const getPublicProfile = createServerFn({ method: "GET" })
     const { data: profile } = await sb
       .from("public_profiles")
       .select("*")
-      .ilike("username", data.username)
+      .or(`public_handle.ilike.${data.username},username.ilike.${data.username}`)
       .maybeSingle();
+
     if (!profile) return null;
     const { data: rels } = await sb
       .from("public_releases")
