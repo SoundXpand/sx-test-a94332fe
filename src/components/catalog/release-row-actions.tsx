@@ -21,7 +21,7 @@ export type Release = {
   rejection_reason?: string | null;
 };
 
-export function ReleaseRowActions({ row, onChanged }: { row: Release; onChanged: () => void }) {
+export function ReleaseRowActions({ row, onChanged, admin = false }: { row: Release; onChanged: () => void; admin?: boolean }) {
   const navigate = useNavigate();
   const [reasonOpen, setReasonOpen] = useState(false);
 
