@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ArrowLeft, ExternalLink, Copy, RefreshCw, Disc3, Check, X, Clock, Send, Save, Trash2, Package, Download, ChevronDown, Globe } from "lucide-react";
 import { toast } from "sonner";
-import { statusBadgeClass } from "@/components/catalog/release-row-actions";
+import { ReleaseStatusBadge } from "@/components/catalog/status-badge";
+import { EDITABLE_RELEASE_STATUSES, getStatusMeta } from "@/lib/release-status";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { useServerFn } from "@tanstack/react-start";
 import { archiveReleaseFn, updateReleaseAdminFn, updateDspDeliveryFn } from "@/lib/admin-actions.functions";
@@ -26,7 +27,9 @@ export const Route = createFileRoute("/_authenticated/releases/$id")({
   head: () => ({ meta: [{ title: "Release detail — SoundXpand" }] }),
 });
 
-const STATUS_OPTIONS = ["draft", "pending", "approved", "live", "delivered", "rejected", "takedown_requested", "taken_down"];
+const STATUS_OPTIONS = EDITABLE_RELEASE_STATUSES;
+
+
 
 function ReleaseDetail() {
   const { id } = Route.useParams();
@@ -95,7 +98,7 @@ function ReleaseDetail() {
       <div className="flex items-center gap-3 flex-wrap">
         <Button size="icon" variant="ghost" onClick={() => navigate({ to: "/catalog" })}><ArrowLeft className="h-4 w-4" /></Button>
         <h1 className="font-display text-2xl font-semibold truncate">{release.title}</h1>
-        <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusBadgeClass(release.status)}`}>{release.status.replace(/_/g, " ")}</span>
+        <ReleaseStatusBadge status={release.status} />
         {release.archived_at && <Badge variant="destructive">Archived</Badge>}
       </div>
 
@@ -233,11 +236,7 @@ function ReleaseDetail() {
 
         <TabsContent value="delivery">
           <Card className="p-0 bg-card/60 border-border overflow-hidden">
-            <DspDeliveryTable deliveries={deliveries} releaseId={id} staff={staff} onChanged={load} simulate={simulate} />
-          </Card>
-          <Card className="mt-4 p-6 bg-card/60 border-border">
-            <h3 className="font-display text-base font-semibold mb-3">DSP delivery log</h3>
-            <DspLog events={events} />
+            <DspDeliveryTable deliveries={deliveries} releaseId={id} staff={staff} onChanged={load} simulate={simulate} events={events} />
           </Card>
         </TabsContent>
 
