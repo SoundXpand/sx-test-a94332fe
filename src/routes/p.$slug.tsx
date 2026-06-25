@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { getPublishedPageFn } from "@/lib/cms-pages.functions";
 import { Music, ArrowRight } from "lucide-react";
+import { BrandLogo } from "@/components/branding/brand-logo";
 
 export const Route = createFileRoute("/p/$slug")({
   loader: async ({ params }) => {
