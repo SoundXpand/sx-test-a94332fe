@@ -12,6 +12,7 @@ import { ArrowLeft, Home, Music } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { ROLE_TYPES, MAIN_GENRES, DISTRIBUTORS, TRACKS_RELEASED_BUCKETS, LISTENERS_BUCKETS } from "@/lib/onboarding-options";
+import { BrandLogo } from "@/components/branding/brand-logo";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,

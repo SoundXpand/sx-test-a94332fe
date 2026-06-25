@@ -6,8 +6,9 @@ import {
   Sparkles, ArrowRight, Headphones, Disc3,
 } from "lucide-react";
 import { ArtworkImage } from "@/components/catalog/artwork-image";
+import { BrandLogo } from "@/components/branding/brand-logo";
 
-const ROLES = ["artist", "label", "publisher", "manager", "producer"];
+const ROLES = ["artist", "band", "label", "publisher", "manager", "producer", "songwriter"];
 
 const getPublicProfile = createServerFn({ method: "GET" })
   .inputValidator((d: { username: string }) => d)
@@ -132,8 +133,7 @@ function PublicProfile() {
       <header className="border-b border-border/60 bg-background/70 backdrop-blur sticky top-0 z-30">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Music className="h-4 w-4 text-primary" />
-            <span className="font-display font-semibold">SoundXpand</span>
+            <BrandLogo height={26} />
           </Link>
           <div className="flex items-center gap-2">
             <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground hidden sm:inline">Sign in</Link>
