@@ -1,4 +1,5 @@
 import { Twitter, Instagram, Youtube, Github } from "lucide-react";
+import { BrandLogo } from "@/components/branding/brand-logo";
 
 const groups = [
   {
@@ -26,14 +27,7 @@ export function LandingFooter() {
         <div className="grid grid-cols-2 gap-10 md:grid-cols-6">
           <div className="col-span-2">
             <div className="flex items-center gap-2.5">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[var(--brand-violet-deep)] to-[var(--brand-pink)] text-white">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18V5l12-2v13" />
-                  <circle cx="6" cy="18" r="3" />
-                  <circle cx="18" cy="16" r="3" />
-                </svg>
-              </span>
-              <span className="font-display text-[17px] font-bold tracking-tight">SoundXpand</span>
+              <BrandLogo height={28} />
             </div>
             <p className="mt-4 max-w-xs text-sm font-light text-muted-foreground">
               The next-generation music distribution platform for independent artists, producers and labels.
