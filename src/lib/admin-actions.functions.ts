@@ -188,6 +188,13 @@ export const updateDspDeliveryFn = createServerFn({ method: "POST" })
       const { error } = await context.supabase.from("dsp_deliveries").upsert(patch, { onConflict: "release_id,platform" } as any);
       if (error) throw error;
     }
+    // Mirror external_url into release_links so smartlinks pick it up universally
+    if (data.external_url && data.external_url.trim()) {
+      await context.supabase.from("release_links").upsert(
+        { release_id: data.releaseId, platform: data.platform, url: data.external_url.trim() },
+        { onConflict: "release_id,platform" } as any
+      );
+    }
     return { ok: true };
   });
 
