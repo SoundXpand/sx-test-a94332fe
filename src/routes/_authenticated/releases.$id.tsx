@@ -236,7 +236,7 @@ function ReleaseDetail() {
 
         <TabsContent value="delivery">
           <Card className="p-0 bg-card/60 border-border overflow-hidden">
-            <DspDeliveryTable deliveries={deliveries} releaseId={id} staff={staff} onChanged={load} simulate={simulate} events={events} />
+            <DspDeliveryTable deliveries={deliveries} releaseId={id} staff={staff} onChanged={load} simulate={simulate} />
           </Card>
         </TabsContent>
 
