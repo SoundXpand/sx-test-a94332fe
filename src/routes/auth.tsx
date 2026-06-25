@@ -76,7 +76,9 @@ function AuthPage() {
       <div className="mx-auto max-w-2xl px-6 pb-16">
         <div className="mb-8 flex items-center gap-2">
           <BrandLogo height={36} />
+          <h1 className="sr-only">Sign in to SoundXpand</h1>
         </div>
+
 
         <div className="rounded-3xl border border-border bg-card/60 p-8 backdrop-blur-xl shadow-2xl">
           <AuthTabs />
