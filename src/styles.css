@@ -135,18 +135,18 @@
 
 /* ── LIGHT ────────────────────────────────────────────────── */
 .light {
-  --background: oklch(0.985 0.004 285);
-  --foreground: oklch(0.18 0.02 285);
+  --background: oklch(0.99 0.004 285);
+  --foreground: oklch(0.12 0.02 285);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 285);
+  --card-foreground: oklch(0.12 0.02 285);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 285);
-  --primary: oklch(0.50 0.22 290);
+  --popover-foreground: oklch(0.12 0.02 285);
+  --primary: oklch(0.46 0.24 290);
   --primary-foreground: oklch(0.99 0.005 285);
   --secondary: oklch(0.95 0.006 285);
-  --secondary-foreground: oklch(0.18 0.02 285);
+  --secondary-foreground: oklch(0.12 0.02 285);
   --muted: oklch(0.95 0.006 285);
-  --muted-foreground: oklch(0.45 0.02 285);
+  --muted-foreground: oklch(0.38 0.022 285);
   --accent: oklch(0.62 0.18 330);
   --accent-foreground: oklch(0.99 0.005 285);
   --destructive: oklch(0.58 0.24 25);
