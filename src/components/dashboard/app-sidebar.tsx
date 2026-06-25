@@ -20,6 +20,7 @@ const STAFF_NAV: Item[] = [
   { to: "/accounting", label: "Accounting", icon: Receipt },
   { to: "/royalties", label: "Royalties", icon: DollarSign },
   { to: "/admin/broadcast", label: "Broadcast", icon: ShieldCheck },
+  { to: "/admin/pages", label: "Pages", icon: FileEdit },
   { to: "/admin/tickets", label: "Tickets", icon: LifeBuoy },
 ];
 
