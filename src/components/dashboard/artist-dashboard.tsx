@@ -283,7 +283,7 @@ const QUOTES: { text: string; author: string }[] = [
 function RotatingQuoteCard() {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((v) => (v + 1) % QUOTES.length), 30000);
+    const t = setInterval(() => setI((v) => (v + 1) % QUOTES.length), 10000);
     return () => clearInterval(t);
   }, []);
   const q = QUOTES[i];
