@@ -57,8 +57,7 @@ function PublicPage() {
 
       <header className="px-5 py-4 flex items-center justify-between border-b border-border/40">
         <Link to="/" className="flex items-center gap-2 text-sm">
-          <Music className="h-4 w-4 text-primary" />
-          <span className="font-display font-semibold">SoundXpand</span>
+          <BrandLogo height={22} />
         </Link>
         <Link to="/auth" className="text-xs rounded-full bg-primary text-primary-foreground px-3 py-1.5 hover:opacity-90">Distribute free</Link>
       </header>
