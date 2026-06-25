@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /pending
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /admin
+
+Sitemap: https://sx-test.lovable.app/sitemap.xml
