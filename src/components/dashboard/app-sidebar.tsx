@@ -147,25 +147,59 @@ export function AppSidebar({
           })}
         </nav>
 
-        <div className="border-t border-border p-3 space-y-2">
-          <button
-            onClick={onToggleCollapse}
-            className="hidden lg:flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+        <div className="shrink-0 border-t border-border bg-card/80 backdrop-blur p-2 space-y-1.5">
+          {/* User chip */}
+          <Link
+            to="/profile"
+            onClick={onMobileClose}
+            title={collapsed ? displayName : undefined}
+            className={cn(
+              "flex items-center gap-2.5 rounded-lg px-2 py-2 hover:bg-muted/60 transition",
+              collapsed && "justify-center"
+            )}
           >
-            {collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
-            {!collapsed && <span>Collapse</span>}
-          </button>
+            <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/40 text-white grid place-items-center text-[11px] font-semibold overflow-hidden">
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : initials}
+            </div>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium truncate">{displayName}</div>
+                <div className="text-[10px] text-muted-foreground truncate">{roleLabel(role)}</div>
+              </div>
+            )}
+          </Link>
+
+          <div className={cn("flex gap-1", collapsed && "flex-col")}>
+            <button
+              onClick={handleSignOut}
+              title="Sign out"
+              className={cn(
+                "flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted/60 hover:text-foreground transition flex-1"
+              )}
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              {!collapsed && <span>Sign out</span>}
+            </button>
+            <button
+              onClick={onToggleCollapse}
+              title={collapsed ? "Expand" : "Collapse"}
+              className="hidden lg:flex items-center justify-center rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted/60 hover:text-foreground transition"
+            >
+              {collapsed ? <ChevronsRight className="h-3.5 w-3.5" /> : <ChevronsLeft className="h-3.5 w-3.5" />}
+            </button>
+          </div>
+
           {!collapsed && (
-            <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">
+            <div className="text-[10px] text-muted-foreground leading-relaxed px-2 pt-1.5 border-t border-border/60 space-y-1">
               <div className="flex gap-3">
                 <Link to="/legal/terms" className="hover:text-foreground">Terms</Link>
                 <Link to="/legal/privacy" className="hover:text-foreground">Privacy</Link>
+                <Link to="/support" className="hover:text-foreground">Help</Link>
               </div>
-              <div>© 2026 SoundXpand</div>
-              <div className="flex items-center gap-1.5">
-                <span>v2.1.0</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-success/15 text-success px-1.5 py-0.5">
-                  <span className="h-1 w-1 rounded-full bg-success" /> Production
+              <div className="flex items-center justify-between">
+                <span>© 2026 SoundXpand</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-500 px-1.5 py-0.5">
+                  <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /> Live
                 </span>
               </div>
             </div>
