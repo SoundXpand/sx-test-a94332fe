@@ -1,72 +1,78 @@
-This is a large batch of changes spanning DB, wizard, public pages, admin tools, and notifications. Grouping into clear workstreams. Please confirm before I execute.
+## Scope
 
-## 1. Accounting / analytics_rows
+Five connected changes: (1) Admin Page Builder, (2) fix Smartlink visibility/access for delivered releases, (3) admin per-DSP status editor on the Delivered tab, (4) DSP delivery log visible to admin + owning artist, (5) wire it all into the existing releases/catalog UI.
 
-- Migration: rename/align `analytics_rows` columns to match the Accounting Excel template exactly (the 121-col template you uploaded earlier — same headers as `ACCOUNTING_HEADERS`). Add any missing columns; keep existing ones if already present.
-- Date parsing in `parseAccountingFile`: accept `YYYY-MM-DD`, `DD/MM/YYYY`, Excel serial numbers, and ISO; normalize to `YYYY-MM-DD` text — no SQL cast errors.
-- Owner match: after parse, look up `profiles` by `username` (case-insensitive) and stamp `owner_id`. Rows with no match still ingest but flagged `owner_id = null` with a `unmatched_username` count surfaced in toast.
-- Upload history: add row-level **Delete** action that deletes the upload row AND cascades `analytics_rows WHERE upload_id = X` (add FK `ON DELETE CASCADE` in migration). Admin-only.
+---
 
-## 2. Username generation overflow
+## 1. Admin Page Builder (`/admin/pages`)
 
-- Migration: replace `sx_username_seq` logic in `handle_new_user_soundxpand` — after `SX999`, switch to `SX00001`, `SX00002`, … using `LPAD(nextval, 5, '0')` when value > 999. Add unique constraint check.
+New DB tables (migration):
+- `cms_pages` — `slug` (unique), `title`, `status` ('draft'|'published'), `seo_title`, `seo_description`, `og_image_path`, `published_at`, `created_by`.
+- `cms_page_blocks` — `page_id` (FK), `position` (int), `type` ('hero'|'rich_text'|'image'|'cta'|'features'|'embed'), `data` (jsonb).
 
-## 3. User Logbook on `/users/SX003`
+Both: RLS = staff full access; `anon`/`authenticated` SELECT only where `status='published'`. GRANTs per template rules.
 
-- New table `user_activity_log` (id, user_id, kind: 'login'|'action'|..., summary, meta jsonb, created_at). RLS: user reads own; staff reads all.
-- Hook into auth state change in `src/integrations/supabase/client.ts` consumer (`use-current-user` or a top-level effect) to record `login` events.
-- Add Logbook card to `users.$username.tsx` showing latest 50 entries.
+UI:
+- `/admin/pages` — table of pages (title, slug, status, updated_at, view/edit/delete actions). "New page" button.
+- `/admin/pages/$id` — editor with:
+  - SEO panel (title, description, OG image upload, slug, status toggle).
+  - Block list with drag-reorder (dnd-kit, already present via shadcn), add-block menu, inline editor per block type, delete block.
+  - Save + Publish buttons; "View live" opens `/p/{slug}` in new tab.
+- Public route `/p/$slug` — SSR loader fetches published page via public server fn, renders blocks, full SEO head() with OG tags.
 
-## 4. Topbar search → tabs/pages/settings/support
+Sidebar entry under admin section: "Pages".
 
-- Replace the current releases/tracks/profiles search with a static index of routes (Dashboard, Catalog, Releases, Analytics, Royalties, Users, Accounting, Settings sections, Support, Legal). Long queries (>15 chars) also search `support_tickets` subjects.
+---
 
-## 5. Profile + Public artist page
+## 2. Smartlink visibility & access fix
 
-- Update `/profile`: add fields — bio (long text), `is_public` toggle, social links (instagram, youtube, spotify, apple, tiktok, soundcloud, website), display name, role-derived path prefix.
-- Add "Copy link" + "Visit" buttons.
-- New public route `src/routes/$roleType.$username.tsx` (paths like `/artist/sx003`, `/label/sx003`, `/publisher/sx003`) → cover, bio, socials, discography (live releases), smartlinks.
-- Migration: add `is_public boolean`, `bio text`, `social_*` columns (extend existing socials), `display_name` to `profiles`.
-- Landing footer: add Cookie, Privacy, Terms, More links (route exists or stub).
+Issue: smartlink button only shows when `row.status === 'live'`, but delivered releases use status `delivered` (or similar). Also `/l/$slug` may 404 for non-live.
 
-## 6. Release wizard `/releases/new`
+Fix:
+- `release-row-actions.tsx`: show smartlink button + menu items whenever `row.slug` exists AND `status ∈ {live, delivered, taken_down(read-only)}`. (Confirm exact status values via a quick query at build time.)
+- `catalog.tsx` + `releases.index.tsx`: same condition for any inline smartlink column.
+- `l.$slug.tsx` loader: allow any release with a slug that is not `draft`/`pending`/`rejected` — currently likely gated to `live` only.
 
-- **Catalog number**: dynamic mask `SX[A-Z]{1,4}\d{4,10}`; auto-generate next free.
-- **ISRC autogen** when UPC empty: pattern `INV2I{YY}{NNNNN}` starting at `00001` for current year, increment from max existing for that year. Show generated value read-only with regenerate button.
-- **AI Artwork Studio**: change generation size to 3000×3000 (gen at max 1920 and upscale OR use premium with 1920 then bicubic to 3000 client-side via canvas — note: true 3000 requires upscale; will document limit).
-- **Tracks language gating**: if `language ∈ {No human vocals, No linguistic content}` → hide Lyricist + lyrics textarea; else require Composer, Lyricist, Producer. Convert these to tag-style multi-author inputs (chips).
-- **Publisher**: dropdown checklist of SoundXpand / SoundXpand PRO / SoundXpand Publishing — all checked by default.
-- Remove "Copyright owner" input.
-- **Territory**: multi-level checklist tree (Worldwide top, then India, then continents → countries). Use a new `<TerritoryPicker />` component fed by a static dataset.
+---
 
-## 7. Distribution DSP list (step 5)
+## 3. Admin per-DSP status editor on Delivered tab
 
-Replace `DSPS` list with the full ordered list you provided, each with a medium logo (use `lucide` placeholder + `src/assets/dsp/<slug>.png` slots; I'll add transparent placeholder logos generated via `imagegen` only if you want — otherwise text-only with monogram squares for now to keep this change small).
+Current state: `releases.$id.tsx` "Delivery prefs" tab shows a read-only per-DSP grid for staff.
 
-## 8. Sidebar / topbar tweaks
+Add:
+- New "DSP delivery" tab (staff-only) on delivered releases.
+- Table rows = DSPs from `dsp_deliveries` for this release. Editable columns: status (pending/sent/live/rejected/takedown), DSP URL, note. Save per row → updates `dsp_deliveries` + writes `release_events` audit row.
+- Reuse existing status enum + components from the artist delivery view for consistency.
 
-- Remove "Approval queue" from sidebar.
-- Admin topbar "+ New release" → `/releases`.
-- Dashboard "Review queue" button → `/releases`.
+---
 
-## 9. Realtime notifications
+## 4. DSP delivery log (admin + owning artist)
 
-- New table `notifications` (id, user_id nullable for broadcast, kind, title, body, link, created_at, read_at). RLS: user reads own + broadcasts (user_id null).
-- Topbar bell: realtime subscription, shows last 6 + "View all" → `/notifications`.
-- New admin page `/admin/broadcast` to send promo notifications (insert with user_id null or specific user list).
-- Auto-create notifications on: release status change (trigger), ticket reply (trigger).
+On `releases.$id.tsx`, add "Delivery log" tab visible to staff AND release owner:
+- Query `dsp_deliveries` joined with DSP metadata: shows each DSP, current status, last updated, note, link.
+- Below: timeline from `release_events` filtered to delivery-related types (`dsp_sent`, `dsp_live`, `dsp_rejected`, `status_*`), newest first, with actor name + timestamp.
+- Artist sees same data read-only; admin sees inline edit (from #3).
 
-## 10. Royalties module
+---
 
-- New table `royalty_statements_files` (id, owner_username, owner_id, period, summary, amount, currency, pdf_path, uploaded_by, created_at). Storage bucket `statements` (private).
-- Admin `/royalties` upload form (username, period, amount, summary, PDF). Match username→owner_id.
-- User `/royalties` lists their own; admin sees all.
+## 5. Wiring
 
-## Open questions
+- Add migration creating `cms_pages`, `cms_page_blocks` with RLS + GRANTs.
+- Add migration ensuring `dsp_deliveries` has `note`, `dsp_url`, `updated_at`, and an `updated_by` column if missing (verify first via read query — skip if present).
+- Add public server fn `getPublishedPage(slug)` using server publishable client.
+- Add staff server fn `updateDspDelivery({ id, status, note, url })` with `requireSupabaseAuth` + `is_staff` check; writes `release_events`.
+- Sidebar: add "Pages" link under admin group in `app-sidebar.tsx`.
 
-1. **DSP logos** — generate real PNG logos for all ~35 platforms (slow + costly), use letter monograms, or leave placeholder slots for you to upload?
-2. **AI Artwork 3000×3000** — image models cap at 1920. OK to generate 1920 then upscale to 3000 in-browser (lossy)?
-3. **Public profile URL** — confirm `/artist/<username>` etc. is OK (vs `/u/<username>`). Multi-role users: pick primary role for path?
-4. Username overflow at SX999→SX00001 (5 digits). Should existing SX001–SX999 remain unchanged? (yes assumed.)
+---
 
-Reply with answers + "go" and I'll execute in roughly the order above.
+## Out of scope (call out)
+
+- No public Page Builder theming options beyond the listed block types this round.
+- No bulk DSP status update; per-row only.
+- No notification fan-out when admin changes DSP status (can follow up).
+
+## Technical notes
+
+- Block editor uses existing shadcn primitives; reorder via `@dnd-kit/sortable` (add if missing).
+- Public `/p/$slug` loader pattern mirrors `/l/$slug` SSR setup already in place.
+- Status value for delivered releases will be confirmed against `releases.status` distinct values before changing the smartlink gate to avoid showing for wrong states.
