@@ -141,7 +141,7 @@ function BlockView({ block }: { block: any }) {
     );
   }
   if (block.type === "embed") return (
-    <section className="rounded-2xl overflow-hidden border border-border/40" dangerouslySetInnerHTML={{ __html: d.html ?? "" }} />
+    <section className="rounded-2xl overflow-hidden border border-border/40" dangerouslySetInnerHTML={{ __html: sanitizeEmbed(d.html ?? "") }} />
   );
   return null;
 }
