@@ -307,9 +307,10 @@ function NewRelease() {
 
       let artwork_path: string | null = null;
       if (artwork.file) {
-        const path = `${u.user.id}/${Date.now()}-${artwork.file.name}`;
-        const { error } = await supabase.storage.from("artwork").upload(path, artwork.file);
-        if (!error) artwork_path = path;
+        try {
+          const { uploadToR2 } = await import("@/lib/storage-url");
+          artwork_path = await uploadToR2({ kind: "artwork", file: artwork.file });
+        } catch (e: any) { toast.error(`Artwork upload failed: ${e.message}`); throw e; }
       }
 
       const primaryName = myArtists.find(a => releaseArtistIds.includes(a.id))?.name ?? "";
