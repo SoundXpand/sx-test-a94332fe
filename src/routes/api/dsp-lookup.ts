@@ -115,12 +115,17 @@ async function deezer(upc: string | undefined, query: string | undefined): Promi
 export const Route = createFileRoute("/api/dsp-lookup")({
   server: {
     handlers: {
-      OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
+      OPTIONS: async ({ request }) => new Response(null, { status: 204, headers: corsHeaders(request.headers.get("origin")) }),
       POST: async ({ request }) => {
+        const CORS = corsHeaders(request.headers.get("origin"));
+        const unauth = await requireAuth(request);
+        if (unauth) return unauth;
         try {
           const body = (await request.json()) as { upc?: string; artist?: string; title?: string };
-          const upc = body.upc?.trim() || undefined;
-          const query = [body.artist, body.title].filter(Boolean).join(" ").trim() || undefined;
+          const upc = body.upc?.trim().slice(0, 32) || undefined;
+          const artist = body.artist?.trim().slice(0, 200);
+          const title = body.title?.trim().slice(0, 200);
+          const query = [artist, title].filter(Boolean).join(" ").trim() || undefined;
           if (!upc && !query) {
             return new Response(JSON.stringify({ error: "Provide upc or artist+title" }), {
               status: 400, headers: { "Content-Type": "application/json", ...CORS },
