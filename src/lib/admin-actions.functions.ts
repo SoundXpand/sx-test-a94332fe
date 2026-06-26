@@ -177,7 +177,9 @@ export const updateReleaseAdminFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
     if (Object.keys(data.patch).length) {
-      const { error } = await context.supabase.from("releases").update(data.patch).eq("id", data.releaseId);
+      // admin_remarks column is restricted from authenticated role — apply via service role
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error } = await supabaseAdmin.from("releases").update(data.patch).eq("id", data.releaseId);
       if (error) throw error;
     }
     if (data.trackPatches?.length) {
@@ -187,6 +189,21 @@ export const updateReleaseAdminFn = createServerFn({ method: "POST" })
       }
     }
     return { ok: true };
+  });
+
+export const getReleaseAdminMetaFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { releaseId: string }) => d)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("releases")
+      .select("id, admin_remarks")
+      .eq("id", data.releaseId)
+      .maybeSingle();
+    if (error) throw error;
+    return { admin_remarks: (row?.admin_remarks ?? null) as string | null };
   });
 
 export const purgeArchivedFn = createServerFn({ method: "POST" })
