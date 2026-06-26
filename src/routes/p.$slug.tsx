@@ -106,7 +106,7 @@ function BlockView({ block }: { block: any }) {
     </section>
   );
   if (block.type === "rich_text") return (
-    <section className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: d.html ?? "" }} />
+    <section className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHtml(d.html ?? "") }} />
   );
   if (block.type === "image") return (
     <figure className="space-y-2">
