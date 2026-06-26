@@ -16,15 +16,10 @@ export function AudioPlayButton({ path }: { path?: string | null }) {
   const toggle = async () => {
     if (state === "playing") { ref.current?.pause(); setState("idle"); return; }
     setState("loading");
-    let url: string | null = null;
-    if (/^https?:\/\//i.test(path)) url = path;
-    else {
-      const { data } = await supabase.storage.from("audio").createSignedUrl(path, 600);
-      url = data?.signedUrl ?? null;
-    }
-    if (!url) { setState("idle"); return; }
+    const { data } = await supabase.storage.from("audio").createSignedUrl(path, 600);
+    if (!data?.signedUrl) { setState("idle"); return; }
     if (currentAudio && currentAudio !== ref.current) { currentAudio.pause(); }
-    const a = new Audio(url);
+    const a = new Audio(data.signedUrl);
     ref.current = a; currentAudio = a;
     a.onended = () => setState("idle");
     a.onpause = () => setState(s => (s === "playing" ? "idle" : s));

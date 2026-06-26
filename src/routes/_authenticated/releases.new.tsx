@@ -307,10 +307,9 @@ function NewRelease() {
 
       let artwork_path: string | null = null;
       if (artwork.file) {
-        try {
-          const { uploadToR2 } = await import("@/lib/storage-url");
-          artwork_path = await uploadToR2({ kind: "artwork", file: artwork.file });
-        } catch (e: any) { toast.error(`Artwork upload failed: ${e.message}`); throw e; }
+        const path = `${u.user.id}/${Date.now()}-${artwork.file.name}`;
+        const { error } = await supabase.storage.from("artwork").upload(path, artwork.file);
+        if (!error) artwork_path = path;
       }
 
       const primaryName = myArtists.find(a => releaseArtistIds.includes(a.id))?.name ?? "";
@@ -376,10 +375,9 @@ function NewRelease() {
         let audio_path: string | null = null;
         const af = audioFiles[i];
         if (af) {
-          try {
-            const { uploadToR2 } = await import("@/lib/storage-url");
-            audio_path = await uploadToR2({ kind: "audio", file: af, subdir: releaseId });
-          } catch (e: any) { toast.error(`Audio upload failed: ${e.message}`); throw e; }
+          const p = `${u.user.id}/${releaseId}/${i}-${af.name}`;
+          const { error } = await supabase.storage.from("audio").upload(p, af, { upsert: true });
+          if (!error) audio_path = p;
         }
         const tArtistNames = myArtists.filter(a => eff.artist_ids.includes(a.id)).map(a => a.name).join(", ");
         await supabase.from("release_tracks").insert({

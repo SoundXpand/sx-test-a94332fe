@@ -72,8 +72,8 @@ function ReleaseDetail() {
       setOwnerProfile(prof);
     }
     if (r.data?.artwork_path) {
-      const { resolveMediaUrl } = await import("@/lib/storage-url");
-      setArtworkUrl(await resolveMediaUrl(r.data.artwork_path, "artwork"));
+      const { data: s } = await supabase.storage.from("artwork").createSignedUrl(r.data.artwork_path, 3600);
+      setArtworkUrl(s?.signedUrl ?? null);
     } else setArtworkUrl(null);
     setLoading(false);
   }, [id, staff]);
