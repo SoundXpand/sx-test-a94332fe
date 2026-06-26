@@ -35,8 +35,11 @@ const getPublicProfile = createServerFn({ method: "GET" })
       (rels ?? []).map(async (r) => {
         let url: string | null = null;
         if (r.artwork_path) {
-          const { data: signed } = await sb.storage.from("artwork").createSignedUrl(r.artwork_path, 60 * 60);
-          url = signed?.signedUrl ?? null;
+          if (/^https?:\/\//i.test(r.artwork_path)) url = r.artwork_path;
+          else {
+            const { data: signed } = await sb.storage.from("artwork").createSignedUrl(r.artwork_path, 60 * 60);
+            url = signed?.signedUrl ?? null;
+          }
         }
         return { ...r, artworkUrl: url };
       })
