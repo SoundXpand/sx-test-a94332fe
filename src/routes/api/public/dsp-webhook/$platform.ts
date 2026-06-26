@@ -16,8 +16,7 @@ export const Route = createFileRoute("/api/public/dsp-webhook/$platform")({
       POST: async ({ request }) => {
         const secret = process.env.DSP_WEBHOOK_SECRET || "";
         const provided = request.headers.get("x-webhook-secret") || "";
-        const simulate = request.headers.get("x-simulate") === "1";
-        if (!simulate && (!secret || provided !== secret)) {
+        if (!secret || provided !== secret) {
           return new Response("Invalid signature", { status: 401 });
         }
         const raw = await request.json().catch(() => null);
