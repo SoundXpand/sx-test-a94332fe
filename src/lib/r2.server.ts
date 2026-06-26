@@ -1,27 +1,30 @@
 // R2 (S3-compatible) client + helpers. Server-only.
+// NOTE: Credentials are intentionally hardcoded here per project owner request.
+// Rotate by editing this file. Do NOT commit this file to a public repo.
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-function env(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing ${name}`);
-  return v;
-}
+const R2_CONFIG = {
+  accountId: "a0d38ea96c203a9a7384629a79c36198",
+  accessKeyId: "d9b297a34ab05d834187a9b836a7887b",
+  secretAccessKey: "c0e1a1ee01392c59c2c1bedfa183b185380db29b6d9999e4209a61ed37c79fa4",
+  bucket: "sxstuff1",
+  publicUrl: "https://pub-20a9d3b3d544440aafcac92ca3007881.r2.dev",
+} as const;
 
 export function r2Client(): { client: S3Client; bucket: string; publicBase: string } {
-  const accountId = env("R2_ACCOUNT_ID");
-  const bucket = env("R2_BUCKET");
-  const publicBase = env("R2_PUBLIC_URL").replace(/\/+$/, "");
+  const publicBase = R2_CONFIG.publicUrl.replace(/\/+$/, "");
   const client = new S3Client({
     region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    endpoint: `https://${R2_CONFIG.accountId}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: env("R2_ACCESS_KEY_ID"),
-      secretAccessKey: env("R2_SECRET_ACCESS_KEY"),
+      accessKeyId: R2_CONFIG.accessKeyId,
+      secretAccessKey: R2_CONFIG.secretAccessKey,
     },
   });
-  return { client, bucket, publicBase };
+  return { client, bucket: R2_CONFIG.bucket, publicBase };
 }
+
 
 export async function presignR2Put(key: string, contentType: string, expiresInSeconds = 600): Promise<string> {
   const { client, bucket } = r2Client();
