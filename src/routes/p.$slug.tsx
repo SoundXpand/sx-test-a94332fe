@@ -2,6 +2,17 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { getPublishedPageFn } from "@/lib/cms-pages.functions";
 import { Music, ArrowRight } from "lucide-react";
 import { BrandLogo } from "@/components/branding/brand-logo";
+import DOMPurify from "isomorphic-dompurify";
+
+function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html ?? "", { USE_PROFILES: { html: true } });
+}
+function sanitizeEmbed(html: string): string {
+  return DOMPurify.sanitize(html ?? "", {
+    ADD_TAGS: ["iframe"],
+    ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "loading", "referrerpolicy"],
+  });
+}
 
 export const Route = createFileRoute("/p/$slug")({
   loader: async ({ params }) => {
@@ -95,7 +106,7 @@ function BlockView({ block }: { block: any }) {
     </section>
   );
   if (block.type === "rich_text") return (
-    <section className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: d.html ?? "" }} />
+    <section className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHtml(d.html ?? "") }} />
   );
   if (block.type === "image") return (
     <figure className="space-y-2">
@@ -130,7 +141,7 @@ function BlockView({ block }: { block: any }) {
     );
   }
   if (block.type === "embed") return (
-    <section className="rounded-2xl overflow-hidden border border-border/40" dangerouslySetInnerHTML={{ __html: d.html ?? "" }} />
+    <section className="rounded-2xl overflow-hidden border border-border/40" dangerouslySetInnerHTML={{ __html: sanitizeEmbed(d.html ?? "") }} />
   );
   return null;
 }

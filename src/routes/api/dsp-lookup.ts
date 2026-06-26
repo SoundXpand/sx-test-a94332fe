@@ -1,12 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
 
 type Hit = { platform: string; title: string; artist: string; url: string; externalId: string; artwork?: string };
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-} as const;
+function corsHeaders(origin: string | null) {
+  // Reflect same-origin only; fall back to no CORS header when origin is missing
+  const allowed = origin ?? "";
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Vary": "Origin",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  } as Record<string, string>;
+}
+
+async function requireAuth(request: Request): Promise<Response | null> {
+  const authHeader = request.headers.get("authorization") ?? "";
+  if (!authHeader.startsWith("Bearer ")) return new Response("Unauthorized", { status: 401 });
+  const token = authHeader.slice(7);
+  if (!token || token.split(".").length !== 3) return new Response("Unauthorized", { status: 401 });
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return new Response("Server misconfigured", { status: 500 });
+  const supa = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
+  });
+  const { data, error } = await supa.auth.getClaims(token);
+  if (error || !data?.claims?.sub) return new Response("Unauthorized", { status: 401 });
+  return null;
+}
 
 async function spotify(upc: string | undefined, query: string | undefined): Promise<Hit[]> {
   const id = process.env.SPOTIFY_CLIENT_ID;
@@ -93,12 +115,17 @@ async function deezer(upc: string | undefined, query: string | undefined): Promi
 export const Route = createFileRoute("/api/dsp-lookup")({
   server: {
     handlers: {
-      OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
+      OPTIONS: async ({ request }) => new Response(null, { status: 204, headers: corsHeaders(request.headers.get("origin")) }),
       POST: async ({ request }) => {
+        const CORS = corsHeaders(request.headers.get("origin"));
+        const unauth = await requireAuth(request);
+        if (unauth) return unauth;
         try {
           const body = (await request.json()) as { upc?: string; artist?: string; title?: string };
-          const upc = body.upc?.trim() || undefined;
-          const query = [body.artist, body.title].filter(Boolean).join(" ").trim() || undefined;
+          const upc = body.upc?.trim().slice(0, 32) || undefined;
+          const artist = body.artist?.trim().slice(0, 200);
+          const title = body.title?.trim().slice(0, 200);
+          const query = [artist, title].filter(Boolean).join(" ").trim() || undefined;
           if (!upc && !query) {
             return new Response(JSON.stringify({ error: "Provide upc or artist+title" }), {
               status: 400, headers: { "Content-Type": "application/json", ...CORS },

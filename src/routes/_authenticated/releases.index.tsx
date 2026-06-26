@@ -42,7 +42,7 @@ function ReleasesAdmin() {
 
   const load = useCallback(async () => {
     const [r, d] = await Promise.all([
-      supabase.from("releases").select("id,title,release_type,status,release_date,owner_id,slug,rejection_reason,upc,catalog_number,primary_genre,artwork_path,p_year,p_name,c_year,c_name,created_at,delivered_at,delivery_note,archived_at,admin_remarks").order("created_at", { ascending: false }),
+      supabase.from("releases").select("id,title,release_type,status,release_date,owner_id,slug,rejection_reason,upc,catalog_number,primary_genre,artwork_path,p_year,p_name,c_year,c_name,created_at,delivered_at,delivery_note,archived_at").order("created_at", { ascending: false }),
       supabase.from("release_deliveries" as any).select("*").order("delivered_at", { ascending: false }).limit(100),
     ]);
     setRows(r.data ?? []);
