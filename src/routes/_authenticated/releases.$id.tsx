@@ -89,14 +89,19 @@ function ReleaseDetail() {
   };
 
   const simulate = async (platform: string, status: string) => {
-    const url = `/api/public/dsp-webhook/${encodeURIComponent(platform.toLowerCase().replace(/\s+/g, "-"))}`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-simulate": "1" },
-      body: JSON.stringify({ release_id: id, platform, status, external_url: status === "live" ? `https://example.com/${platform.toLowerCase()}/${id}` : undefined }),
-    });
-    if (res.ok) { toast.success(`${platform} → ${status}`); load(); }
-    else toast.error(`Webhook failed (${res.status})`);
+    try {
+      await simulateDspWebhookFn({
+        data: {
+          releaseId: id, platform,
+          status: status as any,
+          externalUrl: status === "live" ? `https://example.com/${platform.toLowerCase()}/${id}` : undefined,
+        },
+      });
+      toast.success(`${platform} → ${status}`);
+      load();
+    } catch (e: any) {
+      toast.error(`Webhook failed: ${e?.message ?? "unknown"}`);
+    }
   };
 
   if (loading) return <div className="p-8 text-muted-foreground">Loading…</div>;
