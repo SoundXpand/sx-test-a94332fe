@@ -220,10 +220,17 @@ export const purgeArchivedFn = createServerFn({ method: "POST" })
     const { data: tracks } = await context.supabase
       .from("release_tracks").select("id, audio_path").in("release_id", ids);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const audioPaths = (tracks ?? []).map((t: any) => t.audio_path).filter(Boolean);
-    const artPaths = (due ?? []).map((r: any) => r.artwork_path).filter(Boolean);
+    const allAudio = (tracks ?? []).map((t: any) => t.audio_path).filter(Boolean);
+    const allArt = (due ?? []).map((r: any) => r.artwork_path).filter(Boolean);
+    const audioPaths = allAudio.filter((p: string) => !/^https?:\/\//i.test(p));
+    const artPaths = allArt.filter((p: string) => !/^https?:\/\//i.test(p));
+    const r2Urls = [...allAudio, ...allArt].filter((p: string) => /^https?:\/\//i.test(p));
     if (audioPaths.length) await supabaseAdmin.storage.from("audio").remove(audioPaths);
     if (artPaths.length) await supabaseAdmin.storage.from("artwork").remove(artPaths);
+    if (r2Urls.length) {
+      const { keyFromUrl, deleteR2Key } = await import("@/lib/r2.server");
+      await Promise.all(r2Urls.map(async (u: string) => { const k = keyFromUrl(u); if (k) try { await deleteR2Key(k); } catch {} }));
+    }
     await context.supabase.from("release_tracks").delete().in("release_id", ids);
     await context.supabase.from("releases").delete().in("id", ids);
     return { purged: ids.length };
