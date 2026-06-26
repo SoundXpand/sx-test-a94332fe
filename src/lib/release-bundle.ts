@@ -13,6 +13,10 @@ function baseName(release: any) {
 
 async function downloadStoragePath(bucket: string, path: string): Promise<Blob | null> {
   if (!path) return null;
+  if (/^https?:\/\//i.test(path)) {
+    try { const res = await fetch(path); if (!res.ok) return null; return await res.blob(); }
+    catch { return null; }
+  }
   const { data } = await supabase.storage.from(bucket).download(path);
   return data ?? null;
 }

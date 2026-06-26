@@ -40,10 +40,8 @@ function Royalties() {
       const { data: prof } = await supabase.from("profiles").select("user_id").eq("username", form.username.trim()).maybeSingle();
       let pdf_path: string | null = null;
       if (file) {
-        const owner = (prof as any)?.user_id || "unmatched";
-        pdf_path = `${owner}/${Date.now()}-${file.name}`;
-        const { error: upErr } = await supabase.storage.from("statements").upload(pdf_path, file, { upsert: true });
-        if (upErr) throw upErr;
+        const { uploadToR2 } = await import("@/lib/storage-url");
+        pdf_path = await uploadToR2({ kind: "statement", file, subdir: (prof as any)?.user_id || "unmatched" });
       }
       const { error } = await supabase.from("royalty_statement_files" as any).insert({
         owner_id: (prof as any)?.user_id ?? null,
@@ -65,6 +63,7 @@ function Royalties() {
 
   const downloadStatement = async (r: any) => {
     if (!r.pdf_path) return toast.error("No file");
+    if (/^https?:\/\//i.test(r.pdf_path)) { window.open(r.pdf_path, "_blank"); return; }
     const { data, error } = await supabase.storage.from("statements").createSignedUrl(r.pdf_path, 60);
     if (error || !data) return toast.error(error?.message || "Failed");
     window.open(data.signedUrl, "_blank");
@@ -72,7 +71,10 @@ function Royalties() {
 
   const remove = async (r: any) => {
     if (!staff) return;
-    if (r.pdf_path) await supabase.storage.from("statements").remove([r.pdf_path]);
+    if (r.pdf_path && !/^https?:\/\//i.test(r.pdf_path)) await supabase.storage.from("statements").remove([r.pdf_path]);
+    else if (r.pdf_path) {
+      try { const { deleteR2ObjectFn } = await import("@/lib/r2-upload.functions"); await deleteR2ObjectFn({ data: { url: r.pdf_path } }); } catch {}
+    }
     const { error } = await supabase.from("royalty_statement_files" as any).delete().eq("id", r.id);
     if (error) return toast.error(error.message);
     toast.success("Deleted"); load();

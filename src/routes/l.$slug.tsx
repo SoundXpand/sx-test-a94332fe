@@ -36,8 +36,11 @@ const getSmartlink = createServerFn({ method: "GET" })
       .eq("release_id", rel.id);
     let artworkUrl: string | null = null;
     if (rel.artwork_path) {
-      const { data: signed } = await sb.storage.from("artwork").createSignedUrl(rel.artwork_path, 60 * 60);
-      artworkUrl = signed?.signedUrl ?? null;
+      if (/^https?:\/\//i.test(rel.artwork_path)) artworkUrl = rel.artwork_path;
+      else {
+        const { data: signed } = await sb.storage.from("artwork").createSignedUrl(rel.artwork_path, 60 * 60);
+        artworkUrl = signed?.signedUrl ?? null;
+      }
     }
     let artist = "";
     let artistUsername = "";
