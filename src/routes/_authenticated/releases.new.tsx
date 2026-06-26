@@ -376,9 +376,10 @@ function NewRelease() {
         let audio_path: string | null = null;
         const af = audioFiles[i];
         if (af) {
-          const p = `${u.user.id}/${releaseId}/${i}-${af.name}`;
-          const { error } = await supabase.storage.from("audio").upload(p, af, { upsert: true });
-          if (!error) audio_path = p;
+          try {
+            const { uploadToR2 } = await import("@/lib/storage-url");
+            audio_path = await uploadToR2({ kind: "audio", file: af, subdir: releaseId });
+          } catch (e: any) { toast.error(`Audio upload failed: ${e.message}`); throw e; }
         }
         const tArtistNames = myArtists.filter(a => eff.artist_ids.includes(a.id)).map(a => a.name).join(", ");
         await supabase.from("release_tracks").insert({
