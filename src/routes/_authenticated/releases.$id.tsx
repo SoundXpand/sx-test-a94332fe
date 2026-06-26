@@ -49,13 +49,21 @@ function ReleaseDetail() {
   const archiveFn = useServerFn(archiveReleaseFn);
 
   const load = useCallback(async () => {
+    const RELEASE_COLS = "id,owner_id,title,version,release_type,primary_genre,secondary_genre,language,release_date,original_release_date,copyright_year,record_label,upc,catalog_number,parental_advisory,artwork_path,store_selection,status,rejection_reason,created_at,updated_at,slug,taken_down_at,published_url,artist_ids,sub_label,p_year,p_name,c_year,c_name,delivered_at,delivery_note,archived_at";
     const [r, t, d, e] = await Promise.all([
-      supabase.from("releases").select("*").eq("id", id).maybeSingle(),
+      supabase.from("releases").select(RELEASE_COLS).eq("id", id).maybeSingle(),
       supabase.from("release_tracks").select("*").eq("release_id", id).order("track_number"),
       supabase.from("dsp_deliveries" as any).select("*").eq("release_id", id).order("platform"),
       supabase.from("release_events" as any).select("*").eq("release_id", id).order("created_at", { ascending: false }),
     ]);
-    setRelease(r.data);
+    let releaseData: any = r.data;
+    if (releaseData && staff) {
+      try {
+        const ar: any = await getReleaseAdminMetaFn({ data: { releaseId: id } });
+        if (ar) releaseData = { ...releaseData, admin_remarks: ar.admin_remarks };
+      } catch { /* non-staff or no row */ }
+    }
+    setRelease(releaseData);
     setTracks(t.data ?? []);
     setDeliveries((d.data as any[]) ?? []);
     setEvents((e.data as any[]) ?? []);
@@ -68,7 +76,7 @@ function ReleaseDetail() {
       setArtworkUrl(s?.signedUrl ?? null);
     } else setArtworkUrl(null);
     setLoading(false);
-  }, [id]);
+  }, [id, staff]);
 
   useEffect(() => { load(); }, [load]);
 
