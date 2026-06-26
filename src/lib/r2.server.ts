@@ -54,12 +54,13 @@ export async function deleteR2Key(key: string): Promise<void> {
 
 export async function putR2Bytes(key: string, body: Uint8Array | Blob, contentType: string): Promise<string> {
   const c = client();
-  const bytes = body instanceof Blob ? new Uint8Array(await body.arrayBuffer()) : body;
+  const buf = body instanceof Blob ? await body.arrayBuffer() : (body.buffer as ArrayBuffer).slice(body.byteOffset, body.byteOffset + body.byteLength);
   const res = await c.fetch(objectUrl(key), {
     method: "PUT",
     headers: { "content-type": contentType },
-    body: bytes,
+    body: buf,
   });
   if (!res.ok) throw new Error(`R2 put failed (${res.status}): ${await res.text().catch(() => "")}`);
   return r2PublicUrl(key);
 }
+
