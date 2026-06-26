@@ -2,6 +2,17 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { getPublishedPageFn } from "@/lib/cms-pages.functions";
 import { Music, ArrowRight } from "lucide-react";
 import { BrandLogo } from "@/components/branding/brand-logo";
+import DOMPurify from "isomorphic-dompurify";
+
+function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html ?? "", { USE_PROFILES: { html: true } });
+}
+function sanitizeEmbed(html: string): string {
+  return DOMPurify.sanitize(html ?? "", {
+    ADD_TAGS: ["iframe"],
+    ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "loading", "referrerpolicy"],
+  });
+}
 
 export const Route = createFileRoute("/p/$slug")({
   loader: async ({ params }) => {
