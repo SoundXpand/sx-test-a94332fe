@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LandingPage } from "@/components/landing-page";
 
 const SITE = "https://sx-test.lovable.app";
-const TITLE = "SoundXpand | Music distribution to Spotify, Apple Music & 150+ stores";
+const TITLE = "SoundXpand Music Distribution | Sell Music Online | Artists & Label Services";
 const DESC =
   "Release your music to Spotify, Apple Music, YouTube, TikTok and 150+ platforms. Keep 100% of your rights, royalties and analytics.";
 
