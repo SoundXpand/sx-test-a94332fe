@@ -40,10 +40,8 @@ function Royalties() {
       const { data: prof } = await supabase.from("profiles").select("user_id").eq("username", form.username.trim()).maybeSingle();
       let pdf_path: string | null = null;
       if (file) {
-        const owner = (prof as any)?.user_id || "unmatched";
-        pdf_path = `${owner}/${Date.now()}-${file.name}`;
-        const { error: upErr } = await supabase.storage.from("statements").upload(pdf_path, file, { upsert: true });
-        if (upErr) throw upErr;
+        const { uploadToR2 } = await import("@/lib/storage-url");
+        pdf_path = await uploadToR2({ kind: "statement", file, subdir: (prof as any)?.user_id || "unmatched" });
       }
       const { error } = await supabase.from("royalty_statement_files" as any).insert({
         owner_id: (prof as any)?.user_id ?? null,
