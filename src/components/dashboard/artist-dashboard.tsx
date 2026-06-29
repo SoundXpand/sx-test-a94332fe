@@ -20,6 +20,7 @@ import {
   Heart,
 } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { ChartsCarousel } from "@/components/dashboard/charts-carousel";
 
 export function ArtistDashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -141,37 +142,7 @@ export function ArtistDashboard() {
         {trending.length === 0 ? (
           <div className="text-sm text-muted-foreground py-6 text-center">No deliveries in the last 30 days.</div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {trending.map((r, i) => (
-              <Card key={r.id} className="p-4 bg-muted/20 border-border hover:border-primary/40 transition group">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="text-[10px] text-muted-foreground">#{i + 1}</div>
-                    <div className="font-medium truncate">{r.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">{r.artist_name || "Unknown"}</div>
-                    <div className="text-[10px] text-muted-foreground mt-1">{r.release_date || ""}</div>
-                  </div>
-                  {r.slug ? (
-                    <a
-                      href={`/l/${r.slug}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="opacity-60 group-hover:opacity-100 transition"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  ) : null}
-                </div>
-                {r.slug && (
-                  <Button asChild size="sm" variant="outline" className="mt-3 w-full">
-                    <a href={`/l/${r.slug}`} target="_blank" rel="noreferrer">
-                      Smart link
-                    </a>
-                  </Button>
-                )}
-              </Card>
-            ))}
-          </div>
+          <ChartsCarousel items={trending} />
         )}
       </Card>
 
