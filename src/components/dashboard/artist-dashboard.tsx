@@ -20,6 +20,7 @@ import {
   Heart,
 } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { ChartsCarousel } from "@/components/dashboard/charts-carousel";
 
 export function ArtistDashboard() {
   const [stats, setStats] = useState<any>(null);
