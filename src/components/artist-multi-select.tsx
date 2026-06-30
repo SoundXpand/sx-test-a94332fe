@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, Plus } from "lucide-react";
+import { ArtistFormDialog } from "@/components/artist-form-dialog";
+
 
 export type ArtistRow = {
   id: string; name: string; is_primary: boolean;
