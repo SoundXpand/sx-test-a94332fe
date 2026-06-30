@@ -50,11 +50,15 @@ function FreeMusicDistributionPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: distributionCss }} />
-      <div
-        ref={ref}
-        className="sx-distribution-page"
-        dangerouslySetInnerHTML={{ __html: distributionHtml }}
-      />
+      {/* Outer bg matches footer so the area below footer doesn't bleed a different shade */}
+      <div style={{ background: "#0d0d12", minHeight: "100vh" }}>
+        <div
+          ref={ref}
+          className="sx-distribution-page"
+          style={{ background: "#060608" }}
+          dangerouslySetInnerHTML={{ __html: distributionHtml }}
+        />
+      </div>
       <ContactUsBadge />
     </>
   );

@@ -18,9 +18,9 @@ export function ContactUsBadge({
     <a
       href={`mailto:${email}`}
       aria-label={`Contact us at ${email}`}
-      className="group fixed left-4 top-[72%] z-40 -translate-y-1/2 sm:left-6"
+      className="group fixed bottom-6 left-4 z-40 sm:left-6"
     >
-      <div className="relative grid h-24 w-24 place-items-center sm:h-28 sm:w-28">
+      <div className="relative grid h-20 w-20 place-items-center sm:h-24 sm:w-24">
         <svg
           viewBox="0 0 200 200"
           className="absolute inset-0 h-full w-full animate-[spin_14s_linear_infinite] text-foreground"
