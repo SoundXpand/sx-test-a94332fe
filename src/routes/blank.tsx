@@ -29,6 +29,8 @@ function BlankPage() {
   return (
     <div className="relative min-h-screen bg-background text-foreground">
       <LandingNav />
+      <ContactUsBadge />
+
       <main className="mx-auto flex min-h-[70vh] max-w-4xl items-center px-5 pt-32 pb-24 sm:px-8">
         <div>
           <h1 className="font-display text-4xl font-extrabold tracking-[-0.03em] sm:text-6xl">
