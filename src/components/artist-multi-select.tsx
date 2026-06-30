@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, Plus } from "lucide-react";
+import { ArtistFormDialog } from "@/components/artist-form-dialog";
+
 
 export type ArtistRow = {
   id: string; name: string; is_primary: boolean;
@@ -26,7 +27,8 @@ export function useMyArtists() {
 export function ArtistMultiSelect({
   value, onChange, placeholder = "Select artists…",
 }: { value: string[]; onChange: (ids: string[]) => void; placeholder?: string }) {
-  const { artists } = useMyArtists();
+  const { artists, reload } = useMyArtists();
+  const [addOpen, setAddOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const selected = artists.filter(a => value.includes(a.id));
 
@@ -62,11 +64,21 @@ export function ArtistMultiSelect({
           ))}
         </div>
         <div className="border-t border-border p-2">
-          <Link to="/settings" className="flex items-center gap-2 px-2 py-1.5 text-xs text-primary hover:underline">
-            <Plus className="h-3.5 w-3.5" /> Add new artist in Settings
-          </Link>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="flex w-full items-center gap-2 px-2 py-1.5 text-xs text-primary hover:underline"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add new artist
+          </button>
         </div>
       </PopoverContent>
+      <ArtistFormDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        initial={{ name: "", is_primary: artists.length === 0 }}
+        onSaved={async (a) => { await reload(); onChange([...value, a.id]); }}
+      />
     </Popover>
   );
 }
