@@ -309,3 +309,8 @@
 .animate-orb { animation: orb-float 10s ease-in-out infinite; }
 .animate-wave { animation: wave 1.5s ease-in-out infinite; }
 .animate-pulse-ring { animation: pulse-ring 2.4s ease-out infinite; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-18px) rotate(2deg); }
+}
