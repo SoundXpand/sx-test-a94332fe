@@ -27,7 +27,8 @@ export function useMyArtists() {
 export function ArtistMultiSelect({
   value, onChange, placeholder = "Select artists…",
 }: { value: string[]; onChange: (ids: string[]) => void; placeholder?: string }) {
-  const { artists } = useMyArtists();
+  const { artists, reload } = useMyArtists();
+  const [addOpen, setAddOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const selected = artists.filter(a => value.includes(a.id));
 
