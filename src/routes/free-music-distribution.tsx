@@ -35,46 +35,8 @@ export const Route = createFileRoute("/free-music-distribution")({
   component: FreeMusicDistributionPage,
 });
 
-const ROTATING_TEXT = "CONTACT US • GET STARTED FREE • ";
-
-function RotatingBadge() {
-  // Build SVG textPath with the rotating string repeated to fill the circle
-  const text = ROTATING_TEXT.repeat(2);
-  return (
-    <div className="relative grid h-32 w-32 place-items-center sm:h-40 sm:w-40">
-      <svg
-        viewBox="0 0 200 200"
-        className="absolute inset-0 h-full w-full animate-[spin_14s_linear_infinite]"
-        aria-hidden
-      >
-        <defs>
-          <path
-            id="rot-circle"
-            d="M 100,100 m -78,0 a 78,78 0 1,1 156,0 a 78,78 0 1,1 -156,0"
-          />
-        </defs>
-        <text
-          className="fill-foreground"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "15px",
-            letterSpacing: "0.22em",
-            fontWeight: 600,
-          }}
-        >
-          <textPath href="#rot-circle" startOffset="0">
-            {text}
-          </textPath>
-        </text>
-      </svg>
-      <div className="relative grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-[var(--brand-violet-deep)] to-[var(--brand-pink)] text-white shadow-[0_0_30px_-4px_var(--brand-violet-deep)] sm:h-16 sm:w-16">
-        <Music2 className="h-6 w-6" />
-      </div>
-    </div>
-  );
-}
-
 function FreeMusicDistributionPage() {
+
   return (
     <div className="relative min-h-screen bg-background text-foreground">
       <LandingNav />
