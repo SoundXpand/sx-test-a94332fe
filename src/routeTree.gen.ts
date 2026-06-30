@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PendingRouteImport } from './routes/pending'
+import { Route as FreeMusicDistributionRouteImport } from './routes/free-music-distribution'
+import { Route as BlankRouteImport } from './routes/blank'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -56,6 +58,16 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const PendingRoute = PendingRouteImport.update({
   id: '/pending',
   path: '/pending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FreeMusicDistributionRoute = FreeMusicDistributionRouteImport.update({
+  id: '/free-music-distribution',
+  path: '/free-music-distribution',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlankRoute = BlankRouteImport.update({
+  id: '/blank',
+  path: '/blank',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -251,6 +263,8 @@ const AuthenticatedAdminPagesIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/blank': typeof BlankRoute
+  '/free-music-distribution': typeof FreeMusicDistributionRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
@@ -290,6 +304,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/blank': typeof BlankRoute
+  '/free-music-distribution': typeof FreeMusicDistributionRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
@@ -330,6 +346,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/blank': typeof BlankRoute
+  '/free-music-distribution': typeof FreeMusicDistributionRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
@@ -371,6 +389,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/blank'
+    | '/free-music-distribution'
     | '/pending'
     | '/reset-password'
     | '/$roleType/$username'
@@ -410,6 +430,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/blank'
+    | '/free-music-distribution'
     | '/pending'
     | '/reset-password'
     | '/$roleType/$username'
@@ -449,6 +471,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/blank'
+    | '/free-music-distribution'
     | '/pending'
     | '/reset-password'
     | '/$roleType/$username'
@@ -490,6 +514,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BlankRoute: typeof BlankRoute
+  FreeMusicDistributionRoute: typeof FreeMusicDistributionRoute
   PendingRoute: typeof PendingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RoleTypeUsernameRoute: typeof RoleTypeUsernameRoute
@@ -516,6 +542,20 @@ declare module '@tanstack/react-router' {
       path: '/pending'
       fullPath: '/pending'
       preLoaderRoute: typeof PendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/free-music-distribution': {
+      id: '/free-music-distribution'
+      path: '/free-music-distribution'
+      fullPath: '/free-music-distribution'
+      preLoaderRoute: typeof FreeMusicDistributionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blank': {
+      id: '/blank'
+      path: '/blank'
+      fullPath: '/blank'
+      preLoaderRoute: typeof BlankRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -868,6 +908,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BlankRoute: BlankRoute,
+  FreeMusicDistributionRoute: FreeMusicDistributionRoute,
   PendingRoute: PendingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RoleTypeUsernameRoute: RoleTypeUsernameRoute,
