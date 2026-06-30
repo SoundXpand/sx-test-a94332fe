@@ -102,12 +102,9 @@ function FreeMusicDistributionPage() {
             </div>
           </div>
 
-          {/* Rotating contact badge — bottom center, replacing scroll-down */}
-          <div className="relative mx-auto mt-16 flex justify-center">
-            <Link to="/auth" hash="login" aria-label="Contact us / Get started free">
-              <RotatingBadge />
-            </Link>
-          </div>
+          {/* Fixed left-side rotating "Contact us" badge */}
+          <ContactUsBadge />
+
         </section>
 
         {/* ABOUT — split with second 3D image */}
