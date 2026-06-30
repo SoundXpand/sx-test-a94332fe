@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Music2, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingFooter } from "@/components/landing/landing-footer";
+import { ContactUsBadge } from "@/components/landing/contact-us-badge";
 import fluidHero from "@/assets/landing/fluid-3d-hero.png";
 import fluidSecondary from "@/assets/landing/fluid-3d-secondary.png";
+
 
 export const Route = createFileRoute("/free-music-distribution")({
   head: () => ({
