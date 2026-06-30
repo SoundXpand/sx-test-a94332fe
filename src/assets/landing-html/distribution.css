@@ -350,7 +350,7 @@
   .platform-logo svg { height: 22px; width: auto; flex-shrink: 0; }
 
   /* ─── SECTIONS ─── */
-  section { padding: 100px 40px; }
+  .sx-distribution-page section { padding: 100px 40px; }
 
   .section-tag {
     display: inline-flex;
@@ -805,6 +805,6 @@
     .testimonials-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr 1fr; }
     .hero-actions { flex-direction: column; }
-    section { padding: 60px 20px; }
+    .sx-distribution-page section { padding: 60px 20px; }
     .editorial-stats { gap: 24px; }
   }
