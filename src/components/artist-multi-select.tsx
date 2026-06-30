@@ -64,11 +64,21 @@ export function ArtistMultiSelect({
           ))}
         </div>
         <div className="border-t border-border p-2">
-          <Link to="/settings" className="flex items-center gap-2 px-2 py-1.5 text-xs text-primary hover:underline">
-            <Plus className="h-3.5 w-3.5" /> Add new artist in Settings
-          </Link>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="flex w-full items-center gap-2 px-2 py-1.5 text-xs text-primary hover:underline"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add new artist
+          </button>
         </div>
       </PopoverContent>
+      <ArtistFormDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        initial={{ name: "", is_primary: artists.length === 0 }}
+        onSaved={async (a) => { await reload(); onChange([...value, a.id]); }}
+      />
     </Popover>
   );
 }
