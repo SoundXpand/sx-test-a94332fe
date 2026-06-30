@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingFooter } from "@/components/landing/landing-footer";
+import { ContactUsBadge } from "@/components/landing/contact-us-badge";
+
 
 export const Route = createFileRoute("/blank")({
   head: () => ({
