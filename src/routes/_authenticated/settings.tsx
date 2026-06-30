@@ -85,28 +85,8 @@ function Settings() {
   };
 
 
-  const saveArtist = async () => {
-    if (!editing?.name?.trim()) return toast.error("Artist name is required");
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    const row = {
-      name: editing.name.trim(),
-      spotify_url: editing.spotify_url || null,
-      apple_music_url: editing.apple_music_url || null,
-      youtube_music_url: editing.youtube_music_url || null,
-      is_primary: !!editing.is_primary,
-    };
-    if (editing.id) {
-      const { error } = await supabase.from("artists" as any).update(row).eq("id", editing.id);
-      if (error) return toast.error(error.message);
-    } else {
-      const { error } = await supabase.from("artists" as any).insert({ ...row, owner_id: u.user.id });
-      if (error) return toast.error(error.message);
-    }
-    toast.success("Artist saved");
-    setOpen(false); setEditing(null);
-    loadArtists();
-  };
+
+
 
   const removeArtist = async (id: string) => {
     if (!confirm("Remove this artist?")) return;
