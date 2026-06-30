@@ -165,13 +165,13 @@
 
   /* ─── PAGE HERO ─── */
   .page-hero {
-    min-height: 78vh;
+    min-height: 92vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 140px 40px 60px;
+    padding: 160px 40px 100px;
     position: relative;
     overflow: hidden;
   }
