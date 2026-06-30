@@ -183,30 +183,19 @@ function Settings() {
             <h2 className="font-semibold">Artists management</h2>
             <p className="text-xs text-muted-foreground">Artists added here can be selected on releases and tracks.</p>
           </div>
-          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
-            <DialogTrigger asChild>
+          <ArtistFormDialog
+            open={open}
+            onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}
+            initial={editing}
+            defaultPrimary={artists.length === 0}
+            onSaved={() => { setEditing(null); loadArtists(); }}
+            trigger={
               <Button size="sm" onClick={() => setEditing({ name: "", is_primary: artists.length === 0 })}>
                 <Plus className="h-4 w-4 mr-1.5" />Add artist
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>{editing?.id ? "Edit artist" : "Add artist"}</DialogTitle></DialogHeader>
-              <div className="space-y-3">
-                <div><Label>Artist name *</Label><Input value={editing?.name ?? ""} onChange={e => setEditing({ ...(editing || {}), name: e.target.value })} /></div>
-                <div><Label>Spotify URL</Label><Input value={editing?.spotify_url ?? ""} onChange={e => setEditing({ ...(editing || {}), spotify_url: e.target.value })} placeholder="https://open.spotify.com/artist/…" /></div>
-                <div><Label>Apple Music URL</Label><Input value={editing?.apple_music_url ?? ""} onChange={e => setEditing({ ...(editing || {}), apple_music_url: e.target.value })} placeholder="https://music.apple.com/…" /></div>
-                <div><Label>YouTube Music URL</Label><Input value={editing?.youtube_music_url ?? ""} onChange={e => setEditing({ ...(editing || {}), youtube_music_url: e.target.value })} placeholder="https://music.youtube.com/…" /></div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={!!editing?.is_primary} onChange={e => setEditing({ ...(editing || {}), is_primary: e.target.checked })} />
-                  Mark as primary artist
-                </label>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => { setOpen(false); setEditing(null); }}>Cancel</Button>
-                <Button onClick={saveArtist}>Save</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            }
+          />
+
         </div>
         {artists.length === 0 ? (
           <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border rounded-lg">
