@@ -9,6 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SitemapReleasesDotxmlRouteImport } from './routes/sitemap-releases[.]xml'
+import { Route as SitemapProfilesDotxmlRouteImport } from './routes/sitemap-profiles[.]xml'
+import { Route as SitemapMainDotxmlRouteImport } from './routes/sitemap-main[.]xml'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as FreeMusicDistributionRouteImport } from './routes/free-music-distribution'
@@ -45,11 +50,38 @@ import { Route as AuthenticatedToolsDspLookupRouteImport } from './routes/_authe
 import { Route as AuthenticatedReleasesNewRouteImport } from './routes/_authenticated/releases.new'
 import { Route as AuthenticatedReleasesIdRouteImport } from './routes/_authenticated/releases.$id'
 import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated/admin.tickets'
+import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin.seo'
 import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin.pages'
 import { Route as AuthenticatedAdminBroadcastRouteImport } from './routes/_authenticated/admin.broadcast'
+import { Route as ApiPublicHooksSeoIndexQueueRouteImport } from './routes/api/public/hooks/seo-index-queue'
 import { Route as ApiPublicDspWebhookPlatformRouteImport } from './routes/api/public/dsp-webhook/$platform'
 import { Route as AuthenticatedAdminPagesIdRouteImport } from './routes/_authenticated/admin.pages.$id'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapReleasesDotxmlRoute = SitemapReleasesDotxmlRouteImport.update({
+  id: '/sitemap-releases.xml',
+  path: '/sitemap-releases.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapProfilesDotxmlRoute = SitemapProfilesDotxmlRouteImport.update({
+  id: '/sitemap-profiles.xml',
+  path: '/sitemap-profiles.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapMainDotxmlRoute = SitemapMainDotxmlRouteImport.update({
+  id: '/sitemap-main.xml',
+  path: '/sitemap-main.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -236,6 +268,11 @@ const AuthenticatedAdminTicketsRoute =
     path: '/admin/tickets',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminSeoRoute = AuthenticatedAdminSeoRouteImport.update({
+  id: '/admin/seo',
+  path: '/admin/seo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminPagesRoute = AuthenticatedAdminPagesRouteImport.update({
   id: '/admin/pages',
   path: '/admin/pages',
@@ -246,6 +283,12 @@ const AuthenticatedAdminBroadcastRoute =
     id: '/admin/broadcast',
     path: '/admin/broadcast',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicHooksSeoIndexQueueRoute =
+  ApiPublicHooksSeoIndexQueueRouteImport.update({
+    id: '/api/public/hooks/seo-index-queue',
+    path: '/api/public/hooks/seo-index-queue',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicDspWebhookPlatformRoute =
   ApiPublicDspWebhookPlatformRouteImport.update({
@@ -267,6 +310,11 @@ export interface FileRoutesByFullPath {
   '/free-music-distribution': typeof FreeMusicDistributionRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-main.xml': typeof SitemapMainDotxmlRoute
+  '/sitemap-profiles.xml': typeof SitemapProfilesDotxmlRoute
+  '/sitemap-releases.xml': typeof SitemapReleasesDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/accounting': typeof AuthenticatedAccountingRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -291,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/p/$slug': typeof PSlugRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
+  '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -300,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/users/': typeof AuthenticatedUsersIndexRoute
   '/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
+  '/api/public/hooks/seo-index-queue': typeof ApiPublicHooksSeoIndexQueueRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -308,6 +358,11 @@ export interface FileRoutesByTo {
   '/free-music-distribution': typeof FreeMusicDistributionRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-main.xml': typeof SitemapMainDotxmlRoute
+  '/sitemap-profiles.xml': typeof SitemapProfilesDotxmlRoute
+  '/sitemap-releases.xml': typeof SitemapReleasesDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/accounting': typeof AuthenticatedAccountingRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -331,6 +386,7 @@ export interface FileRoutesByTo {
   '/p/$slug': typeof PSlugRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
+  '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -340,6 +396,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersIndexRoute
   '/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
+  '/api/public/hooks/seo-index-queue': typeof ApiPublicHooksSeoIndexQueueRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -350,6 +407,11 @@ export interface FileRoutesById {
   '/free-music-distribution': typeof FreeMusicDistributionRoute
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-main.xml': typeof SitemapMainDotxmlRoute
+  '/sitemap-profiles.xml': typeof SitemapProfilesDotxmlRoute
+  '/sitemap-releases.xml': typeof SitemapReleasesDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/_authenticated/accounting': typeof AuthenticatedAccountingRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
@@ -374,6 +436,7 @@ export interface FileRoutesById {
   '/p/$slug': typeof PSlugRoute
   '/_authenticated/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
   '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
+  '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/releases/$id': typeof AuthenticatedReleasesIdRoute
   '/_authenticated/releases/new': typeof AuthenticatedReleasesNewRoute
@@ -383,6 +446,7 @@ export interface FileRoutesById {
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/admin/pages/$id': typeof AuthenticatedAdminPagesIdRoute
   '/api/public/dsp-webhook/$platform': typeof ApiPublicDspWebhookPlatformRoute
+  '/api/public/hooks/seo-index-queue': typeof ApiPublicHooksSeoIndexQueueRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -393,6 +457,11 @@ export interface FileRouteTypes {
     | '/free-music-distribution'
     | '/pending'
     | '/reset-password'
+    | '/robots.txt'
+    | '/sitemap-main.xml'
+    | '/sitemap-profiles.xml'
+    | '/sitemap-releases.xml'
+    | '/sitemap.xml'
     | '/$roleType/$username'
     | '/accounting'
     | '/analytics'
@@ -417,6 +486,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/admin/broadcast'
     | '/admin/pages'
+    | '/admin/seo'
     | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
@@ -426,6 +496,7 @@ export interface FileRouteTypes {
     | '/users/'
     | '/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
+    | '/api/public/hooks/seo-index-queue'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -434,6 +505,11 @@ export interface FileRouteTypes {
     | '/free-music-distribution'
     | '/pending'
     | '/reset-password'
+    | '/robots.txt'
+    | '/sitemap-main.xml'
+    | '/sitemap-profiles.xml'
+    | '/sitemap-releases.xml'
+    | '/sitemap.xml'
     | '/$roleType/$username'
     | '/accounting'
     | '/analytics'
@@ -457,6 +533,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/admin/broadcast'
     | '/admin/pages'
+    | '/admin/seo'
     | '/admin/tickets'
     | '/releases/$id'
     | '/releases/new'
@@ -466,6 +543,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
+    | '/api/public/hooks/seo-index-queue'
   id:
     | '__root__'
     | '/'
@@ -475,6 +553,11 @@ export interface FileRouteTypes {
     | '/free-music-distribution'
     | '/pending'
     | '/reset-password'
+    | '/robots.txt'
+    | '/sitemap-main.xml'
+    | '/sitemap-profiles.xml'
+    | '/sitemap-releases.xml'
+    | '/sitemap.xml'
     | '/$roleType/$username'
     | '/_authenticated/accounting'
     | '/_authenticated/analytics'
@@ -499,6 +582,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/_authenticated/admin/broadcast'
     | '/_authenticated/admin/pages'
+    | '/_authenticated/admin/seo'
     | '/_authenticated/admin/tickets'
     | '/_authenticated/releases/$id'
     | '/_authenticated/releases/new'
@@ -508,6 +592,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users/'
     | '/_authenticated/admin/pages/$id'
     | '/api/public/dsp-webhook/$platform'
+    | '/api/public/hooks/seo-index-queue'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -518,6 +603,11 @@ export interface RootRouteChildren {
   FreeMusicDistributionRoute: typeof FreeMusicDistributionRoute
   PendingRoute: typeof PendingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapMainDotxmlRoute: typeof SitemapMainDotxmlRoute
+  SitemapProfilesDotxmlRoute: typeof SitemapProfilesDotxmlRoute
+  SitemapReleasesDotxmlRoute: typeof SitemapReleasesDotxmlRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   RoleTypeUsernameRoute: typeof RoleTypeUsernameRoute
   ApiDspLookupRoute: typeof ApiDspLookupRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
@@ -526,10 +616,46 @@ export interface RootRouteChildren {
   LegalTermsRoute: typeof LegalTermsRoute
   PSlugRoute: typeof PSlugRoute
   ApiPublicDspWebhookPlatformRoute: typeof ApiPublicDspWebhookPlatformRoute
+  ApiPublicHooksSeoIndexQueueRoute: typeof ApiPublicHooksSeoIndexQueueRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-releases.xml': {
+      id: '/sitemap-releases.xml'
+      path: '/sitemap-releases.xml'
+      fullPath: '/sitemap-releases.xml'
+      preLoaderRoute: typeof SitemapReleasesDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-profiles.xml': {
+      id: '/sitemap-profiles.xml'
+      path: '/sitemap-profiles.xml'
+      fullPath: '/sitemap-profiles.xml'
+      preLoaderRoute: typeof SitemapProfilesDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-main.xml': {
+      id: '/sitemap-main.xml'
+      path: '/sitemap-main.xml'
+      fullPath: '/sitemap-main.xml'
+      preLoaderRoute: typeof SitemapMainDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -782,6 +908,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTicketsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/seo': {
+      id: '/_authenticated/admin/seo'
+      path: '/admin/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AuthenticatedAdminSeoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/pages': {
       id: '/_authenticated/admin/pages'
       path: '/admin/pages'
@@ -795,6 +928,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/broadcast'
       preLoaderRoute: typeof AuthenticatedAdminBroadcastRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/hooks/seo-index-queue': {
+      id: '/api/public/hooks/seo-index-queue'
+      path: '/api/public/hooks/seo-index-queue'
+      fullPath: '/api/public/hooks/seo-index-queue'
+      preLoaderRoute: typeof ApiPublicHooksSeoIndexQueueRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/dsp-webhook/$platform': {
       id: '/api/public/dsp-webhook/$platform'
@@ -873,6 +1013,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRouteWithChildren
   AuthenticatedAdminBroadcastRoute: typeof AuthenticatedAdminBroadcastRoute
   AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRouteWithChildren
+  AuthenticatedAdminSeoRoute: typeof AuthenticatedAdminSeoRoute
   AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
   AuthenticatedUsersUsernameRoute: typeof AuthenticatedUsersUsernameRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
@@ -896,6 +1037,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedToolsRoute: AuthenticatedToolsRouteWithChildren,
   AuthenticatedAdminBroadcastRoute: AuthenticatedAdminBroadcastRoute,
   AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRouteWithChildren,
+  AuthenticatedAdminSeoRoute: AuthenticatedAdminSeoRoute,
   AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
   AuthenticatedUsersUsernameRoute: AuthenticatedUsersUsernameRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
@@ -912,6 +1054,11 @@ const rootRouteChildren: RootRouteChildren = {
   FreeMusicDistributionRoute: FreeMusicDistributionRoute,
   PendingRoute: PendingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapMainDotxmlRoute: SitemapMainDotxmlRoute,
+  SitemapProfilesDotxmlRoute: SitemapProfilesDotxmlRoute,
+  SitemapReleasesDotxmlRoute: SitemapReleasesDotxmlRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   RoleTypeUsernameRoute: RoleTypeUsernameRoute,
   ApiDspLookupRoute: ApiDspLookupRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
@@ -920,6 +1067,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalTermsRoute: LegalTermsRoute,
   PSlugRoute: PSlugRoute,
   ApiPublicDspWebhookPlatformRoute: ApiPublicDspWebhookPlatformRoute,
+  ApiPublicHooksSeoIndexQueueRoute: ApiPublicHooksSeoIndexQueueRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
