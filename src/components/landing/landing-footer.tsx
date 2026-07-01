@@ -75,12 +75,14 @@ export function LandingFooter() {
               </h4>
               <ul className="mt-4 space-y-2.5">
                 {g.links.map((l) => (
-                  <li key={l}>
+                  <li key={l.label}>
                     <a
-                      href="#"
+                      href={l.href}
+                      target={l.external ? "_blank" : undefined}
+                      rel={l.external ? "noreferrer" : undefined}
                       className="text-sm font-light text-muted-foreground transition-colors hover:text-foreground"
                     >
-                      {l}
+                      {l.label}
                     </a>
                   </li>
                 ))}
