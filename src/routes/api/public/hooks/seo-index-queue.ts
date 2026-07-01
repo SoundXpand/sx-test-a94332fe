@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/public/hooks/seo-index-queue")({
         }
         const { runIndexQueue } = await import("@/lib/seo-runner.server");
         const result = await runIndexQueue(50);
-        return new Response(JSON.stringify({ ok: true, ...result }), { headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ ok: true, result }), { headers: { "Content-Type": "application/json" } });
       },
     },
   },
