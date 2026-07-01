@@ -1104,6 +1104,120 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_index_queue: {
+        Row: {
+          action: string
+          attempts: number
+          bing_response: Json | null
+          bing_status: string | null
+          created_at: string
+          google_response: Json | null
+          google_status: string | null
+          id: string
+          last_error: string | null
+          source: string | null
+          source_id: string | null
+          status: string
+          submitted_at: string | null
+          target: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          action?: string
+          attempts?: number
+          bing_response?: Json | null
+          bing_status?: string | null
+          created_at?: string
+          google_response?: Json | null
+          google_status?: string | null
+          id?: string
+          last_error?: string | null
+          source?: string | null
+          source_id?: string | null
+          status?: string
+          submitted_at?: string | null
+          target?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          action?: string
+          attempts?: number
+          bing_response?: Json | null
+          bing_status?: string | null
+          created_at?: string
+          google_response?: Json | null
+          google_status?: string | null
+          id?: string
+          last_error?: string | null
+          source?: string | null
+          source_id?: string | null
+          status?: string
+          submitted_at?: string | null
+          target?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      seo_robots_config: {
+        Row: {
+          content: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      seo_settings: {
+        Row: {
+          auto_enqueue_on_publish: boolean
+          base_url: string
+          bing_indexnow_enabled: boolean
+          bing_indexnow_key: string | null
+          bing_site_verification: string | null
+          google_indexing_enabled: boolean
+          google_site_verification: string | null
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          auto_enqueue_on_publish?: boolean
+          base_url?: string
+          bing_indexnow_enabled?: boolean
+          bing_indexnow_key?: string | null
+          bing_site_verification?: string | null
+          google_indexing_enabled?: boolean
+          google_site_verification?: string | null
+          key?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_enqueue_on_publish?: boolean
+          base_url?: string
+          bing_indexnow_enabled?: boolean
+          bing_indexnow_key?: string | null
+          bing_site_verification?: string | null
+          google_indexing_enabled?: boolean
+          google_site_verification?: string | null
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       support_messages: {
         Row: {
           body: string
