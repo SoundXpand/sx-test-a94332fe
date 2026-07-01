@@ -35,7 +35,7 @@ function LegalIndex() {
         {pages.map((p) => (
           <Link
             key={p.to}
-            to={p.to}
+            to={p.to as never}
             className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-accent/40 transition-colors"
           >
             <div className="min-w-0">

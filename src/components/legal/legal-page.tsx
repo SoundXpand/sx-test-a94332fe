@@ -15,7 +15,7 @@ export function LegalPage({
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
       <Link
-        to="/legal/pages"
+        to={"/legal/pages" as never}
         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-6"
       >
         <ArrowLeft className="h-3 w-3" /> All legal pages
