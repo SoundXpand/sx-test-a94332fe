@@ -22,8 +22,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
-import { Route as LegalTermsRouteImport } from './routes/legal.terms'
-import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as LegalRefundRouteImport } from './routes/legal/refund'
+import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
+import { Route as LegalPagesRouteImport } from './routes/legal/pages'
+import { Route as LegalEditorialRouteImport } from './routes/legal/editorial'
+import { Route as LegalDmcaRouteImport } from './routes/legal/dmca'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiDspLookupRouteImport } from './routes/api/dsp-lookup'
@@ -126,9 +130,29 @@ const LegalTermsRoute = LegalTermsRouteImport.update({
   path: '/legal/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalRefundRoute = LegalRefundRouteImport.update({
+  id: '/legal/refund',
+  path: '/legal/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPagesRoute = LegalPagesRouteImport.update({
+  id: '/legal/pages',
+  path: '/legal/pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalEditorialRoute = LegalEditorialRouteImport.update({
+  id: '/legal/editorial',
+  path: '/legal/editorial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalDmcaRoute = LegalDmcaRouteImport.update({
+  id: '/legal/dmca',
+  path: '/legal/dmca',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LSlugRoute = LSlugRouteImport.update({
@@ -334,7 +358,11 @@ export interface FileRoutesByFullPath {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/dmca': typeof LegalDmcaRoute
+  '/legal/editorial': typeof LegalEditorialRoute
+  '/legal/pages': typeof LegalPagesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
   '/legal/terms': typeof LegalTermsRoute
   '/p/$slug': typeof PSlugRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
@@ -381,7 +409,11 @@ export interface FileRoutesByTo {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/dmca': typeof LegalDmcaRoute
+  '/legal/editorial': typeof LegalEditorialRoute
+  '/legal/pages': typeof LegalPagesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
   '/legal/terms': typeof LegalTermsRoute
   '/p/$slug': typeof PSlugRoute
   '/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
@@ -431,7 +463,11 @@ export interface FileRoutesById {
   '/api/dsp-lookup': typeof ApiDspLookupRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/dmca': typeof LegalDmcaRoute
+  '/legal/editorial': typeof LegalEditorialRoute
+  '/legal/pages': typeof LegalPagesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
   '/legal/terms': typeof LegalTermsRoute
   '/p/$slug': typeof PSlugRoute
   '/_authenticated/admin/broadcast': typeof AuthenticatedAdminBroadcastRoute
@@ -481,7 +517,11 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/legal/dmca'
+    | '/legal/editorial'
+    | '/legal/pages'
     | '/legal/privacy'
+    | '/legal/refund'
     | '/legal/terms'
     | '/p/$slug'
     | '/admin/broadcast'
@@ -528,7 +568,11 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/legal/dmca'
+    | '/legal/editorial'
+    | '/legal/pages'
     | '/legal/privacy'
+    | '/legal/refund'
     | '/legal/terms'
     | '/p/$slug'
     | '/admin/broadcast'
@@ -577,7 +621,11 @@ export interface FileRouteTypes {
     | '/api/dsp-lookup'
     | '/api/generate-image'
     | '/l/$slug'
+    | '/legal/dmca'
+    | '/legal/editorial'
+    | '/legal/pages'
     | '/legal/privacy'
+    | '/legal/refund'
     | '/legal/terms'
     | '/p/$slug'
     | '/_authenticated/admin/broadcast'
@@ -612,7 +660,11 @@ export interface RootRouteChildren {
   ApiDspLookupRoute: typeof ApiDspLookupRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   LSlugRoute: typeof LSlugRoute
+  LegalDmcaRoute: typeof LegalDmcaRoute
+  LegalEditorialRoute: typeof LegalEditorialRoute
+  LegalPagesRoute: typeof LegalPagesRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalRefundRoute: typeof LegalRefundRoute
   LegalTermsRoute: typeof LegalTermsRoute
   PSlugRoute: typeof PSlugRoute
   ApiPublicDspWebhookPlatformRoute: typeof ApiPublicDspWebhookPlatformRoute
@@ -719,11 +771,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/refund': {
+      id: '/legal/refund'
+      path: '/legal/refund'
+      fullPath: '/legal/refund'
+      preLoaderRoute: typeof LegalRefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal/privacy': {
       id: '/legal/privacy'
       path: '/legal/privacy'
       fullPath: '/legal/privacy'
       preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/pages': {
+      id: '/legal/pages'
+      path: '/legal/pages'
+      fullPath: '/legal/pages'
+      preLoaderRoute: typeof LegalPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/editorial': {
+      id: '/legal/editorial'
+      path: '/legal/editorial'
+      fullPath: '/legal/editorial'
+      preLoaderRoute: typeof LegalEditorialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/dmca': {
+      id: '/legal/dmca'
+      path: '/legal/dmca'
+      fullPath: '/legal/dmca'
+      preLoaderRoute: typeof LegalDmcaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/l/$slug': {
@@ -1063,7 +1143,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDspLookupRoute: ApiDspLookupRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   LSlugRoute: LSlugRoute,
+  LegalDmcaRoute: LegalDmcaRoute,
+  LegalEditorialRoute: LegalEditorialRoute,
+  LegalPagesRoute: LegalPagesRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalRefundRoute: LegalRefundRoute,
   LegalTermsRoute: LegalTermsRoute,
   PSlugRoute: PSlugRoute,
   ApiPublicDspWebhookPlatformRoute: ApiPublicDspWebhookPlatformRoute,

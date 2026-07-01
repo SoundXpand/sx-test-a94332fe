@@ -15,13 +15,14 @@ export const Route = createFileRoute("/legal/pages")({
   }),
 });
 
-const pages = [
+type LegalLink = { to: string; title: string; updated: string; pdf?: string };
+const pages: LegalLink[] = [
   { to: "/legal/terms", title: "Terms and Conditions", updated: "30 April 2024", pdf: "https://drive.google.com/file/d/1Yaz9ClMVkwK_2ALk4pLrz2oFgRcrXWer/view?usp=sharing" },
   { to: "/legal/privacy", title: "Privacy Policy", updated: "26 February 2023", pdf: "https://drive.google.com/file/d/1NnHZ3qJcUzV0cq10PxCFOUWb1a_tKyA6/view?usp=sharing" },
   { to: "/legal/dmca", title: "DMCA Policy", updated: "20 February 2024", pdf: "https://drive.google.com/file/d/1YuJC3XXPBlNn94frxaO4f30O0SMNZAcG/view?usp=sharing" },
   { to: "/legal/editorial", title: "Editorial Policy", updated: "21 May 2024" },
   { to: "/legal/refund", title: "Cancellation & Refund Policy", updated: "11 April 2025", pdf: "https://drive.google.com/file/d/1nflXpiS5Ku2yDDuLfbOHjg3LGt6J9zPy/view" },
-] as const;
+];
 
 function LegalIndex() {
   return (
