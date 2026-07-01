@@ -9,16 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YoutubeContentIdRouteImport } from './routes/youtube-content-id'
+import { Route as YoutubeCmsRouteImport } from './routes/youtube-cms'
+import { Route as SyncRouteImport } from './routes/sync'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SitemapReleasesDotxmlRouteImport } from './routes/sitemap-releases[.]xml'
 import { Route as SitemapProfilesDotxmlRouteImport } from './routes/sitemap-profiles[.]xml'
 import { Route as SitemapMainDotxmlRouteImport } from './routes/sitemap-main[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PublishingRouteImport } from './routes/publishing'
 import { Route as PendingRouteImport } from './routes/pending'
+import { Route as MusicPromotionRouteImport } from './routes/music-promotion'
 import { Route as FreeMusicDistributionRouteImport } from './routes/free-music-distribution'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BlankRouteImport } from './routes/blank'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AiToolsRouteImport } from './routes/ai-tools'
+import { Route as AdvancedInsightsRouteImport } from './routes/advanced-insights'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
@@ -61,6 +69,21 @@ import { Route as ApiPublicHooksSeoIndexQueueRouteImport } from './routes/api/pu
 import { Route as ApiPublicDspWebhookPlatformRouteImport } from './routes/api/public/dsp-webhook/$platform'
 import { Route as AuthenticatedAdminPagesIdRouteImport } from './routes/_authenticated/admin.pages.$id'
 
+const YoutubeContentIdRoute = YoutubeContentIdRouteImport.update({
+  id: '/youtube-content-id',
+  path: '/youtube-content-id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const YoutubeCmsRoute = YoutubeCmsRouteImport.update({
+  id: '/youtube-cms',
+  path: '/youtube-cms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SyncRoute = SyncRouteImport.update({
+  id: '/sync',
+  path: '/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -91,14 +114,29 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublishingRoute = PublishingRouteImport.update({
+  id: '/publishing',
+  path: '/publishing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PendingRoute = PendingRouteImport.update({
   id: '/pending',
   path: '/pending',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MusicPromotionRoute = MusicPromotionRouteImport.update({
+  id: '/music-promotion',
+  path: '/music-promotion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FreeMusicDistributionRoute = FreeMusicDistributionRouteImport.update({
   id: '/free-music-distribution',
   path: '/free-music-distribution',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlankRoute = BlankRouteImport.update({
@@ -109,6 +147,16 @@ const BlankRoute = BlankRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiToolsRoute = AiToolsRouteImport.update({
+  id: '/ai-tools',
+  path: '/ai-tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdvancedInsightsRoute = AdvancedInsightsRouteImport.update({
+  id: '/advanced-insights',
+  path: '/advanced-insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -329,16 +377,24 @@ const AuthenticatedAdminPagesIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/advanced-insights': typeof AdvancedInsightsRoute
+  '/ai-tools': typeof AiToolsRoute
   '/auth': typeof AuthRoute
   '/blank': typeof BlankRoute
+  '/contact': typeof ContactRoute
   '/free-music-distribution': typeof FreeMusicDistributionRoute
+  '/music-promotion': typeof MusicPromotionRoute
   '/pending': typeof PendingRoute
+  '/publishing': typeof PublishingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap-main.xml': typeof SitemapMainDotxmlRoute
   '/sitemap-profiles.xml': typeof SitemapProfilesDotxmlRoute
   '/sitemap-releases.xml': typeof SitemapReleasesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sync': typeof SyncRoute
+  '/youtube-cms': typeof YoutubeCmsRoute
+  '/youtube-content-id': typeof YoutubeContentIdRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/accounting': typeof AuthenticatedAccountingRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -381,16 +437,24 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/advanced-insights': typeof AdvancedInsightsRoute
+  '/ai-tools': typeof AiToolsRoute
   '/auth': typeof AuthRoute
   '/blank': typeof BlankRoute
+  '/contact': typeof ContactRoute
   '/free-music-distribution': typeof FreeMusicDistributionRoute
+  '/music-promotion': typeof MusicPromotionRoute
   '/pending': typeof PendingRoute
+  '/publishing': typeof PublishingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap-main.xml': typeof SitemapMainDotxmlRoute
   '/sitemap-profiles.xml': typeof SitemapProfilesDotxmlRoute
   '/sitemap-releases.xml': typeof SitemapReleasesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sync': typeof SyncRoute
+  '/youtube-cms': typeof YoutubeCmsRoute
+  '/youtube-content-id': typeof YoutubeContentIdRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/accounting': typeof AuthenticatedAccountingRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -434,16 +498,24 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/advanced-insights': typeof AdvancedInsightsRoute
+  '/ai-tools': typeof AiToolsRoute
   '/auth': typeof AuthRoute
   '/blank': typeof BlankRoute
+  '/contact': typeof ContactRoute
   '/free-music-distribution': typeof FreeMusicDistributionRoute
+  '/music-promotion': typeof MusicPromotionRoute
   '/pending': typeof PendingRoute
+  '/publishing': typeof PublishingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap-main.xml': typeof SitemapMainDotxmlRoute
   '/sitemap-profiles.xml': typeof SitemapProfilesDotxmlRoute
   '/sitemap-releases.xml': typeof SitemapReleasesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sync': typeof SyncRoute
+  '/youtube-cms': typeof YoutubeCmsRoute
+  '/youtube-content-id': typeof YoutubeContentIdRoute
   '/$roleType/$username': typeof RoleTypeUsernameRoute
   '/_authenticated/accounting': typeof AuthenticatedAccountingRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
@@ -488,16 +560,24 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/advanced-insights'
+    | '/ai-tools'
     | '/auth'
     | '/blank'
+    | '/contact'
     | '/free-music-distribution'
+    | '/music-promotion'
     | '/pending'
+    | '/publishing'
     | '/reset-password'
     | '/robots.txt'
     | '/sitemap-main.xml'
     | '/sitemap-profiles.xml'
     | '/sitemap-releases.xml'
     | '/sitemap.xml'
+    | '/sync'
+    | '/youtube-cms'
+    | '/youtube-content-id'
     | '/$roleType/$username'
     | '/accounting'
     | '/analytics'
@@ -540,16 +620,24 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/advanced-insights'
+    | '/ai-tools'
     | '/auth'
     | '/blank'
+    | '/contact'
     | '/free-music-distribution'
+    | '/music-promotion'
     | '/pending'
+    | '/publishing'
     | '/reset-password'
     | '/robots.txt'
     | '/sitemap-main.xml'
     | '/sitemap-profiles.xml'
     | '/sitemap-releases.xml'
     | '/sitemap.xml'
+    | '/sync'
+    | '/youtube-cms'
+    | '/youtube-content-id'
     | '/$roleType/$username'
     | '/accounting'
     | '/analytics'
@@ -592,16 +680,24 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/advanced-insights'
+    | '/ai-tools'
     | '/auth'
     | '/blank'
+    | '/contact'
     | '/free-music-distribution'
+    | '/music-promotion'
     | '/pending'
+    | '/publishing'
     | '/reset-password'
     | '/robots.txt'
     | '/sitemap-main.xml'
     | '/sitemap-profiles.xml'
     | '/sitemap-releases.xml'
     | '/sitemap.xml'
+    | '/sync'
+    | '/youtube-cms'
+    | '/youtube-content-id'
     | '/$roleType/$username'
     | '/_authenticated/accounting'
     | '/_authenticated/analytics'
@@ -646,16 +742,24 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdvancedInsightsRoute: typeof AdvancedInsightsRoute
+  AiToolsRoute: typeof AiToolsRoute
   AuthRoute: typeof AuthRoute
   BlankRoute: typeof BlankRoute
+  ContactRoute: typeof ContactRoute
   FreeMusicDistributionRoute: typeof FreeMusicDistributionRoute
+  MusicPromotionRoute: typeof MusicPromotionRoute
   PendingRoute: typeof PendingRoute
+  PublishingRoute: typeof PublishingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapMainDotxmlRoute: typeof SitemapMainDotxmlRoute
   SitemapProfilesDotxmlRoute: typeof SitemapProfilesDotxmlRoute
   SitemapReleasesDotxmlRoute: typeof SitemapReleasesDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SyncRoute: typeof SyncRoute
+  YoutubeCmsRoute: typeof YoutubeCmsRoute
+  YoutubeContentIdRoute: typeof YoutubeContentIdRoute
   RoleTypeUsernameRoute: typeof RoleTypeUsernameRoute
   ApiDspLookupRoute: typeof ApiDspLookupRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
@@ -673,6 +777,27 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/youtube-content-id': {
+      id: '/youtube-content-id'
+      path: '/youtube-content-id'
+      fullPath: '/youtube-content-id'
+      preLoaderRoute: typeof YoutubeContentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/youtube-cms': {
+      id: '/youtube-cms'
+      path: '/youtube-cms'
+      fullPath: '/youtube-cms'
+      preLoaderRoute: typeof YoutubeCmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sync': {
+      id: '/sync'
+      path: '/sync'
+      fullPath: '/sync'
+      preLoaderRoute: typeof SyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -715,6 +840,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/publishing': {
+      id: '/publishing'
+      path: '/publishing'
+      fullPath: '/publishing'
+      preLoaderRoute: typeof PublishingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pending': {
       id: '/pending'
       path: '/pending'
@@ -722,11 +854,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PendingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/music-promotion': {
+      id: '/music-promotion'
+      path: '/music-promotion'
+      fullPath: '/music-promotion'
+      preLoaderRoute: typeof MusicPromotionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/free-music-distribution': {
       id: '/free-music-distribution'
       path: '/free-music-distribution'
       fullPath: '/free-music-distribution'
       preLoaderRoute: typeof FreeMusicDistributionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blank': {
@@ -741,6 +887,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-tools': {
+      id: '/ai-tools'
+      path: '/ai-tools'
+      fullPath: '/ai-tools'
+      preLoaderRoute: typeof AiToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/advanced-insights': {
+      id: '/advanced-insights'
+      path: '/advanced-insights'
+      fullPath: '/advanced-insights'
+      preLoaderRoute: typeof AdvancedInsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1129,16 +1289,24 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdvancedInsightsRoute: AdvancedInsightsRoute,
+  AiToolsRoute: AiToolsRoute,
   AuthRoute: AuthRoute,
   BlankRoute: BlankRoute,
+  ContactRoute: ContactRoute,
   FreeMusicDistributionRoute: FreeMusicDistributionRoute,
+  MusicPromotionRoute: MusicPromotionRoute,
   PendingRoute: PendingRoute,
+  PublishingRoute: PublishingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapMainDotxmlRoute: SitemapMainDotxmlRoute,
   SitemapProfilesDotxmlRoute: SitemapProfilesDotxmlRoute,
   SitemapReleasesDotxmlRoute: SitemapReleasesDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SyncRoute: SyncRoute,
+  YoutubeCmsRoute: YoutubeCmsRoute,
+  YoutubeContentIdRoute: YoutubeContentIdRoute,
   RoleTypeUsernameRoute: RoleTypeUsernameRoute,
   ApiDspLookupRoute: ApiDspLookupRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
