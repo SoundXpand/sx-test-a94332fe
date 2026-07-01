@@ -1,22 +1,45 @@
 import { Twitter, Instagram, Youtube, Github } from "lucide-react";
 import { BrandLogo } from "@/components/branding/brand-logo";
 
-const groups = [
+type FooterLink = { label: string; href: string; external?: boolean };
+
+const groups: { title: string; links: FooterLink[] }[] = [
   {
-    title: "Product",
-    links: ["Features", "Pricing", "Distribution", "Analytics", "Royalties"],
+    title: "Monetization",
+    links: [
+      { label: "Music Publishing", href: "/publishing" },
+      { label: "YouTube Content ID", href: "/youtube-content-id" },
+      { label: "Sync Licensing", href: "/sync" },
+      { label: "YouTube CMS & AOC", href: "/youtube-cms" },
+      { label: "Distribution", href: "/free-music-distribution" },
+    ],
+  },
+  {
+    title: "Build",
+    links: [
+      { label: "AI Tools", href: "/ai-tools" },
+      { label: "Music Promotion", href: "/music-promotion" },
+      { label: "Advanced Insights", href: "/advanced-insights" },
+      { label: "Pricing", href: "/#pricing" },
+    ],
   },
   {
     title: "Company",
-    links: ["About", "Careers", "Press", "Blog", "Contact"],
-  },
-  {
-    title: "Resources",
-    links: ["Help center", "Knowledge base", "Status", "API docs", "Changelog"],
+    links: [
+      { label: "Blog", href: "https://blog.soundxpand.com", external: true },
+      { label: "Contact", href: "/contact" },
+      { label: "Help center", href: "/legal/pages" },
+    ],
   },
   {
     title: "Legal",
-    links: ["Terms", "Privacy", "Cookies", "DMCA", "Acceptable use"],
+    links: [
+      { label: "Terms", href: "/legal/terms" },
+      { label: "Privacy", href: "/legal/privacy" },
+      { label: "DMCA", href: "/legal/dmca" },
+      { label: "Refund", href: "/legal/refund" },
+      { label: "Editorial", href: "/legal/editorial" },
+    ],
   },
 ];
 
