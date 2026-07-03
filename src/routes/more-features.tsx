@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Upload, Globe, Shield, BarChart3, Sparkles, Users, Music, Palette, Radio,
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/more-features")({
   component: MoreFeaturesPage,
 });
 
-type Feature = { icon: JSX.Element; title: string; description: string };
+type Feature = { icon: ReactNode; title: string; description: string };
 type Group = { eyebrow: string; title: string; description: string; features: Feature[] };
 
 const groups: Group[] = [

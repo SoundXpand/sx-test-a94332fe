@@ -19,10 +19,14 @@ import { Route as SitemapMainDotxmlRouteImport } from './routes/sitemap-main[.]x
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PublishingRouteImport } from './routes/publishing'
+import { Route as PledgesRouteImport } from './routes/pledges'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as MusicPromotionRouteImport } from './routes/music-promotion'
+import { Route as MoreFeaturesRouteImport } from './routes/more-features'
 import { Route as FreeMusicDistributionRouteImport } from './routes/free-music-distribution'
+import { Route as DigitalMusicPlatformsRouteImport } from './routes/digital-music-platforms'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as BrandAssetsRouteImport } from './routes/brand-assets'
 import { Route as BlankRouteImport } from './routes/blank'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AiToolsRouteImport } from './routes/ai-tools'
@@ -119,6 +123,11 @@ const PublishingRoute = PublishingRouteImport.update({
   path: '/publishing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PledgesRoute = PledgesRouteImport.update({
+  id: '/pledges',
+  path: '/pledges',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PendingRoute = PendingRouteImport.update({
   id: '/pending',
   path: '/pending',
@@ -129,14 +138,29 @@ const MusicPromotionRoute = MusicPromotionRouteImport.update({
   path: '/music-promotion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MoreFeaturesRoute = MoreFeaturesRouteImport.update({
+  id: '/more-features',
+  path: '/more-features',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FreeMusicDistributionRoute = FreeMusicDistributionRouteImport.update({
   id: '/free-music-distribution',
   path: '/free-music-distribution',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DigitalMusicPlatformsRoute = DigitalMusicPlatformsRouteImport.update({
+  id: '/digital-music-platforms',
+  path: '/digital-music-platforms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandAssetsRoute = BrandAssetsRouteImport.update({
+  id: '/brand-assets',
+  path: '/brand-assets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlankRoute = BlankRouteImport.update({
@@ -381,10 +405,14 @@ export interface FileRoutesByFullPath {
   '/ai-tools': typeof AiToolsRoute
   '/auth': typeof AuthRoute
   '/blank': typeof BlankRoute
+  '/brand-assets': typeof BrandAssetsRoute
   '/contact': typeof ContactRoute
+  '/digital-music-platforms': typeof DigitalMusicPlatformsRoute
   '/free-music-distribution': typeof FreeMusicDistributionRoute
+  '/more-features': typeof MoreFeaturesRoute
   '/music-promotion': typeof MusicPromotionRoute
   '/pending': typeof PendingRoute
+  '/pledges': typeof PledgesRoute
   '/publishing': typeof PublishingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -441,10 +469,14 @@ export interface FileRoutesByTo {
   '/ai-tools': typeof AiToolsRoute
   '/auth': typeof AuthRoute
   '/blank': typeof BlankRoute
+  '/brand-assets': typeof BrandAssetsRoute
   '/contact': typeof ContactRoute
+  '/digital-music-platforms': typeof DigitalMusicPlatformsRoute
   '/free-music-distribution': typeof FreeMusicDistributionRoute
+  '/more-features': typeof MoreFeaturesRoute
   '/music-promotion': typeof MusicPromotionRoute
   '/pending': typeof PendingRoute
+  '/pledges': typeof PledgesRoute
   '/publishing': typeof PublishingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -502,10 +534,14 @@ export interface FileRoutesById {
   '/ai-tools': typeof AiToolsRoute
   '/auth': typeof AuthRoute
   '/blank': typeof BlankRoute
+  '/brand-assets': typeof BrandAssetsRoute
   '/contact': typeof ContactRoute
+  '/digital-music-platforms': typeof DigitalMusicPlatformsRoute
   '/free-music-distribution': typeof FreeMusicDistributionRoute
+  '/more-features': typeof MoreFeaturesRoute
   '/music-promotion': typeof MusicPromotionRoute
   '/pending': typeof PendingRoute
+  '/pledges': typeof PledgesRoute
   '/publishing': typeof PublishingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -564,10 +600,14 @@ export interface FileRouteTypes {
     | '/ai-tools'
     | '/auth'
     | '/blank'
+    | '/brand-assets'
     | '/contact'
+    | '/digital-music-platforms'
     | '/free-music-distribution'
+    | '/more-features'
     | '/music-promotion'
     | '/pending'
+    | '/pledges'
     | '/publishing'
     | '/reset-password'
     | '/robots.txt'
@@ -624,10 +664,14 @@ export interface FileRouteTypes {
     | '/ai-tools'
     | '/auth'
     | '/blank'
+    | '/brand-assets'
     | '/contact'
+    | '/digital-music-platforms'
     | '/free-music-distribution'
+    | '/more-features'
     | '/music-promotion'
     | '/pending'
+    | '/pledges'
     | '/publishing'
     | '/reset-password'
     | '/robots.txt'
@@ -684,10 +728,14 @@ export interface FileRouteTypes {
     | '/ai-tools'
     | '/auth'
     | '/blank'
+    | '/brand-assets'
     | '/contact'
+    | '/digital-music-platforms'
     | '/free-music-distribution'
+    | '/more-features'
     | '/music-promotion'
     | '/pending'
+    | '/pledges'
     | '/publishing'
     | '/reset-password'
     | '/robots.txt'
@@ -746,10 +794,14 @@ export interface RootRouteChildren {
   AiToolsRoute: typeof AiToolsRoute
   AuthRoute: typeof AuthRoute
   BlankRoute: typeof BlankRoute
+  BrandAssetsRoute: typeof BrandAssetsRoute
   ContactRoute: typeof ContactRoute
+  DigitalMusicPlatformsRoute: typeof DigitalMusicPlatformsRoute
   FreeMusicDistributionRoute: typeof FreeMusicDistributionRoute
+  MoreFeaturesRoute: typeof MoreFeaturesRoute
   MusicPromotionRoute: typeof MusicPromotionRoute
   PendingRoute: typeof PendingRoute
+  PledgesRoute: typeof PledgesRoute
   PublishingRoute: typeof PublishingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
@@ -847,6 +899,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublishingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pledges': {
+      id: '/pledges'
+      path: '/pledges'
+      fullPath: '/pledges'
+      preLoaderRoute: typeof PledgesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pending': {
       id: '/pending'
       path: '/pending'
@@ -861,6 +920,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MusicPromotionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/more-features': {
+      id: '/more-features'
+      path: '/more-features'
+      fullPath: '/more-features'
+      preLoaderRoute: typeof MoreFeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/free-music-distribution': {
       id: '/free-music-distribution'
       path: '/free-music-distribution'
@@ -868,11 +934,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FreeMusicDistributionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/digital-music-platforms': {
+      id: '/digital-music-platforms'
+      path: '/digital-music-platforms'
+      fullPath: '/digital-music-platforms'
+      preLoaderRoute: typeof DigitalMusicPlatformsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand-assets': {
+      id: '/brand-assets'
+      path: '/brand-assets'
+      fullPath: '/brand-assets'
+      preLoaderRoute: typeof BrandAssetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blank': {
@@ -1293,10 +1373,14 @@ const rootRouteChildren: RootRouteChildren = {
   AiToolsRoute: AiToolsRoute,
   AuthRoute: AuthRoute,
   BlankRoute: BlankRoute,
+  BrandAssetsRoute: BrandAssetsRoute,
   ContactRoute: ContactRoute,
+  DigitalMusicPlatformsRoute: DigitalMusicPlatformsRoute,
   FreeMusicDistributionRoute: FreeMusicDistributionRoute,
+  MoreFeaturesRoute: MoreFeaturesRoute,
   MusicPromotionRoute: MusicPromotionRoute,
   PendingRoute: PendingRoute,
+  PledgesRoute: PledgesRoute,
   PublishingRoute: PublishingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
