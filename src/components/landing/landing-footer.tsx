@@ -28,6 +28,10 @@ const groups: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: "Blog", href: "https://blog.soundxpand.com", external: true },
       { label: "Contact", href: "/contact" },
+      { label: "Pledges", href: "/pledges" },
+      { label: "Press & Brand", href: "/brand-assets" },
+      { label: "All features", href: "/more-features" },
+      { label: "Platforms", href: "/digital-music-platforms" },
       { label: "Help center", href: "/legal/pages" },
     ],
   },
