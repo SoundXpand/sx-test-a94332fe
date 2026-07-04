@@ -1313,6 +1313,57 @@ export type Database = {
         }
         Relationships: []
       }
+      user_agreements: {
+        Row: {
+          acknowledged: boolean
+          agreement_key: string
+          created_at: string
+          id: string
+          ip: string | null
+          licensee_hash: string
+          licensor_hash: string
+          signature_data: string
+          signature_type: string
+          signed_at: string
+          signed_name: string
+          user_agent: string | null
+          user_id: string
+          version: string
+        }
+        Insert: {
+          acknowledged?: boolean
+          agreement_key: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          licensee_hash: string
+          licensor_hash: string
+          signature_data: string
+          signature_type: string
+          signed_at?: string
+          signed_name: string
+          user_agent?: string | null
+          user_id: string
+          version: string
+        }
+        Update: {
+          acknowledged?: boolean
+          agreement_key?: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          licensee_hash?: string
+          licensor_hash?: string
+          signature_data?: string
+          signature_type?: string
+          signed_at?: string
+          signed_name?: string
+          user_agent?: string | null
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
