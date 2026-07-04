@@ -45,7 +45,7 @@ const LICENSEE_SIGNATURE_URL =
 const LICENSEE_SIGNATURE_HASH =
   "0x8f2b5c1d9a3f4b6e7c8d0a2b1e9f4c3d5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d";
 
-const AGREEMENT_PARAGRAPHS: Array<{ heading?: string; body: string }> = [
+const AGREEMENT_PARAGRAPHS: Array<{ heading?: string; body?: string }> = [
   { body: "This Exclusive Licensing and Distribution Agreement (the “Agreement”) is entered into between the Licensor and VinylVista Private Limited dba “SoundXpand”, an Indian Company with a Registered Address at Hijla Road, Burudih, Hijla, Purana Dumka, Dumka, Jharkhand, India – 814101 (the “Licensee”)." },
   { body: "By electing to participate in this Agreement and/or utilizing the licensing or distribution services provided by Licensee, Licensor acknowledges and agrees to adhere to the terms delineated herein. The Effective Date shall be construed as the date upon which Licensor initially elects to participate in or utilize the licensing or distribution services provided by Licensee." },
   { heading: "Basic Terms" },
