@@ -336,7 +336,7 @@ async function uploadToR2(bytes: Uint8Array, key: string): Promise<string> {
   const endpoint = `https://${accountId}.r2.cloudflarestorage.com/${bucket}/${key}`;
   const res = await client.fetch(endpoint, {
     method: "PUT",
-    body: bytes,
+    body: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
     headers: { "Content-Type": "application/pdf" },
   });
   if (!res.ok) {
