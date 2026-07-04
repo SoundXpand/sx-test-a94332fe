@@ -9,6 +9,7 @@ import { ArrowLeft, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { approveUserFn } from "@/lib/admin-actions.functions";
+import { SignedAgreementsCard } from "@/components/agreements/signed-agreements-card";
 
 export const Route = createFileRoute("/_authenticated/users/$username")({
   component: UserDetail,
