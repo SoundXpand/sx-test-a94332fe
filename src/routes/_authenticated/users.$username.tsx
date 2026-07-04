@@ -206,6 +206,7 @@ function UserDetail() {
       />
 
       <Card className="p-6 bg-card/60 space-y-3">
+        <h2 className="font-semibold">Review</h2>
         {profile.rejection_reason && <div className="text-xs text-destructive">Previous reason: {profile.rejection_reason}</div>}
         <Textarea placeholder="Reason (required for rejection)" value={reason} onChange={e => setReason(e.target.value)} rows={2} />
         <div className="flex flex-wrap gap-2">
