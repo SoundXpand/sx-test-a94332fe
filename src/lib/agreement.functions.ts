@@ -80,6 +80,14 @@ async function buildAgreementPdf(opts: {
   version: string;
   signedAtIso: string;
   signatureType: "draw" | "type";
+  contact: {
+    username?: string | null;
+    email?: string | null;
+    mobile?: string | null;
+    address?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
 }): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const doc = await PDFDocument.create();
