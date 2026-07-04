@@ -202,6 +202,25 @@ async function buildAgreementPdf(opts: {
   );
   y -= 4;
 
+  // Parties intro with Licensor address
+  const addressLine = [opts.contact.address, opts.contact.city, opts.contact.country]
+    .filter(Boolean)
+    .join(", ");
+  drawParagraph(
+    `This Agreement is entered into between ${opts.fullName}${
+      addressLine ? ` of ${addressLine}` : ""
+    } (the “Licensor”) and VinylVista Private Limited dba “SoundXpand”, an Indian Company with a Registered Address at Hijla Road, Burudih, Hijla, Purana Dumka, Dumka, Jharkhand, India – 814101 (the “Licensee”).`,
+  );
+
+  // Licensor contact block
+  drawParagraph("Licensor contact details", { bold: true, sizeOverride: 10 });
+  if (opts.contact.username) drawParagraph(`Account username: ${opts.contact.username}`, { sizeOverride: 9 });
+  if (opts.contact.email) drawParagraph(`Email: ${opts.contact.email}`, { sizeOverride: 9 });
+  if (opts.contact.mobile) drawParagraph(`Phone: ${opts.contact.mobile}`, { sizeOverride: 9 });
+  if (opts.contact.city) drawParagraph(`City: ${opts.contact.city}`, { sizeOverride: 9 });
+  if (opts.contact.country) drawParagraph(`Country: ${opts.contact.country}`, { sizeOverride: 9 });
+  y -= 4;
+
   for (const block of AGREEMENT_PARAGRAPHS) {
     if (block.heading) {
       y -= 6;
