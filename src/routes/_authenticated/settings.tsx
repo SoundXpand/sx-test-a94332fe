@@ -10,7 +10,7 @@ import { ArtistFormDialog } from "@/components/artist-form-dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label as UILabel } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Plus, Pencil, Trash2, Star, Wallet, FileSignature, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, Star, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { SignedAgreementsCard } from "@/components/agreements/signed-agreements-card";
