@@ -1322,6 +1322,7 @@ export type Database = {
           ip: string | null
           licensee_hash: string
           licensor_hash: string
+          pdf_url: string | null
           signature_data: string
           signature_type: string
           signed_at: string
@@ -1338,6 +1339,7 @@ export type Database = {
           ip?: string | null
           licensee_hash: string
           licensor_hash: string
+          pdf_url?: string | null
           signature_data: string
           signature_type: string
           signed_at?: string
@@ -1354,6 +1356,7 @@ export type Database = {
           ip?: string | null
           licensee_hash?: string
           licensor_hash?: string
+          pdf_url?: string | null
           signature_data?: string
           signature_type?: string
           signed_at?: string
