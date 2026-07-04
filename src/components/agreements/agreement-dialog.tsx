@@ -191,6 +191,15 @@ export function AgreementDialog({
           <AgreementBody
             fullName={signedName || defaultName}
             signatureImage={previewSignatureImage}
+            profile={{
+              fullName: signedName || defaultName,
+              username: data?.profile?.username,
+              email: data?.profile?.email ?? data?.user?.email,
+              mobile: data?.profile?.mobile,
+              address: (data?.profile as any)?.address ?? null,
+              city: data?.profile?.city,
+              country: data?.profile?.country,
+            }}
           />
         </div>
 
