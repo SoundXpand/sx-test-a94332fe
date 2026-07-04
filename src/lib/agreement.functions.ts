@@ -406,6 +406,13 @@ export const signAgreement = createServerFn({ method: "POST" })
     }
     const licenseeSignatureImage = await fetchImageBytes(LICENSEE_SIGNATURE_URL);
 
+    // Fetch licensor profile for contact details
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username,email,mobile,city,country,full_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+
     const pdfBytes = await buildAgreementPdf({
       fullName: data.signed_name,
       effectiveDate,
@@ -417,6 +424,14 @@ export const signAgreement = createServerFn({ method: "POST" })
       version: data.version,
       signedAtIso,
       signatureType: data.signature_type,
+      contact: {
+        username: (profile as any)?.username ?? null,
+        email: (profile as any)?.email ?? null,
+        mobile: (profile as any)?.mobile ?? null,
+        address: null,
+        city: (profile as any)?.city ?? null,
+        country: (profile as any)?.country ?? null,
+      },
     });
 
     const key = `agreements/${data.agreement_key}/${data.version}/${userId}/${signedAt
