@@ -1,9 +1,14 @@
 export const AGREEMENT_KEY = "sx-exclusive-licensing";
 export const AGREEMENT_VERSION = "2026.07.04";
+
 // Fixed licensee (SoundXpand / Sahil Hansda) signature hash — stable, precomputed.
 export const LICENSEE_SIGNATURE_HASH =
   "0x8f2b5c1d9a3f4b6e7c8d0a2b1e9f4c3d5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d";
 export const LICENSEE_SIGNED_AT = "2024-01-15T00:00:00Z";
+
+// Stock signature image used as Sahil Hansda's placeholder signature.
+export const LICENSEE_SIGNATURE_URL =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Example_of_a_signature.svg/320px-Example_of_a_signature.svg.png";
 
 export function LicenseeSignedBadge({ licensorHash }: { licensorHash?: string | null }) {
   return (
@@ -13,17 +18,25 @@ export function LicenseeSignedBadge({ licensorHash }: { licensorHash?: string | 
         {LICENSEE_SIGNATURE_HASH.slice(0, 18)}…{LICENSEE_SIGNATURE_HASH.slice(-6)}
       </span>
       <span className="text-emerald-500">✓ Pre-signed · Sahil Hansda, Director</span>
-      {licensorHash && (
+      {licensorHash ? (
         <span className="ml-auto">
           <span className="text-foreground/70 font-sans font-medium mr-1">Licensor hash:</span>
           {licensorHash.slice(0, 18)}…{licensorHash.slice(-6)}
         </span>
+      ) : (
+        <span className="ml-auto text-amber-500 font-sans font-medium">Licensor hash: pending signature</span>
       )}
     </div>
   );
 }
 
-export function AgreementBody({ fullName }: { fullName: string }) {
+export function AgreementBody({
+  fullName,
+  signatureImage,
+}: {
+  fullName: string;
+  signatureImage?: string | null;
+}) {
   const today = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "long",
@@ -51,17 +64,14 @@ export function AgreementBody({ fullName }: { fullName: string }) {
         services provided by Licensee, Licensor acknowledges and agrees to adhere to the terms
         delineated herein. Should Licensor decline to accept this Agreement in its entirety, refrain
         from consenting and/or signing this Agreement, and abstain from availing Licensor's of the
-        licensing or distribution services offered by Licensee. The commencement of this Agreement,
-        henceforth referred to as the “Effective Date,” shall be construed as the date upon which
-        Licensor initially elects to participate in or utilize the licensing or distribution services
-        provided by Licensee.
+        licensing or distribution services offered by Licensee.
       </p>
 
       <h4 className="text-center font-semibold pt-2">Basic Terms</h4>
       <ol className="list-decimal pl-5 space-y-3">
         <li>
-          <strong>Grant of Rights</strong>: The Licensor hereby grants to the Licensee the following
-          exclusive rights in accordance with the General Terms and Conditions:
+          <strong>Grant of Rights</strong>: The Licensor grants Licensee the following exclusive
+          rights in accordance with the General Terms and Conditions:
           <ol className="list-[lower-alpha] pl-5 mt-1 space-y-0.5">
             <li>exclusive Digital Distribution rights for the Recordings;</li>
             <li>exclusive Neighboring Rights Administration, if opted;</li>
@@ -71,8 +81,7 @@ export function AgreementBody({ fullName }: { fullName: string }) {
           </ol>
         </li>
         <li>
-          <strong>Royalty</strong>: In complete consideration of the rights conferred, and contingent
-          upon Licensor's diligent fulfillment of all terms, Licensor shall receive:
+          <strong>Royalty</strong>: Licensor shall receive:
           <ol className="list-[lower-alpha] pl-5 mt-1 space-y-0.5">
             <li>100% of Net Receipts from Digital Distribution and Neighboring Rights Administration;</li>
             <li>100% of Net Receipts from Content ID, YouTube, and YouTube Channel Admin Services;</li>
@@ -81,11 +90,8 @@ export function AgreementBody({ fullName }: { fullName: string }) {
           </ol>
         </li>
         <li>
-          <strong>Term</strong>: The duration of this Agreement shall commence on the Effective Date
-          and remain in force until the conclusion of all Licensing Terms. Each Licensed Content shall
-          possess an initial Licensing Term of three (3) years, starting from Licensee's initial
-          commercial release. Automatic renewal will occur for successive three (3) year periods,
-          subject to termination as per Schedule A.
+          <strong>Term</strong>: Initial Licensing Term of three (3) years from commercial release,
+          with automatic renewal for successive three (3) year periods subject to Schedule A.
         </li>
         <li>
           <strong>Territory</strong>: Worldwide.
@@ -95,94 +101,78 @@ export function AgreementBody({ fullName }: { fullName: string }) {
       <h4 className="text-center font-semibold pt-2">Schedule A — General Terms and Conditions</h4>
       <ol className="list-decimal pl-5 space-y-3">
         <li>
-          <strong>Definitions and Interpretation</strong>: “Assets”, “Recordings”, “Videos”, “Digital
-          Distribution”, “Neighboring Rights”, “Content ID”, “YouTube Channel Admin Services”,
-          “Procured Licensing”, “Deliver/Delivery”, “Digital Services”, “Neighboring Rights
-          Royalties”, “Net Receipts”, “Recoupable Costs”, “Site(s)”, “The SoundXpand Network”,
-          “Licensed Content”, “Licensed Territory” and “Licensing Terms” have the meanings given
-          them by industry convention and by the Basic Terms above.
+          <strong>Definitions and Interpretation</strong>: “Assets”, “Recordings”, “Videos”,
+          “Digital Distribution”, “Neighboring Rights”, “Content ID”, “YouTube Channel Admin
+          Services”, “Procured Licensing”, “Deliver/Delivery”, “Digital Services”, “Neighboring
+          Rights Royalties”, “Net Receipts”, “Recoupable Costs”, “Site(s)”, “The SoundXpand
+          Network”, “Licensed Content”, “Licensed Territory” and “Licensing Terms” have the meanings
+          given them by industry convention and by the Basic Terms above.
         </li>
         <li>
-          <strong>Grant of Rights</strong>: Licensor irrevocably grants and licenses to Licensee
-          exclusive, sub-licensable rights throughout the Licensed Territory for the entire duration
-          of the Licensing Terms to convert, digitize, encode, integrate, reproduce, and digitally
-          distribute the Recordings, Videos and Assets across Digital Services; to transmit, license,
-          sell, advertise, publish, publicly perform, broadcast, and otherwise exploit the Licensed
-          Content; to act as Licensor's ISRC manager; to stream preview clips for promotional
-          purposes; to administer third-party audio/audiovisual content that synchronizes with the
+          <strong>Grant of Rights</strong>: Licensor irrevocably grants Licensee exclusive,
+          sub-licensable rights throughout the Licensed Territory for the Licensing Terms to
+          convert, digitize, encode, integrate, reproduce, and digitally distribute the Recordings,
+          Videos and Assets; to transmit, license, publish, publicly perform, broadcast and
+          otherwise exploit the Licensed Content; to act as ISRC manager; to stream preview clips
+          for promotion; to administer third-party audio/audiovisual content that syncs with the
           Licensed Content via Content ID; to use approved artist materials for promotion; to
           exploit the musical compositions for distribution/monetization; to license synchronization
           uses; to administer, collect and exploit rights to Licensed Content uploaded to YouTube
-          channels, and (if opted) include the channel in The SoundXpand Network; and to resolve
+          channels (and if opted, include the channel in The SoundXpand Network); and to resolve
           copyright disputes at Licensee's reasonable discretion.
         </li>
         <li>
           <strong>Restrictions</strong>: Licensor shall not transfer, sub-license, or assign the
-          rights granted without prior written consent; distribute or exploit the Licensed Content
-          outside the scope of this Agreement; or use any Licensed Content or Artist image to
-          endorse third-party recordings, products, services, or brands.
+          rights without prior written consent; distribute or exploit Licensed Content outside this
+          Agreement; or use any Licensed Content or Artist image to endorse third-party products.
         </li>
         <li>
-          <strong>Assignment</strong>: Neither party shall assign or transfer its rights or
-          obligations under this Agreement without the prior written consent of the other party,
-          except to a successor in interest by merger, acquisition, or sale of substantially all
-          Assets.
+          <strong>Assignment</strong>: Neither party shall assign or transfer rights or obligations
+          without prior written consent, except to a successor in interest by merger, acquisition,
+          or sale of substantially all Assets.
         </li>
         <li>
-          <strong>Obligations</strong>: Licensee shall collect revenue and royalties, edit
-          metadata for accuracy, make available preview clips, distribute the Licensed Content
-          digitally, and provide quarterly reporting. Licensor shall provide accurate metadata,
-          notify Licensee of third-party claims, comply with Digital Services rules, deliver
-          Recordings, Videos and Assets under Licensee's Delivery Specifications, and furnish input
-          materials as reasonably required.
+          <strong>Obligations</strong>: Licensee collects revenue and royalties, edits metadata for
+          accuracy, distributes Licensed Content digitally, and provides quarterly reporting.
+          Licensor provides accurate metadata, notifies Licensee of third-party claims, complies
+          with Digital Services rules, and delivers Recordings/Videos/Assets to specification.
         </li>
         <li>
           <strong>Accounting</strong>: Licensee provides quarterly accounting statements. Licensor's
           share of Net Receipts encompasses publishing, mechanical royalties, and other
-          compensations unless disbursed directly by Digital Services. Payment via Bank Transfer,
-          PayPal or other Licensee-designated method, subject to third-party fees. Licensor must
-          raise objections within one (1) year of receipt. Licensee may freeze/withhold revenues
-          related to content deemed to violate this Agreement, with written notice.
+          compensations unless disbursed directly by Digital Services. Payments via Bank Transfer,
+          PayPal or other Licensee-designated method. Licensor must raise objections within one (1)
+          year of receipt. Licensee may freeze/withhold revenues related to content deemed to
+          violate this Agreement, with written notice.
         </li>
         <li>
-          <strong>Change Control</strong>: Any changes or modifications to this Agreement shall be
-          made in writing and signed by both parties.
+          <strong>Change Control</strong>: Any changes must be made in writing and signed by both parties.
         </li>
         <li>
-          <strong>Confidentiality</strong>: The terms of this Agreement are confidential. Disclosure
-          may only occur if required by law, in which case Licensor must notify Licensee at least
-          seven (7) days in advance.
+          <strong>Confidentiality</strong>: Terms are confidential. Any disclosure required by law
+          requires seven (7) days prior notice to Licensee.
         </li>
         <li>
-          <strong>Warranties and Indemnity</strong>: Licensor warrants legal capacity, age of
-          majority (or guardian consent), ownership of or rights to the Recordings/Videos/Assets,
-          non-conflict with third-party grants, sole responsibility for third-party royalties, and
-          non-infringement. Licensor indemnifies Licensee and its affiliates from third-party claims
-          arising from any breach. Nothing herein compels Licensee to distribute any content;
-          Licensee may refrain from services for poor quality, hateful, obscene, or inappropriate
-          content. Licensee's aggregate liability shall not exceed amounts paid to Licensor in the
-          preceding twelve (12) months; no indirect, consequential, or punitive damages.
+          <strong>Warranties and Indemnity</strong>: Licensor warrants legal capacity, ownership of
+          or rights to the Recordings/Videos/Assets, non-conflict with third-party grants, sole
+          responsibility for third-party royalties, and non-infringement. Licensor indemnifies
+          Licensee from third-party claims. Licensee's aggregate liability shall not exceed amounts
+          paid to Licensor in the preceding twelve (12) months; no indirect, consequential, or
+          punitive damages.
         </li>
         <li>
           <strong>Termination</strong>: Licensor may terminate with ninety (90) days prior written
-          notice, effective at the end of the current period. Licensee has a thirty (30) day window
-          to request takedown from Digital Services; a collection period continues thereafter.
-          Licensee may terminate at any time for infringement, breach, offensive content, harm to
-          reputation, or otherwise in its sole discretion; upon termination for cause, Licensor
-          shall immediately pay any unrecouped Recoupable Costs. Sections 6(c), 8, 9, 10(a), 10(c)
-          and 11 survive termination.
+          notice, effective end of the current period. Licensee may terminate at any time for
+          infringement, breach, offensive content, harm to reputation, or otherwise in its sole
+          discretion. Sections 6(c), 8, 9, 10(a), 10(c) and 11 survive termination.
         </li>
         <li>
-          <strong>Miscellaneous</strong>: The parties are independent contractors. Licensor agrees
-          to the Site Agreements and Digital Services Agreements; the terms of this Agreement
-          prevail on conflict. Binding on assigns/heirs/successors. All notices in writing via
-          electronic mail; notices to Licensee at support@soundxpand.com. Severability, waiver,
-          cumulative remedies, force majeure (with three (3) month termination right), no
-          third-party beneficiaries under the Indian Contract Act, 1872. Governed by the laws of
-          the Republic of India; non-exclusive jurisdiction of the Civil Court in Dumka. Disputes
-          resolved by arbitration under the Indian Arbitration and Conciliation Act, 1996, seated
-          in Dumka, Jharkhand, in English or Hindi. This Agreement may be executed via physical
-          signatures, digital or electronic signatures, or by clicking “I agree”.
+          <strong>Miscellaneous</strong>: Parties are independent contractors. Notices in writing
+          via electronic mail; notices to Licensee at support@soundxpand.com. Governed by the laws
+          of the Republic of India; non-exclusive jurisdiction of the Civil Court in Dumka.
+          Disputes resolved by arbitration under the Indian Arbitration and Conciliation Act, 1996,
+          seated in Dumka, Jharkhand, in English or Hindi. This Agreement may be executed via
+          physical or electronic signatures, or by clicking “I agree”.
         </li>
       </ol>
 
@@ -192,10 +182,6 @@ export function AgreementBody({ fullName }: { fullName: string }) {
         and class actions. By signing below, Licensor expressly consents to such arbitration
         provision.
       </p>
-      <p className="font-semibold">
-        Licensor acknowledges that they have been advised to seek independent legal and business
-        counsel regarding this Agreement, and have either done so or consciously chosen not to.
-      </p>
       <p>
         IN WITNESS WHEREOF, the parties hereto have executed this Agreement as of the Effective
         Date first above written.
@@ -203,17 +189,40 @@ export function AgreementBody({ fullName }: { fullName: string }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border">
         <div>
-          <p className="text-xs text-muted-foreground mb-2">LICENSOR</p>
-          <p className="text-sm font-medium">{fullName || "—"}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">Digital signature captured on submission</p>
+          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wide">Licensor</p>
+          <div className="h-16 flex items-end">
+            {signatureImage ? (
+              <img
+                src={signatureImage}
+                alt="Licensor signature"
+                className="max-h-16 object-contain bg-white rounded px-2 py-1 border border-border"
+              />
+            ) : fullName ? (
+              <p
+                className="text-3xl text-foreground"
+                style={{ fontFamily: "'Brush Script MT','Segoe Script',cursive" }}
+              >
+                {fullName}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">Sign below to add your signature here</p>
+            )}
+          </div>
+          <p className="text-sm font-medium mt-1">{fullName || "—"}</p>
+          <p className="text-[11px] text-muted-foreground">Licensor</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground mb-2">LICENSEE</p>
-          <p className="text-sm font-medium italic" style={{ fontFamily: "'Brush Script MT', cursive" }}>
-            Sahil Hansda
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            Sahil Hansda, Director — For and on behalf of SoundXpand
+          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wide">Licensee</p>
+          <div className="h-16 flex items-end">
+            <img
+              src={LICENSEE_SIGNATURE_URL}
+              alt="Sahil Hansda signature"
+              className="max-h-16 object-contain bg-white rounded px-2 py-1 border border-border"
+            />
+          </div>
+          <p className="text-sm font-medium mt-1">Sahil Hansda, Director</p>
+          <p className="text-[11px] text-muted-foreground">
+            For and on behalf of SoundXpand (VinylVista Private Limited)
           </p>
         </div>
       </div>
