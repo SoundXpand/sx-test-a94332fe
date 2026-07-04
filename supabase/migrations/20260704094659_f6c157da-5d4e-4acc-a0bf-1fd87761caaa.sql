@@ -1,0 +1,1 @@
+ALTER TABLE public.user_agreements ADD COLUMN IF NOT EXISTS pdf_url TEXT;
