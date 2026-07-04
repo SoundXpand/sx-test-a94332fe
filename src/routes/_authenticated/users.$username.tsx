@@ -9,6 +9,7 @@ import { ArrowLeft, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
 import { approveUserFn } from "@/lib/admin-actions.functions";
+import { SignedAgreementsCard } from "@/components/agreements/signed-agreements-card";
 
 export const Route = createFileRoute("/_authenticated/users/$username")({
   component: UserDetail,
@@ -197,6 +198,12 @@ function UserDetail() {
           </ul>
         )}
       </Card>
+
+      <SignedAgreementsCard
+        userId={profile.user_id}
+        title="Signed agreements"
+        emptyText="User has not signed any agreements yet."
+      />
 
       <Card className="p-6 bg-card/60 space-y-3">
         <h2 className="font-semibold">Review</h2>

@@ -30,18 +30,32 @@ export function LicenseeSignedBadge({ licensorHash }: { licensorHash?: string | 
   );
 }
 
+export type LicensorProfile = {
+  fullName: string;
+  username?: string | null;
+  email?: string | null;
+  mobile?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+};
+
 export function AgreementBody({
   fullName,
   signatureImage,
+  profile,
 }: {
   fullName: string;
   signatureImage?: string | null;
+  profile?: LicensorProfile;
 }) {
   const today = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "long",
     year: "numeric",
   });
+  const addressParts = [profile?.address, profile?.city, profile?.country].filter(Boolean);
+  const addressLine = addressParts.join(", ");
   return (
     <div className="space-y-4 px-6 py-6 text-[13px] leading-relaxed text-foreground/90">
       <h3 className="text-center text-lg font-semibold text-foreground">
@@ -49,11 +63,34 @@ export function AgreementBody({
       </h3>
       <p>
         This agreement (the “Agreement”) is made as of <strong>{today}</strong> (the “Effective Date”)
-        by and between: <strong>{fullName || "[Licensor Full Name]"}</strong> (hereinafter referred
-        to as the “Licensor”) and <strong>VinylVista Private Limited dba “SoundXpand”</strong>, an
-        Indian Company with a Registered Address at Hijla Road, Burudih, Hijla, Purana Dumka,
-        Dumka, Jharkhand, India – 814101 (hereinafter referred to as the “Licensee”).
+        by and between: <strong>{fullName || "[Licensor Full Name]"}</strong>
+        {addressLine ? <> of <strong>{addressLine}</strong></> : null}{" "}
+        (hereinafter referred to as the “Licensor”) and{" "}
+        <strong>VinylVista Private Limited dba “SoundXpand”</strong>, an Indian Company with a
+        Registered Address at Hijla Road, Burudih, Hijla, Purana Dumka, Dumka, Jharkhand, India –
+        814101 (hereinafter referred to as the “Licensee”).
       </p>
+      {(profile?.email || profile?.mobile || profile?.username || addressLine) && (
+        <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-[12px] space-y-1">
+          <p className="font-semibold text-foreground">Licensor contact details</p>
+          {profile?.username && (
+            <p><span className="text-muted-foreground">Account username:</span>{" "}
+              <span className="font-mono">{profile.username}</span></p>
+          )}
+          {profile?.email && (
+            <p><span className="text-muted-foreground">Email:</span> {profile.email}</p>
+          )}
+          {profile?.mobile && (
+            <p><span className="text-muted-foreground">Phone:</span> {profile.mobile}</p>
+          )}
+          {profile?.city && (
+            <p><span className="text-muted-foreground">City:</span> {profile.city}</p>
+          )}
+          {profile?.country && (
+            <p><span className="text-muted-foreground">Country:</span> {profile.country}</p>
+          )}
+        </div>
+      )}
       <p>
         Capitalized terms not explicitly defined within the basic terms and conditions outlined
         below (“Basic Terms”) shall be construed according to the definitions provided in the

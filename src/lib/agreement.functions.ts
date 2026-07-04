@@ -80,6 +80,14 @@ async function buildAgreementPdf(opts: {
   version: string;
   signedAtIso: string;
   signatureType: "draw" | "type";
+  contact: {
+    username?: string | null;
+    email?: string | null;
+    mobile?: string | null;
+    address?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
 }): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const doc = await PDFDocument.create();
@@ -192,6 +200,25 @@ async function buildAgreementPdf(opts: {
     `Effective Date: ${opts.effectiveDate}    Licensor: ${opts.fullName}    Agreement: ${opts.agreementKey} v${opts.version}`,
     { sizeOverride: 9 },
   );
+  y -= 4;
+
+  // Parties intro with Licensor address
+  const addressLine = [opts.contact.address, opts.contact.city, opts.contact.country]
+    .filter(Boolean)
+    .join(", ");
+  drawParagraph(
+    `This Agreement is entered into between ${opts.fullName}${
+      addressLine ? ` of ${addressLine}` : ""
+    } (the “Licensor”) and VinylVista Private Limited dba “SoundXpand”, an Indian Company with a Registered Address at Hijla Road, Burudih, Hijla, Purana Dumka, Dumka, Jharkhand, India – 814101 (the “Licensee”).`,
+  );
+
+  // Licensor contact block
+  drawParagraph("Licensor contact details", { bold: true, sizeOverride: 10 });
+  if (opts.contact.username) drawParagraph(`Account username: ${opts.contact.username}`, { sizeOverride: 9 });
+  if (opts.contact.email) drawParagraph(`Email: ${opts.contact.email}`, { sizeOverride: 9 });
+  if (opts.contact.mobile) drawParagraph(`Phone: ${opts.contact.mobile}`, { sizeOverride: 9 });
+  if (opts.contact.city) drawParagraph(`City: ${opts.contact.city}`, { sizeOverride: 9 });
+  if (opts.contact.country) drawParagraph(`Country: ${opts.contact.country}`, { sizeOverride: 9 });
   y -= 4;
 
   for (const block of AGREEMENT_PARAGRAPHS) {
@@ -379,6 +406,13 @@ export const signAgreement = createServerFn({ method: "POST" })
     }
     const licenseeSignatureImage = await fetchImageBytes(LICENSEE_SIGNATURE_URL);
 
+    // Fetch licensor profile for contact details
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username,email,mobile,city,country,full_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+
     const pdfBytes = await buildAgreementPdf({
       fullName: data.signed_name,
       effectiveDate,
@@ -390,6 +424,14 @@ export const signAgreement = createServerFn({ method: "POST" })
       version: data.version,
       signedAtIso,
       signatureType: data.signature_type,
+      contact: {
+        username: (profile as any)?.username ?? null,
+        email: (profile as any)?.email ?? null,
+        mobile: (profile as any)?.mobile ?? null,
+        address: null,
+        city: (profile as any)?.city ?? null,
+        country: (profile as any)?.country ?? null,
+      },
     });
 
     const key = `agreements/${data.agreement_key}/${data.version}/${userId}/${signedAt

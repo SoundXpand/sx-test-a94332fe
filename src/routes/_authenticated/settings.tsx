@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Plus, Pencil, Trash2, Star, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUser, isStaff } from "@/hooks/use-current-user";
+import { SignedAgreementsCard } from "@/components/agreements/signed-agreements-card";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: Settings,
@@ -250,6 +251,10 @@ function Settings() {
 
         <Button onClick={savePayout} disabled={payoutSaving || !payoutMethod}>{payoutSaving ? "Saving…" : "Save payout preference"}</Button>
       </Card>}
+
+      {!staff && me?.user?.id && (
+        <SignedAgreementsCard userId={me.user.id} />
+      )}
 
       <Card className="p-6 space-y-4 bg-card/60">
         <h2 className="font-semibold">Change password</h2>
