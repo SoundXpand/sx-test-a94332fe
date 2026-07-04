@@ -252,6 +252,10 @@ function Settings() {
         <Button onClick={savePayout} disabled={payoutSaving || !payoutMethod}>{payoutSaving ? "Saving…" : "Save payout preference"}</Button>
       </Card>}
 
+      {!staff && me?.user?.id && (
+        <SignedAgreementsCard userId={me.user.id} />
+      )}
+
       <Card className="p-6 space-y-4 bg-card/60">
         <h2 className="font-semibold">Change password</h2>
         <Input type="password" placeholder="New password" value={password} onChange={e => setPassword(e.target.value)} />
