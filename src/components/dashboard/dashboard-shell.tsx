@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppSidebar } from "./app-sidebar";
 import { Topbar } from "./topbar";
+import { AgreementGate } from "@/components/agreements/agreement-gate";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -31,6 +32,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <Topbar onOpenMobileSidebar={() => setMobileOpen(true)} />
         <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">{children}</main>
       </div>
+      <AgreementGate />
     </div>
   );
 }
