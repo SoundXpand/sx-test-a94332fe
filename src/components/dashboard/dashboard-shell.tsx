@@ -32,6 +32,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <Topbar onOpenMobileSidebar={() => setMobileOpen(true)} />
         <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">{children}</main>
       </div>
+      <AgreementGate />
     </div>
   );
 }
