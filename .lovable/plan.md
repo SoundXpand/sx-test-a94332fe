@@ -1,53 +1,92 @@
-# Plan: Split username + public handle, fix landing/mobile overflow
+# SoundXpand — Premium Marketing Redesign
 
-## 1. Username model — two columns
+Visual-only overhaul of every public page. Zero changes to routes, forms, CTAs, APIs, DB, auth, SEO, packages, or navigation structure. All existing components keep their exports, props, and link destinations — only their internal JSX and styling change.
 
-Right now `profiles.username` is doing double duty: it's both the internal handle (auto-assigned `SX002`, `SX0010`…) AND the public URL slug the user wants to customize. That's why editing it on /profile feels destructive. Split them:
+## 1. New design language
 
-- `profiles.username` → **internal, immutable, system-assigned**. Format `SX000001`, `SX000002`, … (zero-padded to 6 digits). Used by admin lists, support, internal references. Never user-editable.
-- `profiles.public_handle` → **public URL slug**, optional, user-editable. Unique (case-insensitive). Falls back to `username` when empty. This is what powers `/{role}/{handle}`.
+**Palette** (replaces purple/pink/cyan/multicolor in `src/styles.css`):
+- `--ink`: deep black `oklch(0.08 0.005 60)`
+- `--charcoal`: `oklch(0.16 0.006 60)`
+- `--charcoal-2`: `oklch(0.22 0.006 60)`
+- `--cream`: soft warm `oklch(0.96 0.02 85)`
+- `--bone`: `oklch(0.92 0.025 85)`
+- `--amber`: warm yellow `oklch(0.83 0.16 85)` (primary accent)
+- `--amber-glow`: `oklch(0.88 0.14 90)` (soft light source)
+- `--amber-deep`: `oklch(0.68 0.17 75)`
 
-### DB changes (one migration)
-- Add column `public_handle citext UNIQUE` (nullable).
-- Backfill: copy current `username` into `public_handle` for every existing row so existing public URLs keep working.
-- Reset `sx_username_seq` to start at `1` with new 6-digit format. Update `next_sx_username()` → always `SX` + `LPAD(n, 6, '0')`. Existing users keep their current `SX002` etc.; only new sign-ups get the `SX000001+` format.
-- Update `public_profiles` view to expose `public_handle` (and keep `username` for display fallback).
-- Public lookup resolves by `public_handle` first, then `username`.
+All existing brand tokens (`--brand-violet`, `--brand-pink`, `--brand-cyan`, etc.) get rewired to point at the new amber/cream/ink system so any component still referencing them stays visually consistent — no component-level refactor needed for tokens.
 
-### App changes
-- `/profile` "Public URL" section: input edits `public_handle` only (with the live availability check already built). The `SX0…` internal username is shown read-only above it as "Account ID".
-- `/{role}/{username}` route: server fn queries `public_handle ilike $1 OR username ilike $1`.
-- Admin lists keep showing `username` as the Account ID column.
+**Typography**: keep Syne (display) + DM Sans (body). Introduce tighter tracking on display sizes, uppercase micro-labels with letter-spacing, and a new "editorial" heading utility.
 
-## 2. Landing + mobile overflow
+**Light source**: single warm radial glow per section (top or off-canvas), never rainbow orbs. Replace all multi-color orb backdrops with one amber/cream soft fade + subtle grain.
 
-Cause from screenshot: `Distribute your music everywhere at once.` — the word `everywhere` overflows on 390px because the hero uses a very large `text-7xl`/`text-8xl` clamp without `break-words` and the gradient span has `whitespace-nowrap`-like behavior from `inline-block`.
+**Component tokens**: new `.btn-tactile` (inset highlight + soft shadow), `.card-lift` (hairline border + hover translate + amber edge glow), `.chip-mono` (cream on ink), `.divider-hair`.
 
-Fixes (presentation only, no copy changes):
-- Hero `h1`: add `break-words [overflow-wrap:anywhere] hyphens-auto`, drop one step on the smallest breakpoint (e.g. `text-5xl sm:text-6xl lg:text-7xl` instead of `text-6xl` base).
-- Wrap the gradient word in a `<span class="inline">` (not `inline-block`) so it can wrap mid-line if needed.
-- Audit other landing sections (`landing-hero`, `landing-features`, `landing-stats`, `landing-pricing`, `landing-cta`, `landing-footer`) for the same pattern: any `text-6xl+` heading gets `break-words` + a smaller mobile step.
-- Sticky landing nav: verify the right-side buttons collapse on <380px (hide "Sign in" text, keep "Start free" pill).
+## 2. Section-by-section redesign
 
-Other pages to sweep for the same overflow class:
-- `/{role}/{username}` hero (`text-6xl` name).
-- `/auth` heading.
-- `/l/{slug}` smartlink title.
-- Dashboard topbar page titles.
+Each landing section gets a distinct composition — no repeated card grid.
 
-Single shared utility added to `styles.css`: `@utility display-balance { text-wrap: balance; overflow-wrap: anywhere; }` applied to every display heading.
+- **Hero** (`landing-hero.tsx`): editorial split — oversized display headline left, layered floating UI stack right (dashboard preview card + artwork tile + platform badge cluster + stream counter chip), single warm glow behind. Cut-out artist silhouette via CSS mask. Keep DistributionNetwork below.
+- **Stats** (`landing-stats.tsx`): move from 4-up divided box to asymmetric editorial row — one hero stat oversize + three secondary stats stacked. Animated counters preserved.
+- **Features** (`landing-features.tsx`): bento-style asymmetric grid (1 large + 2 medium + 3 small), each tile with a distinct treatment (screenshot mock, icon+text, product chip cluster).
+- **How It Works** (`landing-how.tsx`): switch from 4 identical cards to a vertical timeline with alternating left/right content blocks and a hairline connector.
+- **Artists / testimonials** (`landing-artists.tsx`): magazine-style — one featured quote with large portrait cut-out, secondary quotes as compact cards below. Marquee of artist names.
+- **Pricing** (`landing-pricing.tsx`): three cards, middle elevated with amber hairline + glow. Tactile buttons. Feature checklists with cream dividers.
+- **FAQ** (`landing-faq.tsx`): two-column — sticky heading left, accordion right on desktop; single column on mobile.
+- **CTA** (`landing-cta.tsx`): full-bleed cream section (light break in the dark flow) with ink text + amber button — the only inverted section, creating rhythm.
+- **Footer** (`landing-footer.tsx`): editorial multi-column with prominent wordmark, keep every link intact.
+- **Nav** (`landing-nav.tsx`): thinner glass bar, refined dropdown styling for Monetization/Build, amber underline on hover. Structure and destinations unchanged.
 
-## 3. What I'll ship in this turn
+## 3. Solution / secondary pages
 
-1. Migration: add `public_handle`, backfill, update sequence + `next_sx_username()`, update `public_profiles` view.
-2. Update `/profile` form: read-only Account ID + editable Public handle (availability check stays).
-3. Update `/{role}/{username}` loader to resolve via `public_handle` then `username`.
-4. Add `display-balance` utility + apply to landing hero + audited headings; fix nav collapse.
+`src/components/landing/solution-page.tsx` (used by publishing, sync, youtube-cms, youtube-content-id, ai-tools, music-promotion, advanced-insights, more-features) gets a redesigned template with:
+- Editorial hero (eyebrow + display headline + supporting paragraph + dual CTA + hero visual)
+- Alternating dark/cream section bands
+- Asymmetric feature blocks (not identical cards)
+- Amber accents only
 
-## Suggestions (optional, not building unless you say so)
+Pages that render their own layout (`brand-assets.tsx`, `pledges.tsx`, `digital-music-platforms.tsx`, `contact.tsx`) get the same treatment inline — reusing new utility classes and section patterns.
 
-- **Reserve handles**: block `admin`, `support`, `api`, `app`, `auth`, `release`, `releases`, `login`, `signup`, role names, etc. so users can't claim them.
-- **Handle history**: keep a `public_handle_history` table so old URLs 301 to the new one when someone changes their handle (good for SEO / shared links).
-- **Min length 4** for `public_handle` so they don't collide with the `SX0…` namespace.
+## 4. Motion
 
-Say the word and I'll fold any of those into the migration before I run it.
+Reuse existing `framer-motion` (already installed). Add:
+- Scroll-reveal fade+rise on section entry (once, viewport margin)
+- Subtle 3D tilt on featured cards via CSS `perspective` + mouse-move (lightweight, no new deps)
+- Hover lift + amber border transition on cards
+- Marquee for platform/artist strips (CSS keyframes)
+- Counters keep existing IntersectionObserver logic
+
+Nothing heavy, all under 200ms easing, respects `prefers-reduced-motion`.
+
+## 5. Files touched (visual only)
+
+Edited:
+- `src/styles.css` — new tokens, rewire brand aliases, new utilities, keyframes
+- `src/components/landing/landing-nav.tsx`
+- `src/components/landing/landing-hero.tsx`
+- `src/components/landing/landing-stats.tsx`
+- `src/components/landing/landing-features.tsx`
+- `src/components/landing/landing-how.tsx`
+- `src/components/landing/landing-artists.tsx`
+- `src/components/landing/landing-pricing.tsx`
+- `src/components/landing/landing-faq.tsx`
+- `src/components/landing/landing-cta.tsx`
+- `src/components/landing/landing-footer.tsx`
+- `src/components/landing/solution-page.tsx`
+- `src/components/landing/distribution-network.tsx` (recolor to amber/cream only)
+- `src/routes/brand-assets.tsx`, `pledges.tsx`, `digital-music-platforms.tsx`, `contact.tsx`, `more-features.tsx` — restyle in place
+- `src/components/landing-page.tsx` — noise overlay tuning only
+
+No new files, no new packages, no route changes, no logic changes, no auth/DB/API touches. Dashboard and authenticated app untouched.
+
+## 6. Out of scope (explicit)
+
+- No changes to `_authenticated/*` routes
+- No changes to agreement flow, PDF generation, R2
+- No changes to `dsp-list`, `distributors`, or any data lib
+- No SEO metadata rewording (only structural JSX)
+- No new dependencies
+
+## Technical notes
+
+Because dashboard components (e.g. `dashboard-shell`, `topbar`, `charts-carousel`) consume the same shadcn tokens (`--primary`, `--accent`, `--ring`), those tokens will shift from violet to amber. This is intentional to unify branding but is a visual side-effect on the authenticated app. If the dashboard must remain violet, say so and I'll scope the new palette to a `.marketing` wrapper on public routes only.
