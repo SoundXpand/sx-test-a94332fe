@@ -1,4 +1,4 @@
-import { Twitter, Instagram, Youtube, Github } from "lucide-react";
+import { Twitter, Instagram, Youtube, Github, ArrowUpRight } from "lucide-react";
 import { BrandLogo } from "@/components/branding/brand-logo";
 
 type FooterLink = { label: string; href: string; external?: boolean };
@@ -49,22 +49,30 @@ const groups: { title: string; links: FooterLink[] }[] = [
 
 export function LandingFooter() {
   return (
-    <footer className="relative border-t border-hairline bg-background">
-      <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
+    <footer className="relative overflow-hidden border-t border-hairline bg-[color:var(--ink)]">
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-[420px] w-[900px] -translate-x-1/2 bg-[radial-gradient(ellipse,color-mix(in_oklch,var(--amber-glow)_10%,transparent),transparent_70%)] blur-3xl" />
+
+      {/* Oversized wordmark */}
+      <div className="relative mx-auto max-w-7xl px-5 pt-20 sm:px-8">
+        <div className="pointer-events-none select-none font-display text-[clamp(80px,18vw,220px)] font-bold leading-none tracking-[-0.06em] text-transparent [-webkit-text-stroke:1px_color-mix(in_oklch,var(--foreground)_18%,transparent)]">
+          SoundXpand
+        </div>
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-14 sm:px-8">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-6">
           <div className="col-span-2">
-            <div className="flex items-center gap-2.5">
-              <BrandLogo height={36} />
-            </div>
-            <p className="mt-4 max-w-xs text-sm font-light text-muted-foreground">
-              The next-generation music distribution platform for independent artists, producers and labels.
+            <BrandLogo height={34} />
+            <p className="mt-5 max-w-xs text-[13px] font-light leading-relaxed text-muted-foreground">
+              The next-generation music distribution platform for independent artists,
+              producers and labels.
             </p>
             <div className="mt-6 flex items-center gap-2">
               {[Twitter, Instagram, Youtube, Github].map((Icon, i) => (
                 <a
                   key={i}
                   href="#"
-                  className="grid h-9 w-9 place-items-center rounded-full border border-hairline text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground"
+                  className="grid h-9 w-9 place-items-center rounded-full border border-hairline text-muted-foreground transition-all hover:border-[var(--amber)]/40 hover:text-[var(--amber)]"
                 >
                   <Icon className="h-4 w-4" />
                 </a>
@@ -74,19 +82,22 @@ export function LandingFooter() {
 
           {groups.map((g) => (
             <div key={g.title}>
-              <h4 className="font-display text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+              <h4 className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--amber)]/80">
                 {g.title}
               </h4>
-              <ul className="mt-4 space-y-2.5">
+              <ul className="mt-5 space-y-3">
                 {g.links.map((l) => (
                   <li key={l.label}>
                     <a
                       href={l.href}
                       target={l.external ? "_blank" : undefined}
                       rel={l.external ? "noreferrer" : undefined}
-                      className="text-sm font-light text-muted-foreground transition-colors hover:text-foreground"
+                      className="group inline-flex items-center gap-1 text-[13px] font-light text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {l.label}
+                      {l.external && (
+                        <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-70" />
+                      )}
                     </a>
                   </li>
                 ))}
@@ -95,11 +106,13 @@ export function LandingFooter() {
           ))}
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-3 border-t border-hairline pt-6 sm:flex-row">
+        <div className="mt-16 flex flex-col items-start justify-between gap-3 border-t border-hairline pt-6 sm:flex-row sm:items-center">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} SoundXpand. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground">Built for artists who ship.</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            Built for artists who ship.
+          </p>
         </div>
       </div>
     </footer>

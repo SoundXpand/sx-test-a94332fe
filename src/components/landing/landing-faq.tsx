@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   Accordion,
   AccordionContent,
@@ -34,33 +35,50 @@ const faqs = [
 
 export function LandingFaq() {
   return (
-    <section id="faq" className="relative bg-card py-24 sm:py-32">
-      <div className="mx-auto max-w-3xl px-5 sm:px-8">
-        <div className="text-center">
-          <p className="font-display text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--brand-violet)]">
-            FAQ
-          </p>
-          <h2 className="mt-4 font-display text-4xl font-extrabold tracking-[-0.03em] sm:text-5xl">
-            Questions, answered.
-          </h2>
-        </div>
-
-        <Accordion type="single" collapsible className="mt-12 w-full">
-          {faqs.map((f) => (
-            <AccordionItem
-              key={f.q}
-              value={f.q}
-              className="border-b border-hairline last:border-b-0"
+    <section id="faq" className="relative border-t border-hairline py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8">
+        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.4fr] lg:gap-24">
+          {/* Sticky heading column */}
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <div className="eyebrow">FAQ</div>
+            <h2 className="mt-4 font-display text-4xl font-bold tracking-[-0.035em] sm:text-5xl">
+              Questions,
+              <br />
+              <span className="italic font-medium text-muted-foreground">answered.</span>
+            </h2>
+            <p className="mt-6 max-w-sm text-[15px] font-light text-muted-foreground">
+              Everything you need to know before shipping your first release with SoundXpand.
+            </p>
+            <Link
+              to="/contact"
+              className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-[var(--amber)] hover:underline underline-offset-4"
             >
-              <AccordionTrigger className="py-5 text-left font-display text-base font-semibold tracking-tight text-foreground hover:no-underline">
-                {f.q}
-              </AccordionTrigger>
-              <AccordionContent className="pb-5 text-sm font-light leading-relaxed text-muted-foreground">
-                {f.a}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+              Still have questions? Talk to us →
+            </Link>
+          </div>
+
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((f, i) => (
+              <AccordionItem
+                key={f.q}
+                value={f.q}
+                className="border-b border-hairline first:border-t last:border-b"
+              >
+                <AccordionTrigger className="group py-6 text-left font-display text-lg font-semibold tracking-tight text-foreground hover:no-underline">
+                  <span className="flex items-baseline gap-4">
+                    <span className="font-display text-xs font-medium text-muted-foreground/60 tabular-nums">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span>{f.q}</span>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6 pl-10 text-[15px] font-light leading-relaxed text-muted-foreground">
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
       </div>
     </section>
   );
