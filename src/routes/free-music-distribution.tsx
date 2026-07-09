@@ -19,6 +19,9 @@ import {
   Music4,
 } from "lucide-react";
 import { ContactUsBadge } from "@/components/landing/contact-us-badge";
+import { LandingNav } from "@/components/landing/landing-nav";
+import { LandingFooter } from "@/components/landing/landing-footer";
+import { CookieConsentWidget } from "@/components/landing/cookie-consent-widget";
 import { DSPS_FULL } from "@/lib/dsp-list";
 
 export const Route = createFileRoute("/free-music-distribution")({
