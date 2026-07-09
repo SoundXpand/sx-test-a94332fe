@@ -19,6 +19,9 @@ import {
   Music4,
 } from "lucide-react";
 import { ContactUsBadge } from "@/components/landing/contact-us-badge";
+import { LandingNav } from "@/components/landing/landing-nav";
+import { LandingFooter } from "@/components/landing/landing-footer";
+import { CookieConsentWidget } from "@/components/landing/cookie-consent-widget";
 import { DSPS_FULL } from "@/lib/dsp-list";
 
 export const Route = createFileRoute("/free-music-distribution")({
@@ -53,19 +56,24 @@ const fadeUp: import("framer-motion").Variants = {
 
 function FreeMusicDistributionPage() {
   return (
-    <>
-      <Hero />
-      <MarqueeStrip />
-      <ValueGrid />
-      <TimelineSection />
-      <PlatformShowcase />
-      <RoyaltiesSection />
-      <ComparisonSection />
-      <TestimonialSection />
-      <FaqSection />
-      <CtaSection />
+    <div className="relative min-h-screen bg-background text-foreground">
+      <LandingNav />
+      <main className="pt-16">
+        <Hero />
+        <MarqueeStrip />
+        <ValueGrid />
+        <TimelineSection />
+        <PlatformShowcase />
+        <RoyaltiesSection />
+        <ComparisonSection />
+        <TestimonialSection />
+        <FaqSection />
+        <CtaSection />
+      </main>
+      <LandingFooter />
       <ContactUsBadge />
-    </>
+      <CookieConsentWidget />
+    </div>
   );
 }
 

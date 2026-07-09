@@ -360,6 +360,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cookie_consent_logs: {
+        Row: {
+          analytics: boolean
+          anon_id: string | null
+          choice: string
+          created_at: string
+          essentials: boolean
+          id: string
+          marketing: boolean
+          page_path: string | null
+          preferences: boolean
+          region: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          analytics?: boolean
+          anon_id?: string | null
+          choice: string
+          created_at?: string
+          essentials?: boolean
+          id?: string
+          marketing?: boolean
+          page_path?: string | null
+          preferences?: boolean
+          region?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          analytics?: boolean
+          anon_id?: string | null
+          choice?: string
+          created_at?: string
+          essentials?: boolean
+          id?: string
+          marketing?: boolean
+          page_path?: string | null
+          preferences?: boolean
+          region?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       dsp_deliveries: {
         Row: {
           created_at: string
