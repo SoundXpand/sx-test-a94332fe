@@ -3,7 +3,14 @@ import { ArrowRight, Play, TrendingUp, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { DistributionNetwork } from "./distribution-network";
 
-const platformDots = ["Spotify", "Apple Music", "YouTube", "TikTok", "Tidal", "Deezer"];
+const platformDots: { name: string; slug: string }[] = [
+  { name: "Spotify", slug: "spotify" },
+  { name: "Apple Music", slug: "apple" },
+  { name: "YouTube", slug: "youtube" },
+  { name: "TikTok", slug: "tiktok" },
+  { name: "Tidal", slug: "tidal" },
+  { name: "Deezer", slug: "deezer" },
+];
 
 export function LandingHero() {
   return (
