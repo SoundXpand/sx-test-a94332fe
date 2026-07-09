@@ -3,7 +3,14 @@ import { ArrowRight, Play, TrendingUp, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { DistributionNetwork } from "./distribution-network";
 
-const platformDots = ["Spotify", "Apple Music", "YouTube", "TikTok", "Tidal", "Deezer"];
+const platformDots: { name: string; slug: string }[] = [
+  { name: "Spotify", slug: "spotify" },
+  { name: "Apple Music", slug: "apple" },
+  { name: "YouTube", slug: "youtube" },
+  { name: "TikTok", slug: "tiktok" },
+  { name: "Tidal", slug: "tidal" },
+  { name: "Deezer", slug: "deezer" },
+];
 
 export function LandingHero() {
   return (
@@ -92,9 +99,14 @@ export function LandingHero() {
                 Live on
               </span>
               {platformDots.map((p) => (
-                <span key={p} className="text-[13px] font-medium text-muted-foreground">
-                  {p}
-                </span>
+                <img
+                  key={p.slug}
+                  src={`https://soundxpand.com/assets/images/platforms/${p.slug}.svg`}
+                  alt={p.name}
+                  title={p.name}
+                  loading="lazy"
+                  className="h-5 w-auto opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0"
+                />
               ))}
               <span className="text-[13px] font-medium text-[var(--amber)]">+150 more</span>
             </motion.div>

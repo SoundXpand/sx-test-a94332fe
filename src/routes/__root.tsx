@@ -84,13 +84,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   useEffect(() => {
+    import("@/lib/sentry").then((m) => m.initSentry()).catch(() => {});
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
+        import("@/lib/sentry").then(({ Sentry }) => {
+          Sentry.setUser({ id: session.user.id, email: session.user.email ?? undefined });
+        }).catch(() => {});
         supabase.from("user_activity_log" as any).insert({
           user_id: session.user.id, kind: "login",
           summary: "Signed in",
           user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
         } as any).then(() => {});
+      }
+      if (event === "SIGNED_OUT") {
+        import("@/lib/sentry").then(({ Sentry }) => Sentry.setUser(null)).catch(() => {});
       }
     });
     return () => sub.subscription.unsubscribe();
