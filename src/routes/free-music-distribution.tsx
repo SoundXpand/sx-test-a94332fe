@@ -56,19 +56,24 @@ const fadeUp: import("framer-motion").Variants = {
 
 function FreeMusicDistributionPage() {
   return (
-    <>
-      <Hero />
-      <MarqueeStrip />
-      <ValueGrid />
-      <TimelineSection />
-      <PlatformShowcase />
-      <RoyaltiesSection />
-      <ComparisonSection />
-      <TestimonialSection />
-      <FaqSection />
-      <CtaSection />
+    <div className="relative min-h-screen bg-background text-foreground">
+      <LandingNav />
+      <main className="pt-16">
+        <Hero />
+        <MarqueeStrip />
+        <ValueGrid />
+        <TimelineSection />
+        <PlatformShowcase />
+        <RoyaltiesSection />
+        <ComparisonSection />
+        <TestimonialSection />
+        <FaqSection />
+        <CtaSection />
+      </main>
+      <LandingFooter />
       <ContactUsBadge />
-    </>
+      <CookieConsentWidget />
+    </div>
   );
 }
 
