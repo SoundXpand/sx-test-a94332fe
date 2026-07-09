@@ -99,9 +99,14 @@ export function LandingHero() {
                 Live on
               </span>
               {platformDots.map((p) => (
-                <span key={p} className="text-[13px] font-medium text-muted-foreground">
-                  {p}
-                </span>
+                <img
+                  key={p.slug}
+                  src={`https://soundxpand.com/assets/images/platforms/${p.slug}.svg`}
+                  alt={p.name}
+                  title={p.name}
+                  loading="lazy"
+                  className="h-5 w-auto opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0"
+                />
               ))}
               <span className="text-[13px] font-medium text-[var(--amber)]">+150 more</span>
             </motion.div>
